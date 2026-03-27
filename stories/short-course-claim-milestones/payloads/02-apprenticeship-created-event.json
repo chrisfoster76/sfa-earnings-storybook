@@ -1,0 +1,30 @@
+{
+  "ApprenticeshipId": 1,
+  "ApprenticeshipHashedId": "",
+  "Uln": 23456734,
+  "ProviderId": 10005077,
+  "LearningType": 2,
+  "DateOfBirth": "2000-01-01T00:00:00Z",
+  "FirstName": "string",
+  "LastName": "string",
+  "IsOnFlexiPaymentPilot": true,
+  "ActualStartDate": "2026-03-25T00:00:00Z",
+  "StartDate": "2026-03-25T00:00:00Z",
+  "EndDate": "2027-03-25T00:00:00Z",
+  "TrainingCode": "21",
+  "TrainingCourseVersion": "",
+  "TrainingCourseOption": "",
+  "TrainingType": 1,
+  "LegalEntityName": "Test Org",
+  "AccountLegalEntityId": 1,
+  "AccountId": 1,
+  "PriceEpisodes": [
+    {
+      "Cost": 3000,
+      "EndPointAssessmentPrice": 0,
+      "TrainingPrice": 3000,
+      "FromDate": "2026-03-25T00:00:00Z",
+      "ToDate": "2027-03-25T00:00:00Z"
+    }
+  ]
+}
