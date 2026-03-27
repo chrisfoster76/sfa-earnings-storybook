@@ -55,8 +55,9 @@ Stories live in `stories/<story-name>/story.json`. Each story has a name, descri
 
 | Story | Description |
 |---|---|
-| **Short Course** | Creates a short course with both milestones on POST, then fires the approval event |
-| **Short Course - Claim Milestones** | Creates a short course with no milestones, approves it, then claims both milestones via PUT |
+| **Short Course** | Creates a short course claiming `ThirtyPercentLearningComplete` on POST, then fires the approval event |
+| **Short Course - Claim Milestones** | Creates a short course with no milestones, approves it, then claims `ThirtyPercentLearningComplete` via PUT |
+| **Short Course - Completion** | Creates a short course with no milestones, approves it, claims `ThirtyPercentLearningComplete`, then completes it via PUT with `completionDate` |
 
 ### Step Types
 
