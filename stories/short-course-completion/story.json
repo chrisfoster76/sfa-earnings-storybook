@@ -1,6 +1,6 @@
 {
-  "name": "Short Course - Claim Milestones",
-  "description": "Creates a short course with no milestones, approves it, then claims ThirtyPercentLearningComplete via PUT",
+  "name": "Short Course - Completion",
+  "description": "Creates a short course with no milestones, approves it, claims 30% milestone, then completes via PUT with completionDate",
   "wipeOnRun": true,
   "steps": [
     {
@@ -27,10 +27,17 @@
       }
     },
     {
-      "name": "SLD Claims Both Milestones",
+      "name": "SLD Claims 30% Milestone",
       "verb": "PUT",
       "route": "/providers/10005077/shortCourses/{learningKey}",
-      "payloadFile": "04-put-short-course.json",
+      "payloadFile": "04-put-thirty-percent.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Claims Completion",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "payloadFile": "05-put-completion.json",
       "extract": {}
     }
   ]

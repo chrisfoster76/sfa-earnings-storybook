@@ -1,6 +1,6 @@
 {
   "name": "Short Course",
-  "description": "Creates a short course with both milestones on POST, then fires the approval event",
+  "description": "Creates a short course claiming ThirtyPercentLearningComplete on POST, then fires the approval event",
   "wipeOnRun": true,
   "steps": [
     {
