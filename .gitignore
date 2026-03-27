@@ -1,5 +1,7 @@
 # User-specific settings (connection strings, secrets)
-appsettings.development.json
+appsettings.json
+appsettings.*.json
+!appsettings.example.json
 
 # Build output
 bin/
