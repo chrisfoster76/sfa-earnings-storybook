@@ -60,6 +60,7 @@ Commands must be run from `C:\code\sfa\misc\sfa-earnings-storybook`. Per-story c
 | Short Course | `dotnet run -- short-course` |
 | Short Course - Claim Milestones | `dotnet run -- short-course-claim-milestones` |
 | Short Course - Completion | `dotnet run -- short-course-completion` |
+| Short Course - Withdrawal | `dotnet run -- short-course-withdrawal` |
 
 ## Stories
 
@@ -72,6 +73,7 @@ Stories live in `stories/<story-name>/story.json`. Each story has a name, descri
 | `short-course` | Short Course | Creates a short course claiming `ThirtyPercentLearningComplete` on POST, then fires the approval event |
 | `short-course-claim-milestones` | Short Course - Claim Milestones | Creates a short course with no milestones, approves it, then claims `ThirtyPercentLearningComplete` via PUT |
 | `short-course-completion` | Short Course - Completion | Creates a short course with no milestones, approves it, claims `ThirtyPercentLearningComplete`, then completes it via PUT with `completionDate` |
+| `short-course-withdrawal` | Short Course - Withdrawal | Creates a short course with no milestones, approves it, then withdraws the learner via PUT with `withdrawalDate` |
 
 ### Step Types
 
