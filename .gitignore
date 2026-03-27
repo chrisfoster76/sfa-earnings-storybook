@@ -1,0 +1,13 @@
+# User-specific settings (connection strings, secrets)
+appsettings.development.json
+
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+
+# Rider
+.idea/
