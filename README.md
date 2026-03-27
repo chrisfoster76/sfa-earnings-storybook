@@ -47,17 +47,31 @@ dotnet run
 
 You'll be presented with a menu of available stories to choose from.
 
+To run a specific story directly from the command line, pass its id as an argument:
+
+```bash
+dotnet run -- short-course-completion
+```
+
+Commands must be run from `C:\code\sfa\misc\sfa-earnings-storybook`. Per-story commands:
+
+| Story | Command |
+|---|---|
+| Short Course | `dotnet run -- short-course` |
+| Short Course - Claim Milestones | `dotnet run -- short-course-claim-milestones` |
+| Short Course - Completion | `dotnet run -- short-course-completion` |
+
 ## Stories
 
 Stories live in `stories/<story-name>/story.json`. Each story has a name, description, optional database wipe on run, and a list of steps.
 
 ### Available Stories
 
-| Story | Description |
-|---|---|
-| **Short Course** | Creates a short course claiming `ThirtyPercentLearningComplete` on POST, then fires the approval event |
-| **Short Course - Claim Milestones** | Creates a short course with no milestones, approves it, then claims `ThirtyPercentLearningComplete` via PUT |
-| **Short Course - Completion** | Creates a short course with no milestones, approves it, claims `ThirtyPercentLearningComplete`, then completes it via PUT with `completionDate` |
+| ID | Name | Description |
+|---|---|---|
+| `short-course` | Short Course | Creates a short course claiming `ThirtyPercentLearningComplete` on POST, then fires the approval event |
+| `short-course-claim-milestones` | Short Course - Claim Milestones | Creates a short course with no milestones, approves it, then claims `ThirtyPercentLearningComplete` via PUT |
+| `short-course-completion` | Short Course - Completion | Creates a short course with no milestones, approves it, claims `ThirtyPercentLearningComplete`, then completes it via PUT with `completionDate` |
 
 ### Step Types
 

@@ -22,6 +22,31 @@ if (!string.IsNullOrWhiteSpace(appConfig.ServiceBusNamespace))
 
 var runner = new StoryRunner(appConfig, endpointInstance);
 
+if (args.Length > 0)
+{
+    var storyId = args[0];
+    var stories = loader.LoadAll();
+    var entry = stories.FirstOrDefault(s => s.Id == storyId);
+
+    if (entry is null)
+    {
+        Console.WriteLine($"No story found with id '{storyId}'.");
+        Console.WriteLine($"Available ids: {string.Join(", ", stories.Select(s => s.Id))}");
+        if (endpointInstance is not null)
+            await endpointInstance.Stop().ConfigureAwait(false);
+        return;
+    }
+
+    PrintHeader();
+    if (entry.Story.WipeOnRun)
+        await wiper.WipeAllAsync();
+    await runner.RunAsync(entry);
+
+    if (endpointInstance is not null)
+        await endpointInstance.Stop().ConfigureAwait(false);
+    return;
+}
+
 Console.Clear();
 PrintHeader();
 
@@ -41,7 +66,7 @@ while (true)
         var s = stories[i].Story;
         var desc = string.IsNullOrWhiteSpace(s.Description) ? "" : $"  —  {s.Description}";
         var wipeIndicator = s.WipeOnRun ? "" : "  [no wipe]";
-        Console.WriteLine($"  {i + 1}. {s.Name}{desc}{wipeIndicator}");
+        Console.WriteLine($"  {i + 1}. {s.Name}  [{stories[i].Id}]{desc}{wipeIndicator}");
     }
     Console.WriteLine("  Q. Quit");
     Console.WriteLine();

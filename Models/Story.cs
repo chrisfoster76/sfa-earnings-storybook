@@ -8,4 +8,7 @@ public class Story
     public List<Step> Steps { get; set; } = [];
 }
 
-public record StoryEntry(Story Story, string FolderPath);
+public record StoryEntry(Story Story, string FolderPath)
+{
+    public string Id => Path.GetFileName(FolderPath);
+}
