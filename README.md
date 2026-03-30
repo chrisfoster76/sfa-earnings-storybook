@@ -53,6 +53,35 @@ To run a specific story directly from the command line, pass its id as an argume
 dotnet run -- short-course-completion
 ```
 
+### Wipe
+
+Wipe the databases without running a story:
+
+```bash
+dotnet run -- wipe
+```
+
+### Adhoc Mode
+
+Run a single step interactively, without a pre-defined story. Steps are defined as JSON files in the `adhoc/` folder. Context (e.g. extracted `learningKey`) is automatically persisted to `adhoc/context.json` between invocations, so values from one step are available via `{variableName}` templating in subsequent steps.
+
+```bash
+dotnet run -- adhoc step.json
+```
+
+The adhoc step format is the same as a story step, but with an inline `body` instead of a `payloadFile`:
+
+```json
+{
+  "name": "Create a short course learner",
+  "verb": "POST",
+  "route": "/providers/10005077/shortCourses",
+  "body": { ... }
+}
+```
+
+All step types are supported (`Http`, `Event`, `Sql`). To reset context between sessions, delete `adhoc/context.json`.
+
 Commands must be run from `C:\code\sfa\misc\sfa-earnings-storybook`. Per-story commands:
 
 | Story | Command |

@@ -37,9 +37,9 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
             var success = step.Type.ToUpperInvariant() switch
             {
-                "EVENT" => await RunEventStepAsync(stepNum, step, entry),
-                "SQL"   => await RunSqlStepAsync(stepNum, step, entry, context),
-                _       => await RunHttpStepAsync(stepNum, step, entry, http, context)
+                "EVENT" => await RunEventStepAsync(stepNum, step, entry.FolderPath),
+                "SQL"   => await RunSqlStepAsync(stepNum, step, entry.FolderPath, context),
+                _       => await RunHttpStepAsync(stepNum, step, entry.FolderPath, http, context)
             };
 
             if (!success)
@@ -59,18 +59,58 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
         Console.ResetColor();
     }
 
+    // ── Adhoc entry point ────────────────────────────────────────────────────
+
+    public async Task RunAdhocStepAsync(Step step, string adhocFolder, Dictionary<string, string> context)
+    {
+        Console.WriteLine($"Adhoc: {step.Name}");
+        Console.WriteLine(new string('─', 50));
+
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+        using var http = new HttpClient(handler) { BaseAddress = new Uri(config.BaseUrl) };
+
+        var success = step.Type.ToUpperInvariant() switch
+        {
+            "EVENT" => await RunEventStepAsync(1, step, adhocFolder),
+            "SQL"   => await RunSqlStepAsync(1, step, adhocFolder, context),
+            _       => await RunHttpStepAsync(1, step, adhocFolder, http, context)
+        };
+
+        if (success)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("\n  Step completed successfully.");
+            Console.ResetColor();
+        }
+
+        if (step.DelayMs > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine($"     waiting {step.DelayMs}ms...");
+            Console.ResetColor();
+            await Task.Delay(step.DelayMs);
+        }
+    }
+
     // ── HTTP step ────────────────────────────────────────────────────────────
 
     private async Task<bool> RunHttpStepAsync(
-        int stepNum, Step step, StoryEntry entry,
+        int stepNum, Step step, string folderPath,
         HttpClient http, Dictionary<string, string> context)
     {
         var route = ResolveTemplate(step.Route, context);
         string? body = null;
 
-        if (step.PayloadFile is not null)
+        if (step.Body is not null)
         {
-            var payloadPath = Path.Combine(entry.FolderPath, "payloads", step.PayloadFile);
+            body = ResolveTemplate(step.Body.ToString(Newtonsoft.Json.Formatting.None), context);
+        }
+        else if (step.PayloadFile is not null)
+        {
+            var payloadPath = Path.Combine(folderPath, "payloads", step.PayloadFile);
             if (!File.Exists(payloadPath))
             {
                 PrintError($"Payload file not found: {payloadPath}");
@@ -104,7 +144,7 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
     // ── Event step ───────────────────────────────────────────────────────────
 
-    private async Task<bool> RunEventStepAsync(int stepNum, Step step, StoryEntry entry)
+    private async Task<bool> RunEventStepAsync(int stepNum, Step step, string folderPath)
     {
         if (endpointInstance is null)
         {
@@ -126,9 +166,13 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
         }
 
         string? payload = null;
-        if (step.PayloadFile is not null)
+        if (step.Body is not null)
         {
-            var payloadPath = Path.Combine(entry.FolderPath, "payloads", step.PayloadFile);
+            payload = step.Body.ToString(Newtonsoft.Json.Formatting.None);
+        }
+        else if (step.PayloadFile is not null)
+        {
+            var payloadPath = Path.Combine(folderPath, "payloads", step.PayloadFile);
             if (!File.Exists(payloadPath))
             {
                 PrintError($"Payload file not found: {payloadPath}");
@@ -159,7 +203,7 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
     // ── SQL step ─────────────────────────────────────────────────────────────
 
-    private async Task<bool> RunSqlStepAsync(int stepNum, Step step, StoryEntry entry, Dictionary<string, string> context)
+    private async Task<bool> RunSqlStepAsync(int stepNum, Step step, string folderPath, Dictionary<string, string> context)
     {
         if (string.IsNullOrWhiteSpace(step.ConnectionName) || !config.Connections.TryGetValue(step.ConnectionName, out var connectionString))
         {
@@ -170,7 +214,7 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
         string? query = step.Query;
         if (step.QueryFile is not null)
         {
-            var queryPath = Path.Combine(entry.FolderPath, "payloads", step.QueryFile);
+            var queryPath = Path.Combine(folderPath, "payloads", step.QueryFile);
             if (!File.Exists(queryPath))
             {
                 PrintError($"Query file not found: {queryPath}");

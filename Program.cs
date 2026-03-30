@@ -1,6 +1,7 @@
 using LearnerDataStorybook.Models;
 using LearnerDataStorybook.Services;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using NServiceBus;
 
 var config = new ConfigurationBuilder()
@@ -24,6 +25,59 @@ var runner = new StoryRunner(appConfig, endpointInstance);
 
 if (args.Length > 0)
 {
+    var command = args[0].ToLowerInvariant();
+
+    if (command == "wipe")
+    {
+        PrintHeader();
+        await wiper.WipeAllAsync();
+        if (endpointInstance is not null)
+            await endpointInstance.Stop().ConfigureAwait(false);
+        return;
+    }
+
+    if (command == "adhoc")
+    {
+        if (args.Length < 2)
+        {
+            Console.WriteLine("Usage: dotnet run -- adhoc <filename>");
+            if (endpointInstance is not null)
+                await endpointInstance.Stop().ConfigureAwait(false);
+            return;
+        }
+
+        var adhocFolder = Path.Combine(Directory.GetCurrentDirectory(), "adhoc");
+        var adhocFile = Path.Combine(adhocFolder, args[1]);
+        var contextFile = Path.Combine(adhocFolder, "context.json");
+
+        if (!File.Exists(adhocFile))
+        {
+            Console.WriteLine($"Adhoc file not found: {adhocFile}");
+            if (endpointInstance is not null)
+                await endpointInstance.Stop().ConfigureAwait(false);
+            return;
+        }
+
+        var context = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (File.Exists(contextFile))
+        {
+            var saved = JsonConvert.DeserializeObject<Dictionary<string, string>>(await File.ReadAllTextAsync(contextFile));
+            if (saved is not null) context = saved;
+        }
+
+        PrintHeader();
+
+        var step = JsonConvert.DeserializeObject<Step>(await File.ReadAllTextAsync(adhocFile))!;
+        await runner.RunAdhocStepAsync(step, adhocFolder, context);
+
+        Directory.CreateDirectory(adhocFolder);
+        await File.WriteAllTextAsync(contextFile, JsonConvert.SerializeObject(context, Formatting.Indented));
+
+        if (endpointInstance is not null)
+            await endpointInstance.Stop().ConfigureAwait(false);
+        return;
+    }
+
     var storyId = args[0];
     var stories = loader.LoadAll();
     var entry = stories.FirstOrDefault(s => s.Id == storyId);

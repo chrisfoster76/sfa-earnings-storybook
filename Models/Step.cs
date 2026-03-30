@@ -1,3 +1,5 @@
+using Newtonsoft.Json.Linq;
+
 namespace LearnerDataStorybook.Models;
 
 public class Step
@@ -36,4 +38,6 @@ public class Step
     // ── Shared ───────────────────────────────────────────────────────────
     /// <summary>Filename relative to the story's payloads/ folder.</summary>
     public string? PayloadFile { get; set; }
+    /// <summary>Inline JSON body. Takes precedence over PayloadFile. Used in adhoc steps.</summary>
+    public JToken? Body { get; set; }
 }
