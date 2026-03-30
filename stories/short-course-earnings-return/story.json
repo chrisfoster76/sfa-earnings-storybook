@@ -1,0 +1,63 @@
+{
+  "name": "Short Course - Earnings Return Scenarios",
+  "description": "POSTs one learner per FLP-1673 scenario. Dates: 25/26 = 2025-08-01 to 2026-07-31, 24/25 = 2024-08-01 to 2025-07-31. Actual end dates use completionDate. Verify SLD return manually.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Scenario 1: Start 25/26, Planned 25/26, No end date → Return YES",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-scenario-1.json",
+      "extract": {}
+    },
+    {
+      "name": "Scenario 2: Start 25/26, Planned 25/26, Completed 25/26 → Return YES",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "02-scenario-2.json",
+      "extract": {}
+    },
+    {
+      "name": "Scenario 3: Start 24/25, Planned 24/25, No end date → Return YES",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "03-scenario-3.json",
+      "extract": {}
+    },
+    {
+      "name": "Scenario 4: Start 24/25, Planned 24/25, Completed 24/25 → Return NO",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "04-scenario-4.json",
+      "extract": {}
+    },
+    {
+      "name": "Scenario 5: Start 24/25, Planned 25/26, Completed 24/25 → Return NO",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "05-scenario-5.json",
+      "extract": {}
+    },
+    {
+      "name": "Scenario 6: Start 24/25, Planned 24/25, Completed 25/26 → Return YES",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "06-scenario-6.json",
+      "extract": {}
+    },
+    {
+      "name": "Scenario 7: Start 24/25, Planned 25/26, Completed 25/26 → Return YES",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "07-scenario-7.json",
+      "extract": {}
+    },
+    {
+      "name": "Scenario 8: Start 24/25, Planned 25/26, No end date → Return YES",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "08-scenario-8.json",
+      "extract": {}
+    }
+  ]
+}

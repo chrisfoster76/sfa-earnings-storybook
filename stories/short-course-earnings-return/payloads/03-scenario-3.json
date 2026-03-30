@@ -1,0 +1,29 @@
+{
+  "consumerReference": "testing",
+  "learner": {
+    "uln": 1000000003,
+    "learnerRef": "string",
+    "firstname": "Scenario",
+    "lastname": "Three",
+    "dob": "2003-09-06",
+    "email": "scenario3@test.com",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "onProgramme": [
+      {
+        "courseCode": "ZSC00001",
+        "agreementId": "123",
+        "startDate": "2024-08-01",
+        "expectedEndDate": "2025-07-31",
+        "completionDate": null,
+        "withdrawalDate": null,
+        "learningSupport": [],
+        "pauseDate": null,
+        "aimSequenceNumber": 1,
+        "actualEndDate": null,
+        "milestones": []
+      }
+    ]
+  }
+}

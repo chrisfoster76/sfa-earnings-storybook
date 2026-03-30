@@ -1,0 +1,36 @@
+{
+  "name": "Short Course - Deletion",
+  "description": "Creates a short course, approves it, then deletes it via DELETE",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Deletes the Short Course",
+      "verb": "DELETE",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "extract": {}
+    }
+  ]
+}

@@ -61,6 +61,8 @@ Commands must be run from `C:\code\sfa\misc\sfa-earnings-storybook`. Per-story c
 | Short Course - Claim Milestones | `dotnet run -- short-course-claim-milestones` |
 | Short Course - Completion | `dotnet run -- short-course-completion` |
 | Short Course - Withdrawal | `dotnet run -- short-course-withdrawal` |
+| Short Course - Earnings Return Scenarios | `dotnet run -- short-course-earnings-return` |
+| Short Course - Deletion | `dotnet run -- short-course-deletion` |
 
 ## Stories
 
@@ -74,6 +76,8 @@ Stories live in `stories/<story-name>/story.json`. Each story has a name, descri
 | `short-course-claim-milestones` | Short Course - Claim Milestones | Creates a short course with no milestones, approves it, then claims `ThirtyPercentLearningComplete` via PUT |
 | `short-course-completion` | Short Course - Completion | Creates a short course with no milestones, approves it, claims `ThirtyPercentLearningComplete`, then completes it via PUT with `completionDate` |
 | `short-course-withdrawal` | Short Course - Withdrawal | Creates a short course with no milestones, approves it, then withdraws the learner via PUT with `withdrawalDate` |
+| `short-course-earnings-return` | Short Course - Earnings Return Scenarios | POSTs 8 learners covering all FLP-1673 scenarios for whether earnings are returned to SLD for 25/26 |
+| `short-course-deletion` | Short Course - Deletion | Creates a short course, approves it, then deletes it via DELETE |
 
 ### Step Types
 
