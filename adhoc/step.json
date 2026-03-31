@@ -1,16 +1,16 @@
 {
-  "name": "Update Jim Johnson - set learnerRef to JimJo",
-  "verb": "PUT",
-  "route": "/providers/10005077/shortCourses/{learningKey}",
+  "name": "Create short course learner - Leon Nash (Provider 10005077)",
+  "verb": "POST",
+  "route": "/providers/{ukprn}/shortCourses",
   "body": {
     "consumerReference": "testing",
     "learner": {
-      "uln": 99999999,
-      "learnerRef": "JimJo",
-      "firstname": "Jim",
-      "lastname": "Johnson",
-      "dob": "2007-09-01",
-      "email": "jim.johnson@test.com",
+      "uln": 22222222,
+      "learnerRef": "LN001",
+      "firstname": "Leon",
+      "lastname": "Nash",
+      "dob": "2003-04-17",
+      "email": "leon.nash@test.com",
       "hasEhcp": false
     },
     "delivery": {
@@ -18,15 +18,15 @@
         {
           "courseCode": "ZSC00001",
           "agreementId": "123",
-          "startDate": "2025-11-01",
+          "startDate": "2025-09-01",
           "expectedEndDate": "2026-07-31",
-          "completionDate": "2026-03-01",
+          "completionDate": null,
           "withdrawalDate": null,
           "learningSupport": [],
           "pauseDate": null,
           "aimSequenceNumber": 1,
           "actualEndDate": null,
-          "milestones": [ "ThirtyPercentLearningComplete" ]
+          "milestones": []
         }
       ]
     }

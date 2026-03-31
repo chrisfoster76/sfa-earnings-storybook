@@ -31,6 +31,12 @@ if (args.Length > 0)
     {
         PrintHeader();
         await wiper.WipeAllAsync();
+        var contextFile = Path.Combine(Directory.GetCurrentDirectory(), "adhoc", "context.json");
+        if (File.Exists(contextFile))
+        {
+            File.Delete(contextFile);
+            Console.WriteLine("  Adhoc context cleared.");
+        }
         if (endpointInstance is not null)
             await endpointInstance.Stop().ConfigureAwait(false);
         return;

@@ -37,9 +37,10 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
             var success = step.Type.ToUpperInvariant() switch
             {
-                "EVENT" => await RunEventStepAsync(stepNum, step, entry.FolderPath),
-                "SQL"   => await RunSqlStepAsync(stepNum, step, entry.FolderPath, context),
-                _       => await RunHttpStepAsync(stepNum, step, entry.FolderPath, http, context)
+                "EVENT"   => await RunEventStepAsync(stepNum, step, entry.FolderPath),
+                "SQL"     => await RunSqlStepAsync(stepNum, step, entry.FolderPath, context),
+                "CONTEXT" => RunContextStep(stepNum, step, context),
+                _         => await RunHttpStepAsync(stepNum, step, entry.FolderPath, http, context)
             };
 
             if (!success)
@@ -74,9 +75,10 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
         var success = step.Type.ToUpperInvariant() switch
         {
-            "EVENT" => await RunEventStepAsync(1, step, adhocFolder),
-            "SQL"   => await RunSqlStepAsync(1, step, adhocFolder, context),
-            _       => await RunHttpStepAsync(1, step, adhocFolder, http, context)
+            "EVENT"   => await RunEventStepAsync(1, step, adhocFolder),
+            "SQL"     => await RunSqlStepAsync(1, step, adhocFolder, context),
+            "CONTEXT" => RunContextStep(1, step, context),
+            _         => await RunHttpStepAsync(1, step, adhocFolder, http, context)
         };
 
         if (success)
@@ -93,6 +95,21 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
             Console.ResetColor();
             await Task.Delay(step.DelayMs);
         }
+    }
+
+    // ── Context step ─────────────────────────────────────────────────────────
+
+    private bool RunContextStep(int stepNum, Step step, Dictionary<string, string> context)
+    {
+        Console.WriteLine($"  {stepNum}. {step.Name}");
+        foreach (var (key, value) in step.Values)
+        {
+            context[key] = value;
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine($"     {key} = {value}");
+            Console.ResetColor();
+        }
+        return true;
     }
 
     // ── HTTP step ────────────────────────────────────────────────────────────

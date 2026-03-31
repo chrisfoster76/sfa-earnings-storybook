@@ -55,7 +55,7 @@ dotnet run -- short-course-completion
 
 ### Wipe
 
-Wipe the databases without running a story:
+Wipe the databases without running a story. Also clears `adhoc/context.json` so stale context doesn't carry over into a new session:
 
 ```bash
 dotnet run -- wipe
@@ -80,7 +80,17 @@ The adhoc step format is the same as a story step, but with an inline `body` ins
 }
 ```
 
-All step types are supported (`Http`, `Event`, `Sql`). To reset context between sessions, delete `adhoc/context.json`.
+All step types are supported (`Http`, `Event`, `Sql`). Context is automatically cleared when you run `dotnet run -- wipe`.
+
+### Multiple Providers
+
+The UKPRN is templated into routes as `{ukprn}`. Use a Context step to set or switch it:
+
+```bash
+dotnet run -- adhoc step.json  # step.json sets type=Context, values: { "ukprn": "20009999" }
+```
+
+The same learner (by ULN) can exist under multiple providers simultaneously. Switch provider mid-story or mid-adhoc session with another Context step.
 
 Commands must be run from `C:\code\sfa\misc\sfa-earnings-storybook`. Per-story commands:
 
@@ -153,6 +163,18 @@ Executes a SQL query against a named connection and optionally extracts column v
   "extract": {
     "learningKey": "LearningKey"
   }
+}
+```
+
+#### Context
+
+Sets key/value pairs directly into the run context. Useful for seeding variables like `ukprn` at the start of a story, or switching them mid-story.
+
+```json
+{
+  "name": "Set provider to Provider A",
+  "type": "Context",
+  "values": { "ukprn": "10005077" }
 }
 ```
 

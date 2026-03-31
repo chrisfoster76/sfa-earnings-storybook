@@ -35,6 +35,10 @@ public class Step
     /// <summary>Filename relative to the story's payloads/ folder. Takes precedence over Query.</summary>
     public string? QueryFile { get; set; }
 
+    // ── Context step properties ──────────────────────────────────────────
+    /// <summary>Key/value pairs to set directly in the run context. Used with type "Context".</summary>
+    public Dictionary<string, string> Values { get; set; } = [];
+
     // ── Shared ───────────────────────────────────────────────────────────
     /// <summary>Filename relative to the story's payloads/ folder.</summary>
     public string? PayloadFile { get; set; }
