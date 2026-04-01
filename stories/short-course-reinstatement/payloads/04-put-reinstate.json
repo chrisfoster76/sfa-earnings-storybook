@@ -1,0 +1,29 @@
+{
+  "consumerReference": "testing",
+  "learner": {
+    "uln": 33333333,
+    "learnerRef": "MP001",
+    "firstname": "Maya",
+    "lastname": "Patel",
+    "dob": "2005-11-14",
+    "email": "maya.patel@test.com",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "onProgramme": [
+      {
+        "courseCode": "ZSC00001",
+        "agreementId": "456",
+        "startDate": "2025-11-01",
+        "expectedEndDate": "2026-08-31",
+        "completionDate": null,
+        "withdrawalDate": null,
+        "learningSupport": [],
+        "pauseDate": null,
+        "aimSequenceNumber": 1,
+        "actualEndDate": null,
+        "milestones": []
+      }
+    ]
+  }
+}

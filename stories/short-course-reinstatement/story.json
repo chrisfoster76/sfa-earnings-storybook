@@ -1,0 +1,40 @@
+{
+  "name": "Short Course - Reinstatement",
+  "description": "Creates a short course, approves it, deletes it, then reinstates it by PUTting with withdrawalDate: null",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates the Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json"
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Deletes the Short Course",
+      "verb": "DELETE",
+      "route": "/providers/10005077/shortCourses/{learningKey}"
+    },
+    {
+      "name": "SLD Reinstates the Short Course (withdrawalDate: null)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "payloadFile": "04-put-reinstate.json"
+    }
+  ]
+}

@@ -102,6 +102,7 @@ Commands must be run from `C:\code\sfa\misc\sfa-earnings-storybook`. Per-story c
 | Short Course - Withdrawal | `dotnet run -- short-course-withdrawal` |
 | Short Course - Earnings Return Scenarios | `dotnet run -- short-course-earnings-return` |
 | Short Course - Deletion | `dotnet run -- short-course-deletion` |
+| Short Course - Reinstatement | `dotnet run -- short-course-reinstatement` |
 
 ## Stories
 
@@ -117,6 +118,7 @@ Stories live in `stories/<story-name>/story.json`. Each story has a name, descri
 | `short-course-withdrawal` | Short Course - Withdrawal | Creates a short course with no milestones, approves it, then withdraws the learner via PUT with `withdrawalDate` |
 | `short-course-earnings-return` | Short Course - Earnings Return Scenarios | POSTs 8 learners covering all FLP-1673 scenarios for whether earnings are returned to SLD for 25/26 |
 | `short-course-deletion` | Short Course - Deletion | Creates a short course, approves it, then deletes it via DELETE |
+| `short-course-reinstatement` | Short Course - Reinstatement | Creates a short course, approves it, deletes it, then reinstates it by PUTting with `withdrawalDate: null` |
 
 ### Step Types
 

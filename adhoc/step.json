@@ -1,16 +1,16 @@
 {
-  "name": "Create short course learner - Leon Nash (Provider 10005077)",
-  "verb": "POST",
-  "route": "/providers/{ukprn}/shortCourses",
+  "name": "Withdraw John Smith at midpoint",
+  "verb": "PUT",
+  "route": "/providers/{ukprn}/shortCourses/{learningKey}",
   "body": {
     "consumerReference": "testing",
     "learner": {
-      "uln": 22222222,
-      "learnerRef": "LN001",
-      "firstname": "Leon",
-      "lastname": "Nash",
-      "dob": "2003-04-17",
-      "email": "leon.nash@test.com",
+      "uln": 23456734,
+      "learnerRef": "string",
+      "firstname": "John",
+      "lastname": "Smith",
+      "dob": "2003-09-06",
+      "email": "john.smith@test.com",
       "hasEhcp": false
     },
     "delivery": {
@@ -18,15 +18,15 @@
         {
           "courseCode": "ZSC00001",
           "agreementId": "123",
-          "startDate": "2025-09-01",
+          "startDate": "2025-08-01",
           "expectedEndDate": "2026-07-31",
           "completionDate": null,
-          "withdrawalDate": null,
+          "withdrawalDate": "2026-02-01",
           "learningSupport": [],
           "pauseDate": null,
           "aimSequenceNumber": 1,
-          "actualEndDate": null,
-          "milestones": []
+          "actualEndDate": "2026-02-01",
+          "milestones": [ "ThirtyPercentLearningComplete" ]
         }
       ]
     }
