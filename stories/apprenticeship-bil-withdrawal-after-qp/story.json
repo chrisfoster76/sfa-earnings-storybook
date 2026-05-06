@@ -1,0 +1,32 @@
+{
+  "name": "App. BiL Withdrawal after QP",
+  "group": "Qualifying Periods",
+  "subGroup": "Return from a Break In Learning",
+  "description": "Creates a 1-year apprenticeship (2024-10-01 to 2025-09-30), then PUTs an update with a break in learning (pause 2025-02-01, resume 2025-05-31). The post-break expected end date is 2026-01-27 (original end 2025-09-30 pushed back by the 119-day break). Learner is withdrawn 43 days after resuming (2025-07-13), which exceeds the 42-day qualifying period — earnings should be retained.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Submits Break In Learning and Withdrawal",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-break-and-withdrawal.json",
+      "extract": {}
+    }
+  ]
+}
