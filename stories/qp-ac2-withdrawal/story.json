@@ -1,7 +1,8 @@
 {
-  "name": "CoC — Qualifying Period — AC1 (month boundary): Retain Earnings (14–167 day course, withdrawn exactly 14 days in, crossing month boundary)",
-  "group": "Change of Circumstance",
-  "description": "Same as AC1 but the apprenticeship starts on the 25th of the month, so the 14-day qualifying window spans April into May. Withdrawal is recorded on exactly day 14 (2026-05-08), which meets the threshold — earnings should be retained. Tests correct day counting across a month boundary. Covers FLP-1424 AC1.",
+  "name": "2: 14-day QP not reached; remove earnings",
+  "group": "Qualifying Periods",
+  "subGroup": "Withdrawal",
+  "description": "Creates an apprenticeship with a 99-day planned duration (14–167 day band, qualifying period = 14 days), approves it, then records a withdrawal after 9 days in learning. Because 9 < 14, earnings for periods prior to the withdrawal date should be removed. Covers FLP-1424 AC2.",
   "wipeOnRun": true,
   "steps": [
     {
@@ -21,7 +22,7 @@
       }
     },
     {
-      "name": "SLD Records Withdrawal (14 days in learning — exactly meets qualifying period, crossing April/May boundary)",
+      "name": "SLD Records Withdrawal (9 days in learning — below 14-day qualifying period)",
       "verb": "PUT",
       "route": "/providers/10005077/learning/{learningKey}",
       "payloadFile": "03-put-withdrawal.json",

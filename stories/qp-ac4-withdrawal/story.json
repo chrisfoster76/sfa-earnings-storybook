@@ -1,7 +1,8 @@
 {
-  "name": "CoC — Qualifying Period — AC2: Remove Earnings (14–167 day course, withdrawn < 14 days in)",
-  "group": "Change of Circumstance",
-  "description": "Creates an apprenticeship with a 99-day planned duration (14–167 day band, qualifying period = 14 days), approves it, then records a withdrawal after 9 days in learning. Because 9 < 14, earnings for periods prior to the withdrawal date should be removed. Covers FLP-1424 AC2.",
+  "name": "4: 42-day QP not reached; remove earnings",
+  "group": "Qualifying Periods",
+  "subGroup": "Withdrawal",
+  "description": "Creates a 2-year apprenticeship (730-day planned duration, qualifying period = 42 days), approves it, then records a withdrawal after 30 days in learning. Because 30 < 42, earnings for periods prior to the withdrawal date should be removed.",
   "wipeOnRun": true,
   "steps": [
     {
@@ -21,7 +22,7 @@
       }
     },
     {
-      "name": "SLD Records Withdrawal (9 days in learning — below 14-day qualifying period)",
+      "name": "SLD Records Withdrawal (30 days in learning — below 42-day qualifying period)",
       "verb": "PUT",
       "route": "/providers/10005077/learning/{learningKey}",
       "payloadFile": "03-put-withdrawal.json",
