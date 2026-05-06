@@ -1,0 +1,32 @@
+{
+  "name": "2: 14-day QP not reached; remove earnings",
+  "group": "Qualifying Periods",
+  "subGroup": "Completion",
+  "description": "Creates an apprenticeship with a 99-day planned duration (14–167 day band, qualifying period = 14 days), approves it, then records a completion after 9 days in learning. Because 9 < 14, earnings for periods prior to the completion date should be removed. Covers FLP-1424 AC2.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Records Completion (9 days in learning — below 14-day qualifying period)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-completion.json",
+      "extract": {}
+    }
+  ]
+}

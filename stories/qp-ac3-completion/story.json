@@ -1,0 +1,32 @@
+{
+  "name": "3: 42-day QP reached; retain earnings",
+  "group": "Qualifying Periods",
+  "subGroup": "Completion",
+  "description": "Creates a 2-year apprenticeship (730-day planned duration, qualifying period = 42 days), approves it, then records a completion after 60 days in learning. Because 30 < 42, earnings for periods prior to the completion date should be removed.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Records Completion (2 months in learning — above 42-day qualifying period)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-completion.json",
+      "extract": {}
+    }
+  ]
+}
