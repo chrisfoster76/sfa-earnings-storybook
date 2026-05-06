@@ -1,0 +1,61 @@
+{
+  "consumerReference": "testing",
+  "learner": {
+    "uln": 44444442,
+    "firstname": "Jamie",
+    "lastname": "Wilson",
+    "dob": "1999-06-20",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "englishAndMaths": [],
+    "onProgramme": [
+      {
+        "standardCode": 21,
+        "learnAimRef": "ZPROG001",
+        "agreementId": "123",
+        "startDate": "2024-10-01",
+        "expectedEndDate": "2025-09-30",
+        "completionDate": null,
+        "withdrawalDate": null,
+        "pauseDate": "2025-02-01",
+        "learningSupport": [],
+        "care": {
+          "careleaver": false,
+          "employerConsent": false
+        },
+        "aimSequenceNumber": 1,
+        "costs": [
+          {
+            "trainingPrice": 12000,
+            "epaoPrice": 3000,
+            "fromDate": "2024-10-01"
+          }
+        ]
+      },
+      {
+        "standardCode": 21,
+        "learnAimRef": "ZPROG001",
+        "agreementId": "123",
+        "startDate": "2025-05-31",
+        "expectedEndDate": "2026-01-27",
+        "completionDate": "2025-07-13",
+        "withdrawalDate": null,
+        "pauseDate": null,
+        "learningSupport": [],
+        "care": {
+          "careleaver": false,
+          "employerConsent": false
+        },
+        "aimSequenceNumber": 1,
+        "costs": [
+          {
+            "trainingPrice": 12000,
+            "epaoPrice": 3000,
+            "fromDate": "2024-10-01"
+          }
+        ]
+      }
+    ]
+  }
+}
