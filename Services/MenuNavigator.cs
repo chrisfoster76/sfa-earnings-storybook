@@ -4,56 +4,35 @@ namespace LearnerDataStorybook.Services;
 
 public class MenuNavigator
 {
-    // ── Tree model ───────────────────────────────────────────────────────────
+    // ── Tree model ────────────────────────────────────────────────────────────
 
     private abstract record Node(string Label);
     private record FolderNode(string Label, List<Node> Children) : Node(Label);
     private record StoryNode(string Label, StoryEntry Entry) : Node(Label);
 
-    // ── Flat display row (built once from the tree) ──────────────────────────
-
-    private record DisplayRow
-    {
-        public string TreePrefix { get; init; } = "";
-        public bool IsFolder { get; init; }
-        public bool IsBlank { get; init; }
-        public string Label { get; init; } = "";
-        public int ChildStoryCount { get; init; }
-        public StoryEntry? Entry { get; init; }
-
-        public static DisplayRow Blank() => new() { IsBlank = true };
-    }
-
-    // ── Constants ────────────────────────────────────────────────────────────
+    // ── Config ────────────────────────────────────────────────────────────────
 
     private static readonly string[] GroupOrder =
         ["Short Course", "Apprenticeship", "Change of Circumstance"];
 
-    // Lines consumed outside the tree viewport:
-    //   header (6) + blank-before-tree (1) + blank-after-tree (1)
-    //   + separator (1) + detail (4) + separator (1) + hints (1) = 15
-    private const int ReservedLines = 15;
+    private const int HeaderRows = 4; // lines consumed by PrintHeader()
+    private const int PanelGap   = 2; // columns between the two boxes
 
-    // ── State ────────────────────────────────────────────────────────────────
+    // ── State ─────────────────────────────────────────────────────────────────
 
-    private readonly List<DisplayRow> _rows;
+    private readonly FolderNode _root;
     private readonly Action _renderHeader;
-    private int _index;
-
-    // ── Construction ─────────────────────────────────────────────────────────
+    private readonly Stack<(FolderNode Folder, int Index)> _stack = new();
 
     public MenuNavigator(List<StoryEntry> stories, Action renderHeader)
     {
         _renderHeader = renderHeader;
-        _rows = BuildDisplayRows(BuildTree(stories));
-        // Start on the first selectable (non-blank, non-folder) row
-        _index = _rows.FindIndex(r => !r.IsBlank && !r.IsFolder);
-        if (_index < 0) _index = 0;
+        _root = BuildTree(stories);
+        _stack.Push((_root, 0));
     }
 
-    // ── Public API ───────────────────────────────────────────────────────────
+    // ── Public API ────────────────────────────────────────────────────────────
 
-    /// <summary>Runs the interactive menu. Returns the chosen story, or null if the user quits.</summary>
     public StoryEntry? Run()
     {
         Render();
@@ -63,18 +42,22 @@ public class MenuNavigator
             switch (key.Key)
             {
                 case ConsoleKey.UpArrow:
-                    Move(-1);
-                    Render();
-                    break;
+                    Scroll(-1); Render(); break;
 
                 case ConsoleKey.DownArrow:
-                    Move(1);
+                    Scroll(1); Render(); break;
+
+                case ConsoleKey.Enter:
+                case ConsoleKey.RightArrow:
+                    var result = Activate();
+                    if (result is not null) return result;
                     Render();
                     break;
 
-                case ConsoleKey.Enter:
-                    if (_rows[_index].Entry is { } entry) return entry;
-                    break;
+                case ConsoleKey.Escape:
+                case ConsoleKey.Backspace:
+                case ConsoleKey.LeftArrow:
+                    Back(); Render(); break;
 
                 case ConsoleKey.Q when key.Modifiers == 0:
                     return null;
@@ -82,212 +65,356 @@ public class MenuNavigator
         }
     }
 
-    // ── Navigation ───────────────────────────────────────────────────────────
+    // ── Navigation ────────────────────────────────────────────────────────────
 
-    private void Move(int delta)
+    private void Scroll(int delta)
     {
-        var next = _index + delta;
-        while (next >= 0 && next < _rows.Count && (_rows[next].IsBlank || _rows[next].IsFolder))
-            next += delta;
-        if (next >= 0 && next < _rows.Count)
-            _index = next;
+        var (folder, idx) = _stack.Pop();
+        _stack.Push((folder, Math.Clamp(idx + delta, 0, folder.Children.Count - 1)));
     }
 
-    // ── Rendering ────────────────────────────────────────────────────────────
+    private StoryEntry? Activate()
+    {
+        var (folder, idx) = _stack.Peek();
+        return folder.Children[idx] switch
+        {
+            FolderNode child => EnterFolder(child),
+            StoryNode story  => story.Entry,
+            _                => null
+        };
+    }
+
+    private StoryEntry? EnterFolder(FolderNode folder)
+    {
+        _stack.Push((folder, 0));
+        return null;
+    }
+
+    private void Back()
+    {
+        if (_stack.Count > 1) _stack.Pop();
+    }
+
+    // ── Rendering ─────────────────────────────────────────────────────────────
 
     private void Render()
     {
         Console.Clear();
         _renderHeader();
 
-        var width = Math.Max(40, Console.WindowWidth - 1);
-        var treeLines = Math.Max(5, Console.WindowHeight - ReservedLines);
+        var totalW  = Math.Max(60, Console.WindowWidth - 1);
+        var leftW   = Math.Clamp(totalW * 2 / 5 + 10, 42, 62);
+        var rightW  = totalW - leftW - PanelGap;
+        var leftInner  = leftW  - 4;   // content cols: box width − 2 borders − 2 padding
+        var rightInner = rightW - 4;
 
-        // Viewport: keep selected row centred
-        var scrollStart = Math.Clamp(_index - treeLines / 2, 0, Math.Max(0, _rows.Count - treeLines));
+        var startRow = HeaderRows;
+        var boxH   = Console.WindowHeight - startRow - 2; // −2: bottom border + hints line
+        var innerH = Math.Max(3, boxH - 2);
 
-        Console.WriteLine();
+        var (folder, selIdx) = _stack.Peek();
+        var scrollTop = Math.Clamp(selIdx - innerH / 2, 0, Math.Max(0, folder.Children.Count - innerH));
 
-        for (int i = scrollStart; i < Math.Min(scrollStart + treeLines, _rows.Count); i++)
+        var rightContent = BuildRightContent(folder, selIdx, rightInner);
+
+        // ── Top borders ───────────────────────────────────────────────────────
+
+        Console.SetCursorPosition(0, startRow);
+        DrawLeftTopBorder(leftW, BuildBreadcrumb());
+
+        Console.SetCursorPosition(leftW + PanelGap, startRow);
+        Console.Write("┌" + new string('─', rightW - 2) + "┐");
+
+        // ── Content rows ──────────────────────────────────────────────────────
+
+        for (int r = 0; r < innerH; r++)
         {
-            var row = _rows[i];
-
-            if (row.IsBlank)
-            {
-                Console.WriteLine();
-                continue;
-            }
-
-            var isSelected = i == _index;
-            if (isSelected) Console.ForegroundColor = ConsoleColor.Cyan;
-
-            var cursor = isSelected ? "►" : " ";
-
-            if (row.IsFolder)
-            {
-                Console.WriteLine($" {cursor} {row.TreePrefix}📁 {row.Label}");
-            }
+            // Left panel
+            Console.SetCursorPosition(0, startRow + 1 + r);
+            Console.Write("│ ");
+            var itemIdx = scrollTop + r;
+            if (itemIdx < folder.Children.Count)
+                RenderItem(folder.Children[itemIdx], itemIdx == selIdx, leftInner);
             else
-            {
-                // Truncate long names to fit the terminal
-                var maxLabel = width - row.TreePrefix.Length - 5;
-                var label = row.Label.Length > maxLabel
-                    ? row.Label[..(maxLabel - 1)] + "…"
-                    : row.Label;
-                var noWipe = row.Entry!.Story.WipeOnRun ? "" : "  [no wipe]";
-                Console.WriteLine($" {cursor} {row.TreePrefix}{label}{noWipe}");
-            }
+                Console.Write(new string(' ', leftInner));
+            Console.Write(" │");
 
-            if (isSelected) Console.ResetColor();
+            // Right panel
+            Console.SetCursorPosition(leftW + PanelGap, startRow + 1 + r);
+            Console.Write("│ ");
+            if (r < rightContent.Count)
+                rightContent[r](rightInner);
+            else
+                Console.Write(new string(' ', rightInner));
+            Console.Write(" │");
         }
 
-        // ── Detail panel ─────────────────────────────────────────────────────
+        // ── Bottom borders ────────────────────────────────────────────────────
 
-        Console.WriteLine();
-        Console.WriteLine(new string('─', width));
+        var bottomRow = startRow + boxH - 1;
+        Console.SetCursorPosition(0, bottomRow);
+        Console.Write("└" + new string('─', leftW - 2) + "┘");
+        Console.SetCursorPosition(leftW + PanelGap, bottomRow);
+        Console.Write("└" + new string('─', rightW - 2) + "┘");
 
-        var sel = _rows[_index];
+        // ── Hints ─────────────────────────────────────────────────────────────
 
-        if (sel.IsFolder)
-        {
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write($"  📁 {sel.Label}");
-            Console.ResetColor();
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"  —  {sel.ChildStoryCount} {(sel.ChildStoryCount == 1 ? "story" : "stories")}");
-            Console.ResetColor();
-        }
-        else if (sel.Entry is { } selectedEntry)
-        {
-            var story = selectedEntry.Story;
-
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"  {story.Name}");
-            Console.ResetColor();
-
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"  {selectedEntry.Id}");
-            Console.ResetColor();
-
-            Console.WriteLine();
-
-            var hasDesc = !string.IsNullOrWhiteSpace(story.Description);
-            var hasExtra = !string.IsNullOrWhiteSpace(story.ExtraDescription);
-
-            if (hasDesc)
-            {
-                Console.ForegroundColor = ConsoleColor.Gray;
-                WriteWrapped(story.Description, width - 4);
-                Console.ResetColor();
-            }
-
-            if (hasExtra)
-            {
-                if (hasDesc) Console.WriteLine();
-                WriteWrapped(story.ExtraDescription, width - 4);
-            }
-
-            if (!hasDesc && !hasExtra)
-            {
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.WriteLine("  (no description)");
-                Console.ResetColor();
-            }
-        }
-
-        Console.WriteLine();
-        Console.WriteLine(new string('─', width));
+        Console.SetCursorPosition(0, startRow + boxH);
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.WriteLine("  ↑/↓ navigate    Enter run story    Q quit");
+        Console.Write("  ↑/↓ navigate    Enter/→ open    ←/Esc back    Q quit");
         Console.ResetColor();
     }
 
-    private static void WriteWrapped(string text, int maxWidth)
+    private static void DrawLeftTopBorder(int boxW, string breadcrumb)
     {
-        var words = text.Split(' ');
-        var line = "  ";
-        foreach (var word in words)
+        if (string.IsNullOrEmpty(breadcrumb))
         {
-            if (line.Length + word.Length + 1 > maxWidth && line.Length > 2)
+            Console.Write("┌" + new string('─', boxW - 2) + "┐");
+            return;
+        }
+
+        // ┌─ breadcrumb ─────┐
+        var maxBcVw  = boxW - 6; // reserve: ┌─ [bc] ─┐ = 6 + bc visual cols
+        var bc       = Vw(breadcrumb) > maxBcVw ? TruncToVw(breadcrumb, maxBcVw - 1) + "…" : breadcrumb;
+        var fill     = Math.Max(0, boxW - 5 - Vw(bc)); // 5 = ┌ ─ space space ┐
+        Console.Write("┌─ " + bc + " " + new string('─', fill) + "┐");
+    }
+
+    // Renders exactly `contentWidth` visual columns for one list item.
+    private static void RenderItem(Node node, bool selected, int contentWidth)
+    {
+        if (selected)
+        {
+            Console.BackgroundColor = ConsoleColor.DarkCyan;
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        Console.Write(" ");                             // 1 col indent (highlighted when selected)
+
+        var icon = node is FolderNode ? "📁" : "📄";
+        Console.Write(icon + " ");                      // 3 visual cols (emoji=2, space=1)
+
+        // Remaining label area = contentWidth − 1 (indent) − 3 (icon) = contentWidth − 4
+        var labelArea = contentWidth - 4;
+        var label     = node.Label;
+
+        if (node is StoryNode { Entry.Story.WipeOnRun: false })
+            label += "  [~]";
+
+        var labelVw = Vw(label);
+        if (labelVw > labelArea)
+        {
+            Console.Write(TruncToVw(label, labelArea - 1));
+            Console.Write("…");
+        }
+        else
+        {
+            Console.Write(label);
+            Console.Write(new string(' ', labelArea - labelVw)); // fill with highlighted bg
+        }
+
+        if (selected) Console.ResetColor();
+    }
+
+    // Builds right-panel content as a list of actions; each writes exactly w cols.
+    private static List<Action<int>> BuildRightContent(FolderNode folder, int selIdx, int contentWidth)
+    {
+        var lines = new List<Action<int>>();
+
+        static Action<int> Blank() =>
+            w => Console.Write(new string(' ', w));
+
+        static Action<int> Styled(string text, ConsoleColor color)
+        {
+            var t = text; var c = color;
+            return w =>
             {
-                Console.WriteLine(line);
-                line = "  " + word;
+                Console.ForegroundColor = c;
+                var vw = Vw(t);
+                if (vw >= w) Console.Write(TruncToVw(t, w));
+                else { Console.Write(t); Console.Write(new string(' ', w - vw)); }
+                Console.ResetColor();
+            };
+        }
+
+        if (selIdx < 0 || selIdx >= folder.Children.Count)
+        {
+            lines.Add(Blank());
+            return lines;
+        }
+
+        var node = folder.Children[selIdx];
+
+        if (node is FolderNode fn)
+        {
+            lines.Add(Styled("📁 " + fn.Label, ConsoleColor.Yellow));
+            var count = CountStories(fn);
+            lines.Add(Styled($"{count} {(count == 1 ? "story" : "stories")}", ConsoleColor.DarkGray));
+            lines.Add(Blank());
+            lines.Add(Styled("Press Enter or → to open", ConsoleColor.DarkGray));
+        }
+        else if (node is StoryNode sn)
+        {
+            var story = sn.Entry.Story;
+            var hasDesc  = !string.IsNullOrWhiteSpace(story.Description);
+            var hasExtra = !string.IsNullOrWhiteSpace(story.ExtraDescription);
+
+            lines.Add(Styled(story.Name, ConsoleColor.Yellow));
+            lines.Add(Styled(sn.Entry.Id, ConsoleColor.DarkGray));
+            lines.Add(Blank());
+
+            if (hasDesc)
+                foreach (var l in Wrap(story.Description, contentWidth))
+                    lines.Add(Styled(l, ConsoleColor.Gray));
+
+            if (hasExtra)
+            {
+                if (hasDesc) lines.Add(Blank());
+                foreach (var l in Wrap(story.ExtraDescription, contentWidth))
+                    lines.Add(Styled(l, ConsoleColor.Gray));
             }
-            else
+
+            if (!hasDesc && !hasExtra)
+                lines.Add(Styled("(no description)", ConsoleColor.DarkGray));
+
+            var steps = story.Steps.Where(s => !s.Disabled).ToList();
+            if (steps.Count > 0)
             {
-                if (line.Length > 2) line += " ";
-                line += word;
+                lines.Add(Blank());
+                lines.Add(StepSeparator("Steps", contentWidth));
+                foreach (var step in steps)
+                    lines.Add(StepLine(step, contentWidth));
             }
         }
-        if (line.Length > 2) Console.WriteLine(line);
+
+        return lines;
+    }
+
+    // ── Step rendering ────────────────────────────────────────────────────────
+
+    // "── Steps ──────────" separator line, exactly w cols.
+    private static Action<int> StepSeparator(string label, int contentWidth)
+    {
+        var text = $"── {label} " + new string('─', Math.Max(0, contentWidth - label.Length - 5));
+        return w =>
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            var vw = Vw(text);
+            if (vw >= w) Console.Write(TruncToVw(text, w));
+            else { Console.Write(text); Console.Write(new string(' ', w - vw)); }
+            Console.ResetColor();
+        };
+    }
+
+    // One step line: icon + badge + name, exactly w cols.
+    private static Action<int> StepLine(Models.Step step, int contentWidth)
+    {
+        var s = step;
+        // icon (1 col) + space (1) + badge padded to 6 + space (1) = 9 cols before name
+        const int prefixCols = 9;
+        return w =>
+        {
+            var (icon, iconColor, badge) = StepBadge(s);
+
+            Console.ForegroundColor = iconColor;
+            Console.Write(icon + " "); // 2 cols
+            Console.Write(badge.PadRight(6) + " "); // 7 cols
+            Console.ResetColor();
+
+            // name in the remaining width
+            var nameWidth = Math.Max(1, w - prefixCols);
+            var name = s.Name;
+            Console.ForegroundColor = ConsoleColor.Gray;
+            var vw = Vw(name);
+            if (vw > nameWidth) { Console.Write(TruncToVw(name, nameWidth - 1)); Console.Write("…"); }
+            else { Console.Write(name); Console.Write(new string(' ', nameWidth - vw)); }
+            Console.ResetColor();
+        };
+    }
+
+    private static (string icon, ConsoleColor color, string badge) StepBadge(Models.Step step) =>
+        step.Type.ToUpperInvariant() switch
+        {
+            "EVENT"   => ("◉", ConsoleColor.Yellow,  "EVENT"),
+            "SQL"     => ("◆", ConsoleColor.Magenta, "SQL"),
+            "CONTEXT" => ("·", ConsoleColor.DarkGray,"CTX"),
+            _ => step.Verb.ToUpperInvariant() switch     // Http
+            {
+                "POST"   => ("▲", ConsoleColor.Green,   "POST"),
+                "PUT"    => ("◈", ConsoleColor.Cyan,    "PUT"),
+                "PATCH"  => ("◈", ConsoleColor.Cyan,    "PATCH"),
+                "GET"    => ("▼", ConsoleColor.DarkGray,"GET"),
+                "DELETE" => ("■", ConsoleColor.Red,     "DELETE"),
+                _        => ("→", ConsoleColor.Gray,    step.Verb),
+            }
+        };
+
+    // ── String/width helpers ──────────────────────────────────────────────────
+
+    private string BuildBreadcrumb() =>
+        string.Join(" › ", _stack.Reverse()
+            .Select(s => s.Folder.Label)
+            .Where(l => !string.IsNullOrEmpty(l)));
+
+    private static List<string> Wrap(string text, int maxVw)
+    {
+        var lines = new List<string>();
+        var line  = "";
+        foreach (var word in text.Split(' '))
+        {
+            var candidate = line.Length == 0 ? word : line + " " + word;
+            if (Vw(candidate) > maxVw)
+            {
+                if (line.Length > 0) lines.Add(line);
+                line = word;
+            }
+            else line = candidate;
+        }
+        if (line.Length > 0) lines.Add(line);
+        return lines;
+    }
+
+    // Visual (terminal column) width: surrogate pairs (emoji) = 2, everything else = 1.
+    private static int Vw(string s)
+    {
+        int w = 0, i = 0;
+        while (i < s.Length)
+        {
+            if (char.IsHighSurrogate(s[i]) && i + 1 < s.Length && char.IsLowSurrogate(s[i + 1]))
+            { w += 2; i += 2; }
+            else { w += 1; i += 1; }
+        }
+        return w;
+    }
+
+    // Truncate string to at most maxVw visual columns (no padding).
+    private static string TruncToVw(string s, int maxVw)
+    {
+        var sb = new System.Text.StringBuilder();
+        int w = 0, i = 0;
+        while (i < s.Length)
+        {
+            int cw, adv;
+            if (char.IsHighSurrogate(s[i]) && i + 1 < s.Length && char.IsLowSurrogate(s[i + 1]))
+            { cw = 2; adv = 2; }
+            else { cw = 1; adv = 1; }
+            if (w + cw > maxVw) break;
+            sb.Append(s, i, adv); w += cw; i += adv;
+        }
+        return sb.ToString();
     }
 
     // ── Tree building ─────────────────────────────────────────────────────────
 
-    private static List<DisplayRow> BuildDisplayRows(FolderNode root)
-    {
-        var rows = new List<DisplayRow>();
-        var first = true;
-        foreach (var child in root.Children)
-        {
-            if (child is not FolderNode group) continue;
-            if (!first) rows.Add(DisplayRow.Blank());
-            first = false;
-
-            rows.Add(new DisplayRow
-            {
-                IsFolder = true,
-                Label = group.Label,
-                ChildStoryCount = CountStories(group)
-            });
-
-            AppendChildRows(group.Children, rows, "   ");
-        }
-        return rows;
-    }
-
-    private static void AppendChildRows(List<Node> nodes, List<DisplayRow> rows, string linePrefix)
-    {
-        for (int i = 0; i < nodes.Count; i++)
-        {
-            var node = nodes[i];
-            var isLast = i == nodes.Count - 1;
-            var connector = isLast ? "└─ " : "├─ ";
-            var childPrefix = linePrefix + (isLast ? "   " : "│  ");
-
-            if (node is FolderNode folder)
-            {
-                rows.Add(new DisplayRow
-                {
-                    TreePrefix = linePrefix + connector,
-                    IsFolder = true,
-                    Label = folder.Label,
-                    ChildStoryCount = CountStories(folder)
-                });
-                AppendChildRows(folder.Children, rows, childPrefix);
-            }
-            else if (node is StoryNode story)
-            {
-                rows.Add(new DisplayRow
-                {
-                    TreePrefix = linePrefix + connector,
-                    IsFolder = false,
-                    Label = story.Label,
-                    Entry = story.Entry
-                });
-            }
-        }
-    }
-
     private static int CountStories(FolderNode folder)
     {
-        int count = 0;
+        int n = 0;
         foreach (var child in folder.Children)
         {
-            if (child is StoryNode) count++;
-            else if (child is FolderNode sub) count += CountStories(sub);
+            if (child is StoryNode) n++;
+            else if (child is FolderNode sub) n += CountStories(sub);
         }
-        return count;
+        return n;
     }
 
     private static FolderNode BuildTree(List<StoryEntry> stories)

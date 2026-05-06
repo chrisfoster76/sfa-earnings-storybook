@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using NServiceBus;
 
+Console.OutputEncoding = System.Text.Encoding.UTF8;
+
 var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: false)
@@ -140,10 +142,12 @@ if (endpointInstance is not null)
 
 void PrintHeader()
 {
-    Console.WriteLine("╔══════════════════════════════╗");
-    Console.WriteLine("║   Learner Data Storybook     ║");
-    Console.WriteLine("╚══════════════════════════════╝");
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("  Learner Data Storybook");
+    Console.ResetColor();
+    Console.ForegroundColor = ConsoleColor.DarkGray;
     Console.WriteLine($"  Base URL : {appConfig.BaseUrl}");
     Console.WriteLine($"  Verbosity: {appConfig.Verbosity}");
+    Console.ResetColor();
     Console.WriteLine();
 }
