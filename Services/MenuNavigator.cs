@@ -285,6 +285,14 @@ public class MenuNavigator
                 foreach (var step in steps)
                     lines.Add(StepLine(step, contentWidth));
             }
+
+            if (story.Assertions.Count > 0)
+            {
+                lines.Add(Blank());
+                lines.Add(StepSeparator("Assertions", contentWidth));
+                foreach (var assertion in story.Assertions)
+                    lines.Add(AssertionLine(assertion, contentWidth));
+            }
         }
 
         return lines;
@@ -328,6 +336,30 @@ public class MenuNavigator
             var vw = Vw(name);
             if (vw > nameWidth) { Console.Write(TruncToVw(name, nameWidth - 1)); Console.Write("…"); }
             else { Console.Write(name); Console.Write(new string(' ', nameWidth - vw)); }
+            Console.ResetColor();
+        };
+    }
+
+    // One assertion line: icon + badge + name + expected, exactly w cols.
+    private static Action<int> AssertionLine(Models.Assertion assertion, int contentWidth)
+    {
+        var a = assertion;
+        const int prefixCols = 9; // matches StepLine prefix
+        return w =>
+        {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write("? "); // 2 cols
+            Console.Write(a.Type.ToUpperInvariant().PadRight(6) + " "); // 7 cols
+            Console.ResetColor();
+
+            var nameWidth = Math.Max(1, w - prefixCols);
+            var text = string.IsNullOrWhiteSpace(a.Expected)
+                ? a.Name
+                : $"{a.Name} = {a.Expected}";
+            Console.ForegroundColor = ConsoleColor.Gray;
+            var vw = Vw(text);
+            if (vw > nameWidth) { Console.Write(TruncToVw(text, nameWidth - 1)); Console.Write("…"); }
+            else { Console.Write(text); Console.Write(new string(' ', nameWidth - vw)); }
             Console.ResetColor();
         };
     }

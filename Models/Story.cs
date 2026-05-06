@@ -9,6 +9,7 @@ public class Story
     public string ExtraDescription { get; set; } = string.Empty;
     public bool WipeOnRun { get; set; } = true;
     public List<Step> Steps { get; set; } = [];
+    public List<Assertion> Assertions { get; set; } = [];
 }
 
 public record StoryEntry(Story Story, string FolderPath)

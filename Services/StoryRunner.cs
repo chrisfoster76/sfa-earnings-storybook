@@ -58,6 +58,9 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("\n  All steps completed successfully.");
         Console.ResetColor();
+
+        if (story.Assertions.Count > 0)
+            await RunAssertionsAsync(story.Assertions, entry.FolderPath);
     }
 
     // ── Adhoc entry point ────────────────────────────────────────────────────
@@ -291,6 +294,92 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
             PrintError($"SQL step failed: {ex.Message}");
             return false;
         }
+    }
+
+    // ── Assertions ───────────────────────────────────────────────────────────
+
+    private async Task RunAssertionsAsync(List<Assertion> assertions, string folderPath)
+    {
+        Console.WriteLine();
+        Console.WriteLine("  Assertions:");
+
+        var allPassed = true;
+
+        for (int i = 0; i < assertions.Count; i++)
+        {
+            var assertion = assertions[i];
+            var num = i + 1;
+
+            if (!string.Equals(assertion.Type, "Sql", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"  {num}. {assertion.Name}  —  unsupported assertion type '{assertion.Type}', skipped");
+                Console.ResetColor();
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(assertion.ConnectionName) || !config.Connections.TryGetValue(assertion.ConnectionName, out var connectionString))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"  {num}. {assertion.Name}  —  FAIL (connection '{assertion.ConnectionName}' not found)");
+                Console.ResetColor();
+                allPassed = false;
+                continue;
+            }
+
+            string? query = assertion.Query;
+            if (assertion.QueryFile is not null)
+            {
+                var queryPath = Path.Combine(folderPath, "payloads", assertion.QueryFile);
+                if (!File.Exists(queryPath))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"  {num}. {assertion.Name}  —  FAIL (query file not found: {queryPath})");
+                    Console.ResetColor();
+                    allPassed = false;
+                    continue;
+                }
+                query = await File.ReadAllTextAsync(queryPath);
+            }
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"  {num}. {assertion.Name}  —  FAIL (no query or queryFile specified)");
+                Console.ResetColor();
+                allPassed = false;
+                continue;
+            }
+
+            try
+            {
+                await using var conn = new SqlConnection(connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand(query, conn);
+                var scalar = await cmd.ExecuteScalarAsync();
+                var actual = scalar?.ToString() ?? "null";
+
+                var passed = string.Equals(actual, assertion.Expected, StringComparison.OrdinalIgnoreCase);
+                Console.ForegroundColor = passed ? ConsoleColor.Green : ConsoleColor.Red;
+                Console.Write($"  {num}. {assertion.Name}  —  ");
+                Console.WriteLine(passed ? $"PASS ({actual})" : $"FAIL (expected: {assertion.Expected}, actual: {actual})");
+                Console.ResetColor();
+
+                if (!passed) allPassed = false;
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"  {num}. {assertion.Name}  —  FAIL ({ex.Message})");
+                Console.ResetColor();
+                allPassed = false;
+            }
+        }
+
+        Console.WriteLine();
+        Console.ForegroundColor = allPassed ? ConsoleColor.Green : ConsoleColor.Red;
+        Console.WriteLine(allPassed ? "  All assertions passed." : "  One or more assertions failed.");
+        Console.ResetColor();
     }
 
     // ── Printing ─────────────────────────────────────────────────────────────

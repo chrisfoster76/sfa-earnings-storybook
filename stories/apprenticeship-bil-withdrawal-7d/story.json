@@ -29,5 +29,14 @@
       "payloadFile": "03-put-break-and-withdrawal.json",
       "extract": {}
     }
+  ],
+  "assertions": [
+    {
+      "name": "Regular instalments of £1000",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-1k-instalments.sql",
+      "expected": "4"
+    }
   ]
 }

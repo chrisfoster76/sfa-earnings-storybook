@@ -28,5 +28,14 @@
       "payloadFile": "03-put-withdrawal.json",
       "extract": {}
     }
+  ],
+  "assertions": [
+    {
+      "name": "Regular instalments retained",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-instalments.sql",
+      "expected": "0"
+    }
   ]
 }

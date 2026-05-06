@@ -28,5 +28,35 @@
       "payloadFile": "03-put-break-and-completion.json",
       "extract": {}
     }
+  ],
+  "assertions": [
+    {
+      "name": "Regular instalments pre-break",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-1k-instalments-pre-break.sql",
+      "expected": "4"
+    },
+    {
+      "name": "Regular instalments post-break",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-1k-instalments-post-break.sql",
+      "expected": "2"
+    },
+    {
+      "name": "Completion payment",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "completion-payment.sql",
+      "expected": "3000"
+    },
+    {
+      "name": "Balancing payment",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "balancing-payment.sql",
+      "expected": "6000"
+    }
   ]
 }
