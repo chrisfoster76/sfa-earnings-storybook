@@ -1,0 +1,38 @@
+{
+  "consumerReference": "testing",
+  "learner": {
+    "uln": 99999997,
+    "firstname": "Casey",
+    "lastname": "Morgan",
+    "dob": "1999-11-04",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "englishAndMaths": [],
+    "onProgramme": [
+      {
+        "standardCode": 21,
+        "learnAimRef": "ZPROG001",
+        "agreementId": "123",
+        "startDate": "2026-04-25",
+        "expectedEndDate": "2026-07-25",
+        "completionDate": null,
+        "withdrawalDate": null,
+        "pauseDate": "2026-05-08",
+        "learningSupport": [],
+        "care": {
+          "careleaver": false,
+          "employerConsent": false
+        },
+        "aimSequenceNumber": 1,
+        "costs": [
+          {
+            "trainingPrice": 2400,
+            "epaoPrice": 600,
+            "fromDate": "2026-04-25"
+          }
+        ]
+      }
+    ]
+  }
+}
