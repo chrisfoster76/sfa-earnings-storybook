@@ -1,5 +1,6 @@
 {
   "name": "Short Course - Deletion",
+  "group": "Short Course",
   "description": "Creates a short course, approves it, then deletes it via DELETE",
   "wipeOnRun": true,
   "steps": [

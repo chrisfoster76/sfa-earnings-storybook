@@ -1,5 +1,6 @@
 {
   "name": "Short Course - POST with Withdrawal Date",
+  "group": "Short Course",
   "description": "Creates a short course with withdrawalDate already set at the midpoint of the course (2026-01-30), then approves it. No milestones claimed. Tests how earnings are calculated when withdrawal is present from the initial POST.",
   "wipeOnRun": true,
   "steps": [

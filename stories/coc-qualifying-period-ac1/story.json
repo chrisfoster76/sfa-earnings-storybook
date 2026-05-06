@@ -1,5 +1,6 @@
 {
   "name": "CoC — Qualifying Period — AC1: Retain Earnings (14–167 day course, withdrawn ≥ 14 days in)",
+  "group": "Change of Circumstance",
   "description": "Creates an apprenticeship with a 99-day planned duration (14–167 day band, qualifying period = 14 days), approves it, then records a withdrawal after 15 days in learning. Because 15 >= 14, earnings for periods prior to the withdrawal date should be retained. Covers FLP-1424 AC1.",
   "wipeOnRun": true,
   "steps": [

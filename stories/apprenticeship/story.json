@@ -1,5 +1,6 @@
 {
   "name": "Apprenticeship",
+  "group": "Apprenticeship",
   "description": "Fires an ApprenticeshipCreatedEvent to create an apprenticeship in Learning and trigger earnings calculation in Earnings",
   "wipeOnRun": true,
   "steps": [

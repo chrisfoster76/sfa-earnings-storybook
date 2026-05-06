@@ -1,5 +1,6 @@
 {
   "name": "Short Course - Transfer",
+  "group": "Short Course",
   "description": "Creates a short course where funding comes from a transfer sender. Verifies TransferSenderId is stored on the episode and used as FundingAccountId in the earnings event.",
   "wipeOnRun": true,
   "steps": [

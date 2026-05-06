@@ -1,5 +1,7 @@
 {
   "name": "Short Course - Change of Provider (Provider 1 Unapproved)",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
   "description": "Provider 1 creates a short course but never gets employer approval. Provider 2 then creates a new short course for the same learner and course, gets approved, claims milestones, completes, then is deleted.",
   "wipeOnRun": true,
   "steps": [

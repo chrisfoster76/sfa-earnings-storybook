@@ -4,6 +4,9 @@ public class Story
 {
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string Group { get; set; } = string.Empty;
+    public string SubGroup { get; set; } = string.Empty;
+    public string ExtraDescription { get; set; } = string.Empty;
     public bool WipeOnRun { get; set; } = true;
     public List<Step> Steps { get; set; } = [];
 }

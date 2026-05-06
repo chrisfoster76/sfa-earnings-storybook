@@ -1,5 +1,7 @@
 {
   "name": "Apprenticeship — Break In Learning + Withdrawal (7 days)",
+  "group": "Apprenticeship",
+  "subGroup": "Break In Learning",
   "description": "Creates a 2-year apprenticeship (2025-08-01 to 2027-07-31), then PUTs an update with a 3-month break in learning (pause 2026-07-31, resume 2026-11-01). The post-break expected end date is 2027-10-31 (original end 2027-07-31 pushed back by the 92-day break). Learner is withdrawn 7 days after resuming (2026-11-08).",
   "wipeOnRun": true,
   "steps": [

@@ -85,13 +85,13 @@ if (args.Length > 0)
     }
 
     var storyId = args[0];
-    var stories = loader.LoadAll();
-    var entry = stories.FirstOrDefault(s => s.Id == storyId);
+    var allStories = loader.LoadAll();
+    var entry = allStories.FirstOrDefault(s => s.Id == storyId);
 
     if (entry is null)
     {
         Console.WriteLine($"No story found with id '{storyId}'.");
-        Console.WriteLine($"Available ids: {string.Join(", ", stories.Select(s => s.Id))}");
+        Console.WriteLine($"Available ids: {string.Join(", ", allStories.Select(s => s.Id))}");
         if (endpointInstance is not null)
             await endpointInstance.Stop().ConfigureAwait(false);
         return;
@@ -107,54 +107,32 @@ if (args.Length > 0)
     return;
 }
 
-Console.Clear();
-PrintHeader();
+var stories = loader.LoadAll();
 
-while (true)
+if (stories.Count == 0)
 {
-    var stories = loader.LoadAll();
-
-    if (stories.Count == 0)
+    Console.Clear();
+    PrintHeader();
+    Console.WriteLine("No stories found. Add a subfolder under stories/ with a story.json file.");
+}
+else
+{
+    var nav = new MenuNavigator(stories, PrintHeader);
+    while (true)
     {
-        Console.WriteLine("No stories found. Add a subfolder under stories/ with a story.json file.");
-        break;
-    }
+        var entry = nav.Run();
+        if (entry is null) break;
 
-    Console.WriteLine("Available stories:");
-    for (int i = 0; i < stories.Count; i++)
-    {
-        var s = stories[i].Story;
-        var desc = string.IsNullOrWhiteSpace(s.Description) ? "" : $"  —  {s.Description}";
-        var wipeIndicator = s.WipeOnRun ? "" : "  [no wipe]";
-        Console.WriteLine($"  {i + 1}. {s.Name}  [{stories[i].Id}]{desc}{wipeIndicator}");
-    }
-    Console.WriteLine("  Q. Quit");
-    Console.WriteLine();
-    Console.Write("Select a story: ");
-
-    var input = Console.ReadLine()?.Trim();
-    Console.WriteLine();
-
-    if (string.Equals(input, "q", StringComparison.OrdinalIgnoreCase))
-        break;
-
-    if (int.TryParse(input, out int choice) && choice >= 1 && choice <= stories.Count)
-    {
-        var entry = stories[choice - 1];
+        Console.Clear();
+        PrintHeader();
         if (entry.Story.WipeOnRun)
             await wiper.WipeAllAsync();
         await runner.RunAsync(entry);
-    }
-    else
-    {
-        Console.WriteLine("  Invalid selection.");
-    }
 
-    Console.WriteLine();
-    Console.Write("Press any key to return to menu...");
-    Console.ReadKey(true);
-    Console.Clear();
-    PrintHeader();
+        Console.WriteLine();
+        Console.Write("Press any key to return to menu...");
+        Console.ReadKey(true);
+    }
 }
 
 if (endpointInstance is not null)

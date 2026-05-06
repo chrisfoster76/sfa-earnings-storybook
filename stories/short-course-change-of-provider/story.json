@@ -1,5 +1,7 @@
 {
   "name": "Short Course - Change of Provider",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
   "description": "Provider 1 creates a short course, approves it, then withdraws the learner. Provider 2 then creates a new short course for the same learner and course, starting after the withdrawal date.",
   "wipeOnRun": true,
   "steps": [

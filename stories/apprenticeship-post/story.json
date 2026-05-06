@@ -1,5 +1,6 @@
 {
   "name": "Apprenticeship — POST only",
+  "group": "Apprenticeship",
   "description": "POSTs an apprenticeship learner to the LearnerData Outer API. No approval step — use the Commitments Fake UI to approve.",
   "wipeOnRun": true,
   "steps": [

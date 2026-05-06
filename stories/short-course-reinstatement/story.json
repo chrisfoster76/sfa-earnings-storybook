@@ -1,5 +1,6 @@
 {
   "name": "Short Course - Reinstatement",
+  "group": "Short Course",
   "description": "Creates a short course, approves it, deletes it, then reinstates it by PUTting it again",
   "wipeOnRun": true,
   "steps": [

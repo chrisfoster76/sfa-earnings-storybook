@@ -1,5 +1,6 @@
 {
   "name": "Short Course - Completion",
+  "group": "Short Course",
   "description": "Creates a short course with no milestones, approves it, claims 30% milestone, then completes via PUT with completionDate",
   "wipeOnRun": true,
   "steps": [

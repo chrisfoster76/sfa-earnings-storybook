@@ -1,5 +1,6 @@
 {
   "name": "Short Course - Earnings Return Scenarios",
+  "group": "Short Course",
   "description": "POSTs one learner per FLP-1673 scenario. Dates: 25/26 = 2025-08-01 to 2026-07-31, 24/25 = 2024-08-01 to 2025-07-31. Actual end dates use completionDate. Verify SLD return manually.",
   "wipeOnRun": true,
   "steps": [

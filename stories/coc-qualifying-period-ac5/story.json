@@ -1,5 +1,6 @@
 {
   "name": "CoC — Qualifying Period — AC5: Retain Earnings (< 14 day course, completed on day 1)",
+  "group": "Change of Circumstance",
   "description": "Creates an apprenticeship with a 13-day planned duration (fewer than 14 days, qualifying period = 1 day), approves it, then records a completion on the start date itself (2025-08-01). One day in learning meets the 1-day qualifying period — earnings should be retained. Covers FLP-1424 AC5.",
   "wipeOnRun": true,
   "steps": [

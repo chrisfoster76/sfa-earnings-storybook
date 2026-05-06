@@ -1,5 +1,6 @@
 {
   "name": "Short Course",
+  "group": "Short Course",
   "description": "Creates a short course claiming ThirtyPercentLearningComplete on POST, then fires the approval event",
   "wipeOnRun": true,
   "steps": [
