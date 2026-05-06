@@ -7,5 +7,11 @@ public class Assertion
     public string? ConnectionName { get; set; }
     public string? Query { get; set; }
     public string? QueryFile { get; set; }
-    public string Expected { get; set; } = string.Empty;
+    public List<AssertionExpectation> Expected { get; set; } = [];
+}
+
+public class AssertionExpectation
+{
+    public string Field { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
 }

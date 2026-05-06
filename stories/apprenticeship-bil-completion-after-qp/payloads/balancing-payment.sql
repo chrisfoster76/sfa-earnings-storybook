@@ -1,4 +1,3 @@
-SELECT CONVERT(INT,[Amount])
+SELECT CONVERT(INT, [Amount]) AS [Amount], [DeliveryPeriod]
 FROM [Domain].[ApprenticeshipInstalment]
 WHERE [Type] = 'Balancing'
-AND [DeliveryPeriod] = 12

@@ -36,7 +36,9 @@
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "count-instalments.sql",
-      "expected": "1"
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
     }
   ]
 }

@@ -35,28 +35,38 @@
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "count-1k-instalments-pre-break.sql",
-      "expected": "4"
+      "expected": [
+        { "field": "Count", "value": "4" }
+      ]
     },
     {
       "name": "Regular instalments post-break",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "count-1k-instalments-post-break.sql",
-      "expected": "2"
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
     },
     {
       "name": "Completion payment",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "completion-payment.sql",
-      "expected": "3000"
+      "expected": [
+        { "field": "Amount", "value": "3000" },
+        { "field": "DeliveryPeriod", "value": "12" }
+      ]
     },
     {
       "name": "Balancing payment",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "balancing-payment.sql",
-      "expected": "6000"
+      "expected": [
+        { "field": "Amount", "value": "6000" },
+        { "field": "DeliveryPeriod", "value": "12" }
+      ]
     }
   ]
 }

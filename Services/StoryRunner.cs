@@ -356,16 +356,51 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
                 await using var conn = new SqlConnection(connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(query, conn);
-                var scalar = await cmd.ExecuteScalarAsync();
-                var actual = scalar?.ToString() ?? "null";
+                await using var reader = await cmd.ExecuteReaderAsync();
 
-                var passed = string.Equals(actual, assertion.Expected, StringComparison.OrdinalIgnoreCase);
-                Console.ForegroundColor = passed ? ConsoleColor.Green : ConsoleColor.Red;
+                if (!await reader.ReadAsync())
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"  {num}. {assertion.Name}  —  FAIL (query returned no rows)");
+                    Console.ResetColor();
+                    allPassed = false;
+                    continue;
+                }
+
+                var fieldResults = new List<(string Field, string Expected, string Actual, bool Passed)>();
+                foreach (var exp in assertion.Expected)
+                {
+                    string actual;
+                    try
+                    {
+                        var ordinal = reader.GetOrdinal(exp.Field);
+                        actual = reader.IsDBNull(ordinal) ? "null" : reader.GetValue(ordinal).ToString()!;
+                    }
+                    catch { actual = "<column not found>"; }
+                    fieldResults.Add((exp.Field, exp.Value, actual, string.Equals(actual, exp.Value, StringComparison.OrdinalIgnoreCase)));
+                }
+
+                var assertionPassed = fieldResults.All(r => r.Passed);
+                Console.ForegroundColor = assertionPassed ? ConsoleColor.Green : ConsoleColor.Red;
                 Console.Write($"  {num}. {assertion.Name}  —  ");
-                Console.WriteLine(passed ? $"PASS ({actual})" : $"FAIL (expected: {assertion.Expected}, actual: {actual})");
-                Console.ResetColor();
 
-                if (!passed) allPassed = false;
+                if (assertionPassed)
+                {
+                    var summary = string.Join(", ", fieldResults.Select(r => $"{r.Field}={r.Actual}"));
+                    Console.WriteLine($"PASS ({summary})");
+                }
+                else
+                {
+                    Console.WriteLine("FAIL");
+                    foreach (var (field, expected, actual, passed) in fieldResults)
+                    {
+                        Console.ForegroundColor = passed ? ConsoleColor.Green : ConsoleColor.Red;
+                        Console.WriteLine($"       {field}: expected {expected}, got {actual}");
+                    }
+                }
+
+                Console.ResetColor();
+                if (!assertionPassed) allPassed = false;
             }
             catch (Exception ex)
             {

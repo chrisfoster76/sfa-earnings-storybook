@@ -353,9 +353,10 @@ public class MenuNavigator
             Console.ResetColor();
 
             var nameWidth = Math.Max(1, w - prefixCols);
-            var text = string.IsNullOrWhiteSpace(a.Expected)
-                ? a.Name
-                : $"{a.Name} = {a.Expected}";
+            var expectedPart = a.Expected.Count > 0
+                ? "  " + string.Join(", ", a.Expected.Select(e => $"{e.Field}={e.Value}"))
+                : "";
+            var text = a.Name + expectedPart;
             Console.ForegroundColor = ConsoleColor.Gray;
             var vw = Vw(text);
             if (vw > nameWidth) { Console.Write(TruncToVw(text, nameWidth - 1)); Console.Write("…"); }
