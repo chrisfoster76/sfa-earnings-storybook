@@ -1,0 +1,14 @@
+{
+  "name": "Apprenticeship — POST only",
+  "description": "POSTs an apprenticeship learner to the LearnerData Outer API. No approval step — use the Commitments Fake UI to approve.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create an Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    }
+  ]
+}

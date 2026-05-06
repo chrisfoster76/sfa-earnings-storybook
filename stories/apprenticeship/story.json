@@ -1,0 +1,14 @@
+{
+  "name": "Apprenticeship",
+  "description": "Fires an ApprenticeshipCreatedEvent to create an apprenticeship in Learning and trigger earnings calculation in Earnings",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    }
+  ]
+}

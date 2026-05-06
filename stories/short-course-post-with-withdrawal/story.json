@@ -1,0 +1,21 @@
+{
+  "name": "Short Course - POST with Withdrawal Date",
+  "description": "Creates a short course with withdrawalDate already set at the midpoint of the course (2026-01-30), then approves it. No milestones claimed. Tests how earnings are calculated when withdrawal is present from the initial POST.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create a Short Course (with withdrawal already set)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    }
+  ]
+}

@@ -1,16 +1,17 @@
 {
-  "name": "Short Course - Reinstatement",
-  "description": "Creates a short course, approves it, deletes it, then reinstates it by PUTting it again",
+  "name": "Short Course - Transfer",
+  "description": "Creates a short course where funding comes from a transfer sender. Verifies TransferSenderId is stored on the episode and used as FundingAccountId in the earnings event.",
   "wipeOnRun": true,
   "steps": [
     {
-      "name": "SLD Creates the Short Course",
+      "name": "SLD Create a Short Course",
       "verb": "POST",
       "route": "/providers/10005077/shortCourses",
-      "payloadFile": "01-post-short-course.json"
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
     },
     {
-      "name": "Employer Approves the Short Course",
+      "name": "Employer Approves the Short Course (with Transfer Sender)",
       "type": "Event",
       "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
       "payloadFile": "02-apprenticeship-created-event.json",
@@ -26,15 +27,11 @@
       }
     },
     {
-      "name": "SLD Deletes the Short Course",
-      "verb": "DELETE",
-      "route": "/providers/10005077/shortCourses/{learningKey}"
-    },
-    {
-      "name": "SLD Reinstates the Short Course (withdrawalDate: null)",
+      "name": "SLD Updates the Short Course",
       "verb": "PUT",
       "route": "/providers/10005077/shortCourses/{learningKey}",
-      "payloadFile": "04-put-reinstate.json"
+      "payloadFile": "04-put-short-course.json",
+      "extract": {}
     }
   ]
 }

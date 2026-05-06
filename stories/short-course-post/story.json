@@ -1,0 +1,14 @@
+{
+  "name": "Short Course — POST only",
+  "description": "POSTs a short course learner (ThirtyPercentLearningComplete claimed). No approval step.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    }
+  ]
+}

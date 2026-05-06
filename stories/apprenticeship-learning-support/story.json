@@ -1,0 +1,30 @@
+{
+  "name": "Apprenticeship — FM36 Learning Support",
+  "description": "Creates and approves an apprenticeship (training code 614, age 19, AY 25/26), then PUTs learning support data — mirrors the Fm36.feature 'Retrieve Valid Fm36 learning support data' scenario",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Submits Updated Learner with Learning Support",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-learning-support.json",
+      "extract": {}
+    }
+  ]
+}

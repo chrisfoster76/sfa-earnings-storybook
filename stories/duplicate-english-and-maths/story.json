@@ -1,0 +1,30 @@
+{
+  "name": "Duplicate English and Maths",
+  "description": "Creates an apprenticeship via event, then PUTs two English and Maths items that are identical except for AimSequenceNumber",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Updates Learner with Duplicate English and Maths",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-duplicate-english-and-maths.json",
+      "extract": {}
+    }
+  ]
+}

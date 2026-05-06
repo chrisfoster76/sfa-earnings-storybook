@@ -1,0 +1,30 @@
+{
+  "name": "Apprenticeship — Break In Learning + Withdrawal (30 days)",
+  "description": "Creates a 2-year apprenticeship (2025-08-01 to 2027-07-31), then PUTs an update with a 3-month break in learning (pause 2026-07-31, resume 2026-11-01). The post-break expected end date is 2027-10-31 (original end 2027-07-31 pushed back by the 92-day break). Learner is withdrawn 30 days after resuming (2026-12-01).",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Submits Break In Learning and Withdrawal",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-break-and-withdrawal.json",
+      "extract": {}
+    }
+  ]
+}

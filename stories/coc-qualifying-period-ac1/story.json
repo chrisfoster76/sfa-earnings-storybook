@@ -1,0 +1,30 @@
+{
+  "name": "CoC — Qualifying Period — AC1: Retain Earnings (14–167 day course, withdrawn ≥ 14 days in)",
+  "description": "Creates an apprenticeship with a 99-day planned duration (14–167 day band, qualifying period = 14 days), approves it, then records a withdrawal after 15 days in learning. Because 15 >= 14, earnings for periods prior to the withdrawal date should be retained. Covers FLP-1424 AC1.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Records Withdrawal (15 days in learning — at or above 14-day qualifying period)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-withdrawal.json",
+      "extract": {}
+    }
+  ]
+}

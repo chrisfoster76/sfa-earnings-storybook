@@ -1,0 +1,52 @@
+{
+  "name": "Apprenticeship — Two Learners (AY start + future start)",
+  "description": "Learner 1 starts at the beginning of the current AY (2025-08-01). Learner 2 starts next month (2026-05-01). Use to verify FM36 behaviour around the active/inactive boundary.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves Learner 1 (AY start)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-learner1-created-event.json"
+    },
+    {
+      "name": "Commitments Approves Learner 2 (future start)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-learner2-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key — Learner 1",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key-learner1.sql",
+      "extract": {
+        "learningKey1": "LearningKey"
+      }
+    },
+    {
+      "name": "Get Learning Key — Learner 2",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "04-get-learning-key-learner2.sql",
+      "extract": {
+        "learningKey2": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Submits Updated Details — Learner 1",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey1}",
+      "payloadFile": "05-put-learner1.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Submits Updated Details — Learner 2",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey2}",
+      "payloadFile": "06-put-learner2.json",
+      "extract": {}
+    }
+  ]
+}

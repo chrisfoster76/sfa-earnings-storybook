@@ -1,0 +1,73 @@
+{
+  "name": "Short Course - Change of Provider",
+  "description": "Provider 1 creates a short course, approves it, then withdraws the learner. Provider 2 then creates a new short course for the same learner and course, starting after the withdrawal date.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider 1) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course-provider1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider 1 Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event-provider1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Withdraws the Learner (Provider 1)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "payloadFile": "04-put-withdrawal.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider 2) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "05-post-short-course-provider2.json",
+      "extract": {}
+    }
+  ],
+  "todo": [
+    {
+      "name": "Employer Approves Provider 2 Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "06-apprenticeship-created-event-provider2.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD (Provider 2) Claims 30% Milestone",
+      "verb": "PUT",
+      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "payloadFile": "07-put-thirty-percent-provider2.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider 2) Claims Completion",
+      "verb": "PUT",
+      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "payloadFile": "08-put-completion-provider2.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Deletes Provider 2 Short Course",
+      "verb": "DELETE",
+      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "extract": {}
+    }
+  ]
+}
