@@ -7,21 +7,40 @@ using Newtonsoft.Json.Linq;
 
 namespace LearnerDataStorybook.Services;
 
-public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance = null)
+public class StoryRunner
 {
+    private readonly AppConfig _config;
+    private readonly IEndpointInstance? _endpointInstance;
+    private readonly IConsoleWriter _out;
+    private readonly Verbosity _verbosity;
+
+    public StoryRunner(AppConfig config, IEndpointInstance? endpointInstance = null,
+        IConsoleWriter? output = null, Verbosity? verbosityOverride = null)
+    {
+        _config = config;
+        _endpointInstance = endpointInstance;
+        _out = output ?? new SystemConsoleWriter();
+        _verbosity = verbosityOverride ?? config.Verbosity;
+    }
+
+    public StoryRunner WithOutput(IConsoleWriter output) =>
+        new(_config, _endpointInstance, output, Verbosity.Normal);
+
+    // ── Story entry point ─────────────────────────────────────────────────────
+
     public async Task RunAsync(StoryEntry entry)
     {
         var story = entry.Story;
         var context = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        Console.WriteLine($"Story: {story.Name}");
-        Console.WriteLine(new string('─', 50));
+        _out.WriteLine($"Story: {story.Name}");
+        _out.WriteLine(new string('─', 50));
 
         var handler = new HttpClientHandler
         {
             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
         };
-        using var http = new HttpClient(handler) { BaseAddress = new Uri(config.BaseUrl) };
+        using var http = new HttpClient(handler) { BaseAddress = new Uri(_config.BaseUrl) };
 
         for (int i = 0; i < story.Steps.Count; i++)
         {
@@ -29,9 +48,9 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
             var stepNum = i + 1;
             if (step.Disabled)
             {
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.WriteLine($"  {stepNum}. [{step.Type.ToUpperInvariant()}] {step.Name}  —  skipped (disabled)");
-                Console.ResetColor();
+                _out.ForegroundColor = ConsoleColor.DarkGray;
+                _out.WriteLine($"  {stepNum}. [{step.Type.ToUpperInvariant()}] {step.Name}  —  skipped (disabled)");
+                _out.ResetColor();
                 continue;
             }
 
@@ -48,16 +67,16 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
             if (step.DelayMs > 0)
             {
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.WriteLine($"     waiting {step.DelayMs}ms...");
-                Console.ResetColor();
+                _out.ForegroundColor = ConsoleColor.DarkGray;
+                _out.WriteLine($"     waiting {step.DelayMs}ms...");
+                _out.ResetColor();
                 await Task.Delay(step.DelayMs);
             }
         }
 
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("\n  All steps completed successfully.");
-        Console.ResetColor();
+        _out.ForegroundColor = ConsoleColor.Green;
+        _out.WriteLine("\n  All steps completed successfully.");
+        _out.ResetColor();
 
         if (story.Assertions.Count > 0)
             await RunAssertionsAsync(story.Assertions, entry.FolderPath);
@@ -67,14 +86,14 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
     public async Task RunAdhocStepAsync(Step step, string adhocFolder, Dictionary<string, string> context)
     {
-        Console.WriteLine($"Adhoc: {step.Name}");
-        Console.WriteLine(new string('─', 50));
+        _out.WriteLine($"Adhoc: {step.Name}");
+        _out.WriteLine(new string('─', 50));
 
         var handler = new HttpClientHandler
         {
             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
         };
-        using var http = new HttpClient(handler) { BaseAddress = new Uri(config.BaseUrl) };
+        using var http = new HttpClient(handler) { BaseAddress = new Uri(_config.BaseUrl) };
 
         var success = step.Type.ToUpperInvariant() switch
         {
@@ -86,16 +105,16 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
         if (success)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("\n  Step completed successfully.");
-            Console.ResetColor();
+            _out.ForegroundColor = ConsoleColor.Green;
+            _out.WriteLine("\n  Step completed successfully.");
+            _out.ResetColor();
         }
 
         if (step.DelayMs > 0)
         {
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"     waiting {step.DelayMs}ms...");
-            Console.ResetColor();
+            _out.ForegroundColor = ConsoleColor.DarkGray;
+            _out.WriteLine($"     waiting {step.DelayMs}ms...");
+            _out.ResetColor();
             await Task.Delay(step.DelayMs);
         }
     }
@@ -104,13 +123,13 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
     private bool RunContextStep(int stepNum, Step step, Dictionary<string, string> context)
     {
-        Console.WriteLine($"  {stepNum}. {step.Name}");
+        _out.WriteLine($"  {stepNum}. {step.Name}");
         foreach (var (key, value) in step.Values)
         {
             context[key] = value;
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"     {key} = {value}");
-            Console.ResetColor();
+            _out.ForegroundColor = ConsoleColor.DarkGray;
+            _out.WriteLine($"     {key} = {value}");
+            _out.ResetColor();
         }
         return true;
     }
@@ -166,7 +185,7 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
     private async Task<bool> RunEventStepAsync(int stepNum, Step step, string folderPath)
     {
-        if (endpointInstance is null)
+        if (_endpointInstance is null)
         {
             PrintError("ServiceBusNamespace is not configured in appsettings.json — cannot publish events.");
             return false;
@@ -209,7 +228,7 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
                 ? JsonConvert.DeserializeObject(payload, eventType)
                 : Activator.CreateInstance(eventType);
 
-            await endpointInstance.Publish(eventObj!).ConfigureAwait(false);
+            await _endpointInstance.Publish(eventObj!).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -225,7 +244,7 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
     private async Task<bool> RunSqlStepAsync(int stepNum, Step step, string folderPath, Dictionary<string, string> context)
     {
-        if (string.IsNullOrWhiteSpace(step.ConnectionName) || !config.Connections.TryGetValue(step.ConnectionName, out var connectionString))
+        if (string.IsNullOrWhiteSpace(step.ConnectionName) || !_config.Connections.TryGetValue(step.ConnectionName, out var connectionString))
         {
             PrintError($"Connection '{step.ConnectionName}' not found in appsettings.json Connections.");
             return false;
@@ -260,10 +279,10 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
             if (!await reader.ReadAsync())
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("no rows returned");
-                Console.WriteLine("     Story stopped.");
-                Console.ResetColor();
+                _out.ForegroundColor = ConsoleColor.Red;
+                _out.WriteLine("no rows returned");
+                _out.WriteLine("     Story stopped.");
+                _out.ResetColor();
                 return false;
             }
 
@@ -273,17 +292,17 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
                 context[contextKey] = reader.GetValue(ordinal).ToString()!;
             }
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("OK");
-            Console.ResetColor();
+            _out.ForegroundColor = ConsoleColor.Green;
+            _out.WriteLine("OK");
+            _out.ResetColor();
 
-            if (config.Verbosity == Verbosity.Verbose)
+            if (_verbosity == Verbosity.Verbose)
             {
                 foreach (var (contextKey, value) in step.Extract.Select(e => (e.Key, context[e.Key])))
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.WriteLine($"     {contextKey} = {value}");
-                    Console.ResetColor();
+                    _out.ForegroundColor = ConsoleColor.DarkGray;
+                    _out.WriteLine($"     {contextKey} = {value}");
+                    _out.ResetColor();
                 }
             }
 
@@ -300,8 +319,8 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
     private async Task RunAssertionsAsync(List<Assertion> assertions, string folderPath)
     {
-        Console.WriteLine();
-        Console.WriteLine("  Assertions:");
+        _out.WriteLine("");
+        _out.WriteLine("  Assertions:");
 
         var allPassed = true;
 
@@ -312,17 +331,17 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
             if (!string.Equals(assertion.Type, "Sql", StringComparison.OrdinalIgnoreCase))
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"  {num}. {assertion.Name}  —  unsupported assertion type '{assertion.Type}', skipped");
-                Console.ResetColor();
+                _out.ForegroundColor = ConsoleColor.Yellow;
+                _out.WriteLine($"  {num}. {assertion.Name}  —  unsupported assertion type '{assertion.Type}', skipped");
+                _out.ResetColor();
                 continue;
             }
 
-            if (string.IsNullOrWhiteSpace(assertion.ConnectionName) || !config.Connections.TryGetValue(assertion.ConnectionName, out var connectionString))
+            if (string.IsNullOrWhiteSpace(assertion.ConnectionName) || !_config.Connections.TryGetValue(assertion.ConnectionName, out var connectionString))
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"  {num}. {assertion.Name}  —  FAIL (connection '{assertion.ConnectionName}' not found)");
-                Console.ResetColor();
+                _out.ForegroundColor = ConsoleColor.Red;
+                _out.WriteLine($"  {num}. {assertion.Name}  —  FAIL (connection '{assertion.ConnectionName}' not found)");
+                _out.ResetColor();
                 allPassed = false;
                 continue;
             }
@@ -333,9 +352,9 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
                 var queryPath = Path.Combine(folderPath, "payloads", assertion.QueryFile);
                 if (!File.Exists(queryPath))
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"  {num}. {assertion.Name}  —  FAIL (query file not found: {queryPath})");
-                    Console.ResetColor();
+                    _out.ForegroundColor = ConsoleColor.Red;
+                    _out.WriteLine($"  {num}. {assertion.Name}  —  FAIL (query file not found: {queryPath})");
+                    _out.ResetColor();
                     allPassed = false;
                     continue;
                 }
@@ -344,9 +363,9 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
             if (string.IsNullOrWhiteSpace(query))
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"  {num}. {assertion.Name}  —  FAIL (no query or queryFile specified)");
-                Console.ResetColor();
+                _out.ForegroundColor = ConsoleColor.Red;
+                _out.WriteLine($"  {num}. {assertion.Name}  —  FAIL (no query or queryFile specified)");
+                _out.ResetColor();
                 allPassed = false;
                 continue;
             }
@@ -360,9 +379,9 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
                 if (!await reader.ReadAsync())
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"  {num}. {assertion.Name}  —  FAIL (query returned no rows)");
-                    Console.ResetColor();
+                    _out.ForegroundColor = ConsoleColor.Red;
+                    _out.WriteLine($"  {num}. {assertion.Name}  —  FAIL (query returned no rows)");
+                    _out.ResetColor();
                     allPassed = false;
                     continue;
                 }
@@ -377,168 +396,169 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
                         actual = reader.IsDBNull(ordinal) ? "null" : reader.GetValue(ordinal).ToString()!;
                     }
                     catch { actual = "<column not found>"; }
-                    fieldResults.Add((exp.Field, exp.Value, actual, string.Equals(actual, exp.Value, StringComparison.OrdinalIgnoreCase)));
+                    fieldResults.Add((exp.Field, exp.Value, actual,
+                        string.Equals(actual, exp.Value, StringComparison.OrdinalIgnoreCase)));
                 }
 
                 var assertionPassed = fieldResults.All(r => r.Passed);
-                Console.ForegroundColor = assertionPassed ? ConsoleColor.Green : ConsoleColor.Red;
-                Console.Write($"  {num}. {assertion.Name}  —  ");
+                _out.ForegroundColor = assertionPassed ? ConsoleColor.Green : ConsoleColor.Red;
+                _out.Write($"  {num}. {assertion.Name}  —  ");
 
                 if (assertionPassed)
                 {
                     var summary = string.Join(", ", fieldResults.Select(r => $"{r.Field}={r.Actual}"));
-                    Console.WriteLine($"PASS ({summary})");
+                    _out.WriteLine($"PASS ({summary})");
                 }
                 else
                 {
-                    Console.WriteLine("FAIL");
+                    _out.WriteLine("FAIL");
                     foreach (var (field, expected, actual, passed) in fieldResults)
                     {
-                        Console.ForegroundColor = passed ? ConsoleColor.Green : ConsoleColor.Red;
-                        Console.WriteLine($"       {field}: expected {expected}, got {actual}");
+                        _out.ForegroundColor = passed ? ConsoleColor.Green : ConsoleColor.Red;
+                        _out.WriteLine($"       {field}: expected {expected}, got {actual}");
                     }
                 }
 
-                Console.ResetColor();
+                _out.ResetColor();
                 if (!assertionPassed) allPassed = false;
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"  {num}. {assertion.Name}  —  FAIL ({ex.Message})");
-                Console.ResetColor();
+                _out.ForegroundColor = ConsoleColor.Red;
+                _out.WriteLine($"  {num}. {assertion.Name}  —  FAIL ({ex.Message})");
+                _out.ResetColor();
                 allPassed = false;
             }
         }
 
-        Console.WriteLine();
-        Console.ForegroundColor = allPassed ? ConsoleColor.Green : ConsoleColor.Red;
-        Console.WriteLine(allPassed ? "  All assertions passed." : "  One or more assertions failed.");
-        Console.ResetColor();
+        _out.WriteLine("");
+        _out.ForegroundColor = allPassed ? ConsoleColor.Green : ConsoleColor.Red;
+        _out.WriteLine(allPassed ? "  All assertions passed." : "  One or more assertions failed.");
+        _out.ResetColor();
     }
 
     // ── Printing ─────────────────────────────────────────────────────────────
 
     private void PrintHttpStepStart(int num, Step step, string route, string? body)
     {
-        if (config.Verbosity == Verbosity.Quiet)
+        if (_verbosity == Verbosity.Quiet)
         {
-            Console.Write($"  {num}. {step.Name}... ");
+            _out.Write($"  {num}. {step.Name}... ");
             return;
         }
 
-        Console.WriteLine($"  {num}. {step.Name}");
-        Console.ForegroundColor = ConsoleColor.DarkGray;
+        _out.WriteLine($"  {num}. {step.Name}");
+        _out.ForegroundColor = ConsoleColor.DarkGray;
 
-        if (config.Verbosity == Verbosity.Verbose && body is not null)
+        if (_verbosity == Verbosity.Verbose && body is not null)
         {
-            Console.WriteLine($"     [{step.Verb}] {route}");
-            Console.WriteLine("     Request body:");
-            Console.WriteLine(Indent(PrettyJson(body), 5));
-            Console.Write("     Status: ");
+            _out.WriteLine($"     [{step.Verb}] {route}");
+            _out.WriteLine("     Request body:");
+            _out.WriteLine(Indent(PrettyJson(body), 5));
+            _out.Write("     Status: ");
         }
         else
         {
-            Console.Write($"     [{step.Verb}] {route}  =>  ");
-            Console.ResetColor();
+            _out.Write($"     [{step.Verb}] {route}  =>  ");
+            _out.ResetColor();
         }
     }
 
     private void PrintHttpStepResult(HttpResponseMessage response, string body)
     {
         var statusText = $"{(int)response.StatusCode} {response.ReasonPhrase}";
-        Console.ForegroundColor = response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red;
-        Console.WriteLine(statusText);
-        Console.ResetColor();
+        _out.ForegroundColor = response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red;
+        _out.WriteLine(statusText);
+        _out.ResetColor();
 
         if (!response.IsSuccessStatusCode)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("     Story stopped.");
-            Console.ResetColor();
+            _out.ForegroundColor = ConsoleColor.Red;
+            _out.WriteLine("     Story stopped.");
+            _out.ResetColor();
 
             if (!string.IsNullOrWhiteSpace(body))
             {
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.WriteLine("     Response body:");
-                Console.WriteLine(Indent(PrettyJson(body), 5));
-                Console.ResetColor();
+                _out.ForegroundColor = ConsoleColor.DarkGray;
+                _out.WriteLine("     Response body:");
+                _out.WriteLine(Indent(PrettyJson(body), 5));
+                _out.ResetColor();
             }
             return;
         }
 
-        if (config.Verbosity == Verbosity.Verbose && !string.IsNullOrWhiteSpace(body))
+        if (_verbosity == Verbosity.Verbose && !string.IsNullOrWhiteSpace(body))
         {
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine("     Response body:");
-            Console.WriteLine(Indent(PrettyJson(body), 5));
-            Console.ResetColor();
+            _out.ForegroundColor = ConsoleColor.DarkGray;
+            _out.WriteLine("     Response body:");
+            _out.WriteLine(Indent(PrettyJson(body), 5));
+            _out.ResetColor();
         }
     }
 
     private void PrintSqlStepStart(int num, Step step)
     {
-        if (config.Verbosity == Verbosity.Quiet)
+        if (_verbosity == Verbosity.Quiet)
         {
-            Console.Write($"  {num}. {step.Name}... ");
+            _out.Write($"  {num}. {step.Name}... ");
             return;
         }
 
-        Console.WriteLine($"  {num}. {step.Name}");
-        Console.ForegroundColor = ConsoleColor.DarkGray;
+        _out.WriteLine($"  {num}. {step.Name}");
+        _out.ForegroundColor = ConsoleColor.DarkGray;
 
-        if (config.Verbosity == Verbosity.Verbose)
+        if (_verbosity == Verbosity.Verbose)
         {
-            Console.WriteLine($"     SQL  {step.QueryFile ?? step.Query}");
-            Console.Write("     Result: ");
+            _out.WriteLine($"     SQL  {step.QueryFile ?? step.Query}");
+            _out.Write("     Result: ");
         }
         else
         {
-            Console.Write($"     SQL  {step.QueryFile ?? step.Query}  =>  ");
-            Console.ResetColor();
+            _out.Write($"     SQL  {step.QueryFile ?? step.Query}  =>  ");
+            _out.ResetColor();
         }
     }
 
     private void PrintEventStepStart(int num, Step step, string? payload)
     {
-        if (config.Verbosity == Verbosity.Quiet)
+        if (_verbosity == Verbosity.Quiet)
         {
-            Console.Write($"  {num}. {step.Name}... ");
+            _out.Write($"  {num}. {step.Name}... ");
             return;
         }
 
-        Console.WriteLine($"  {num}. {step.Name}");
-        Console.ForegroundColor = ConsoleColor.DarkGray;
+        _out.WriteLine($"  {num}. {step.Name}");
+        _out.ForegroundColor = ConsoleColor.DarkGray;
 
-        if (config.Verbosity == Verbosity.Verbose)
+        if (_verbosity == Verbosity.Verbose)
         {
-            Console.WriteLine($"     EVENT  {step.EventType}");
+            _out.WriteLine($"     EVENT  {step.EventType}");
             if (payload is not null)
             {
-                Console.WriteLine("     Payload:");
-                Console.WriteLine(Indent(PrettyJson(payload), 5));
+                _out.WriteLine("     Payload:");
+                _out.WriteLine(Indent(PrettyJson(payload), 5));
             }
-            Console.Write("     Result: ");
+            _out.Write("     Result: ");
         }
         else
         {
-            Console.Write($"     EVENT  {step.EventType}  =>  ");
-            Console.ResetColor();
+            _out.Write($"     EVENT  {step.EventType}  =>  ");
+            _out.ResetColor();
         }
     }
 
     private void PrintEventStepResult()
     {
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("Published");
-        Console.ResetColor();
+        _out.ForegroundColor = ConsoleColor.Green;
+        _out.WriteLine("Published");
+        _out.ResetColor();
     }
 
-    private static void PrintError(string message)
+    private void PrintError(string message)
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"  ERROR: {message}");
-        Console.ResetColor();
+        _out.ForegroundColor = ConsoleColor.Red;
+        _out.WriteLine($"  ERROR: {message}");
+        _out.ResetColor();
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -561,7 +581,7 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
         };
     }
 
-    private static void ExtractValues(Step step, string responseBody, Dictionary<string, string> context)
+    private void ExtractValues(Step step, string responseBody, Dictionary<string, string> context)
     {
         if (step.Extract.Count == 0)
             return;
@@ -576,7 +596,7 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
             if (value is not null)
                 context[key] = value;
             else
-                Console.WriteLine($"  [warn] Could not extract '{key}' using path '{jsonPath}'");
+                _out.WriteLine($"  [warn] Could not extract '{key}' using path '{jsonPath}'");
         }
     }
 
@@ -589,7 +609,6 @@ public class StoryRunner(AppConfig config, IEndpointInstance? endpointInstance =
 
     private static Type? ResolveEventType(string typeName)
     {
-        // Ensure all DLLs in the output directory are loaded before scanning
         foreach (var dll in Directory.GetFiles(AppContext.BaseDirectory, "*.dll"))
         {
             try { System.Reflection.Assembly.LoadFrom(dll); } catch { /* ignore */ }

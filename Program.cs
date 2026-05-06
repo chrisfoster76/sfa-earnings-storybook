@@ -125,15 +125,7 @@ else
         var entry = nav.Run();
         if (entry is null) break;
 
-        Console.Clear();
-        PrintHeader();
-        if (entry.Story.WipeOnRun)
-            await wiper.WipeAllAsync();
-        await runner.RunAsync(entry);
-
-        Console.WriteLine();
-        Console.Write("Press any key to return to menu...");
-        Console.ReadKey(true);
+        await StoryModal.ShowAsync(entry, runner, wiper);
     }
 }
 
