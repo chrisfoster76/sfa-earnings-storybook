@@ -1,7 +1,7 @@
 {
-  "name": "Short Course - Reinstatement",
+  "name": "Short Course - Deletion & Reinstatement",
   "group": "Short Course",
-  "description": "Creates a short course, approves it, deletes it, then reinstates it by PUTting it again",
+  "description": "Creates a short course, approves it, deletes it, then reinstates it by POSTing it again",
   "wipeOnRun": true,
   "steps": [
     {
@@ -32,10 +32,10 @@
       "route": "/providers/10005077/shortCourses/{learningKey}"
     },
     {
-      "name": "SLD Reinstates the Short Course (withdrawalDate: null)",
-      "verb": "PUT",
+      "name": "SLD Reinstates the Short Course",
+      "verb": "POST",
       "route": "/providers/10005077/shortCourses/{learningKey}",
-      "payloadFile": "04-put-reinstate.json"
+      "payloadFile": "04-post-reinstate.json"
     }
   ]
 }
