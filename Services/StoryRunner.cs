@@ -28,13 +28,10 @@ public class StoryRunner
 
     // ── Story entry point ─────────────────────────────────────────────────────
 
-    public async Task RunAsync(StoryEntry entry)
+    public async Task<bool> RunAsync(StoryEntry entry)
     {
         var story = entry.Story;
         var context = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        _out.WriteLine($"Story: {story.Name}");
-        _out.WriteLine(new string('─', 50));
 
         var handler = new HttpClientHandler
         {
@@ -63,7 +60,7 @@ public class StoryRunner
             };
 
             if (!success)
-                return;
+                return false;
 
             if (step.DelayMs > 0)
             {
@@ -79,7 +76,9 @@ public class StoryRunner
         _out.ResetColor();
 
         if (story.Assertions.Count > 0)
-            await RunAssertionsAsync(story.Assertions, entry.FolderPath);
+            return await RunAssertionsAsync(story.Assertions, entry.FolderPath);
+
+        return true;
     }
 
     // ── Adhoc entry point ────────────────────────────────────────────────────
@@ -317,7 +316,7 @@ public class StoryRunner
 
     // ── Assertions ───────────────────────────────────────────────────────────
 
-    private async Task RunAssertionsAsync(List<Assertion> assertions, string folderPath)
+    private async Task<bool> RunAssertionsAsync(List<Assertion> assertions, string folderPath)
     {
         _out.WriteLine("");
         _out.WriteLine("  Assertions:");
@@ -435,6 +434,7 @@ public class StoryRunner
         _out.ForegroundColor = allPassed ? ConsoleColor.Green : ConsoleColor.Red;
         _out.WriteLine(allPassed ? "  All assertions passed." : "  One or more assertions failed.");
         _out.ResetColor();
+        return allPassed;
     }
 
     // ── Printing ─────────────────────────────────────────────────────────────

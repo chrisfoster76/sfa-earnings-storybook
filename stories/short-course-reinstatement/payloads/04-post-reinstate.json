@@ -7,7 +7,7 @@
     "lastname": "Patel",
     "dob": "2005-11-14",
     "email": "maya.patel@test.com",
-    "hasEhcp": false1
+    "hasEhcp": false
   },
   "delivery": {
     "onProgramme": [
@@ -22,7 +22,7 @@
         "pauseDate": null,
         "aimSequenceNumber": 1,
         "actualEndDate": null,
-        "milestones": []
+        "milestones": [ "ThirtyPercentLearningComplete" ]
       }
     ]
   }

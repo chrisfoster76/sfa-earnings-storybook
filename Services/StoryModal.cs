@@ -20,12 +20,19 @@ public static class StoryModal
         var innerW  = rightW - 4;
         var innerH  = Math.Max(3, boxH - 2);
 
-        var lines = new List<(string Text, ConsoleColor Color)>();
+        var lines      = new List<(string Text, ConsoleColor Color)>();
+        var renderLock = new object();
+
+        var spinnerFrames = new[] { "⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷" };
+        var spinnerFrame  = 0;
 
         void AddLine(string text, ConsoleColor color)
         {
-            lines.Add((text, color));
-            RenderContent(lines, left, top, innerW, innerH);
+            lock (renderLock)
+            {
+                lines.Add((text, color));
+                RenderContent(lines, left, top, innerW, innerH);
+            }
         }
 
         Console.CursorVisible = false;
@@ -38,18 +45,56 @@ public static class StoryModal
             // Wipe — silence the wiper's own console output
             if (entry.Story.WipeOnRun)
             {
-                AddLine("  Wiping database...", ConsoleColor.DarkGray);
+                AddLine("  ⊗ Wiping database...", ConsoleColor.DarkYellow);
                 var savedOut = Console.Out;
                 Console.SetOut(TextWriter.Null);
                 try   { await wiper.WipeAllAsync(); }
                 finally { Console.SetOut(savedOut); }
             }
 
-            // Run the story, routing all output through the modal
-            var buffered = new BufferedConsoleWriter(AddLine);
-            await runner.WithOutput(buffered).RunAsync(entry);
+            // Add the spinner line and remember its index so we can update it in-place
+            int spinnerIdx;
+            lock (renderLock)
+            {
+                spinnerIdx = lines.Count;
+                lines.Add(($"  {spinnerFrames[0]} Running story...", ConsoleColor.White));
+                RenderContent(lines, left, top, innerW, innerH);
+            }
 
-            // Park cursor safely inside the modal so terminal can't scroll
+            // Animate spinner on a background thread while the story runs
+            var cts = new CancellationTokenSource();
+            var spinnerTask = Task.Run(async () =>
+            {
+                while (!cts.Token.IsCancellationRequested)
+                {
+                    try { await Task.Delay(120, cts.Token); }
+                    catch (TaskCanceledException) { break; }
+
+                    lock (renderLock)
+                    {
+                        spinnerFrame = (spinnerFrame + 1) % spinnerFrames.Length;
+                        lines[spinnerIdx] = ($"  {spinnerFrames[spinnerFrame]} Running story...", ConsoleColor.White);
+                        RenderContent(lines, left, top, innerW, innerH);
+                    }
+                }
+            });
+
+            var buffered = new BufferedConsoleWriter(AddLine);
+            var success  = await runner.WithOutput(buffered).RunAsync(entry);
+
+            cts.Cancel();
+            await spinnerTask;
+
+            // Resolve spinner to tick or cross
+            lock (renderLock)
+            {
+                lines[spinnerIdx] = success
+                    ? ("  ✓ Story completed", ConsoleColor.Green)
+                    : ("  ✗ Story failed",    ConsoleColor.Red);
+                RenderContent(lines, left, top, innerW, innerH);
+            }
+
+            // Park cursor safely inside the modal so the terminal can't scroll
             Console.SetCursorPosition(left + 2, top + innerH);
         }
         finally

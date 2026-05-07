@@ -2,6 +2,7 @@
   "name": "Short Course - Deletion & Reinstatement",
   "group": "Short Course",
   "description": "Creates a short course, approves it, deletes it, then reinstates it by POSTing it again",
+  "extraDescription":  "When reinstated, the 30% milestone is claimed at the same time, which it wasn't previously.'",
   "wipeOnRun": true,
   "steps": [
     {
@@ -34,7 +35,7 @@
     {
       "name": "SLD Reinstates the Short Course",
       "verb": "POST",
-      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "route": "/providers/10005077/shortCourses",
       "payloadFile": "04-post-reinstate.json"
     }
   ]
