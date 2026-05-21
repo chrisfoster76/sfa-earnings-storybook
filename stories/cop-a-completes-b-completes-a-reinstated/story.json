@@ -1,0 +1,73 @@
+{
+  "name": "CoP - Provider A Completes, Deleted, Provider B Completes, Provider A Reinstated",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
+  "description": "Provider A creates a short course, gets approved, and completes it (30% + completion in one PUT). Provider A's record is then removed via DELETE. Provider B creates a new short course for the same learner, gets approved, and also completes it. Finally, Provider A's deleted record is reinstated by re-submitting the ILR data including the original completion date — creating a scenario where both providers have conflicting completion claims.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider A Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-provider-a.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD (Provider A) Claims 30% Milestone and Completion",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "payloadFile": "04-put-completion-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Removes Provider A Short Course",
+      "verb": "DELETE",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider B) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "06-post-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider B Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "07-approve-provider-b.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD (Provider B) Claims 30% Milestone and Completion",
+      "verb": "PUT",
+      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "payloadFile": "08-put-completion-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Reinstates Provider A Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "09-post-reinstate-provider-a.json",
+      "extract": {}
+    }
+  ]
+}

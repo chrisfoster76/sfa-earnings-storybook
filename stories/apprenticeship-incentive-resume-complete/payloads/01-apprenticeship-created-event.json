@@ -1,0 +1,32 @@
+{
+  "ApprenticeshipId": 800003,
+  "ApprenticeshipHashedId": "",
+  "Uln": "11111118",
+  "ProviderId": 10005077,
+  "LearningType": "Apprenticeship",
+  "DeliveryModel": "Regular",
+  "ApprenticeshipEmployerTypeOnApproval": "Levy",
+  "DateOfBirth": "2008-01-01T00:00:00Z",
+  "FirstName": "Riley",
+  "LastName": "Brooks",
+  "IsOnFlexiPaymentPilot": true,
+  "ActualStartDate": "2026-04-01T00:00:00Z",
+  "StartDate": "2026-04-01T00:00:00Z",
+  "EndDate": "2028-03-31T00:00:00Z",
+  "TrainingCode": "21",
+  "TrainingCourseVersion": "",
+  "TrainingCourseOption": "",
+  "TrainingType": "Standard",
+  "LegalEntityName": "Test Org",
+  "AccountLegalEntityId": 1,
+  "AccountId": 1,
+  "PriceEpisodes": [
+    {
+      "Cost": 8000,
+      "EndPointAssessmentPrice": 1600,
+      "TrainingPrice": 6400,
+      "FromDate": "2026-04-01T00:00:00Z",
+      "ToDate": "2028-03-31T00:00:00Z"
+    }
+  ]
+}

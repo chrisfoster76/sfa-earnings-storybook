@@ -1,0 +1,67 @@
+{
+  "name": "CoP - Provider B Submitted Before Provider A Withdrawal",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
+  "description": "Provider B's ILR is submitted (creating an unapproved episode) before Provider A's withdrawal arrives. Provider A's withdrawal then recalculates Provider B's earnings. Provider B is then approved and claims both milestones.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider A Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-provider-a.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD (Provider B) Creates a Short Course (before Provider A withdrawal)",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "04-post-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider A) Withdraws the Learner",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "payloadFile": "05-put-provider-a-withdrawal.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider B Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "06-approve-provider-b.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD (Provider B) Claims 30% Milestone",
+      "verb": "PUT",
+      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "payloadFile": "07-put-provider-b-30pct.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider B) Claims Completion",
+      "verb": "PUT",
+      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "payloadFile": "08-put-provider-b-completion.json",
+      "extract": {}
+    }
+  ]
+}

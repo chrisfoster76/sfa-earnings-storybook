@@ -1,0 +1,52 @@
+{
+  "name": "Short Course → Apprenticeship (same learner)",
+  "group": "Short Course",
+  "description": "Creates a short course with no milestones, approves it, claims 30% milestone, completes it, then fires an ApprenticeshipCreatedEvent for the same learner to start a regular apprenticeship",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-short-course-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Claims 30% Milestone",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "payloadFile": "04-put-thirty-percent.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Claims Completion",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "payloadFile": "05-put-completion.json",
+      "extract": {}
+    },
+    {
+      "name": "Commitments Approves an Apprenticeship for the Same Learner",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "06-apprenticeship-created-event.json",
+      "delayMs": 3000
+    }
+  ]
+}

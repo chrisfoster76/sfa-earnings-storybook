@@ -1,0 +1,37 @@
+{
+  "name": "CoP - Three Providers, Provider B Approved Only",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
+  "description": "All three providers submit short courses for the same learner but none are approved initially. At the end, only Provider B receives employer approval. Verifies that approval of one episode in a multi-episode scenario does not affect the others.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider B) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "02-post-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider C) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005079/shortCourses",
+      "payloadFile": "03-post-provider-c.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider B Short Course Only",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "04-approve-provider-b.json",
+      "delayMs": 3000
+    }
+  ]
+}

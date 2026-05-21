@@ -56,6 +56,7 @@ public class StoryRunner
                 "EVENT"   => await RunEventStepAsync(stepNum, step, entry.FolderPath),
                 "SQL"     => await RunSqlStepAsync(stepNum, step, entry.FolderPath, context),
                 "CONTEXT" => RunContextStep(stepNum, step, context),
+                "WAIT"    => RunWaitForUserStep(stepNum, step),
                 _         => await RunHttpStepAsync(stepNum, step, entry.FolderPath, http, context)
             };
 
@@ -99,6 +100,7 @@ public class StoryRunner
             "EVENT"   => await RunEventStepAsync(1, step, adhocFolder),
             "SQL"     => await RunSqlStepAsync(1, step, adhocFolder, context),
             "CONTEXT" => RunContextStep(1, step, context),
+            "WAIT"    => RunWaitForUserStep(1, step),
             _         => await RunHttpStepAsync(1, step, adhocFolder, http, context)
         };
 
@@ -130,6 +132,20 @@ public class StoryRunner
             _out.WriteLine($"     {key} = {value}");
             _out.ResetColor();
         }
+        return true;
+    }
+
+    // ── Wait step ────────────────────────────────────────────────────────────
+
+    private bool RunWaitForUserStep(int stepNum, Step step)
+    {
+        _out.ForegroundColor = ConsoleColor.Yellow;
+        _out.WriteLine($"  {stepNum}. {step.Name}  —  press Enter to continue...");
+        _out.ResetColor();
+        while (Console.ReadKey(true).Key != ConsoleKey.Enter) { }
+        _out.ForegroundColor = ConsoleColor.Green;
+        _out.WriteLine($"     Resuming.");
+        _out.ResetColor();
         return true;
     }
 

@@ -1,0 +1,88 @@
+{
+  "name": "CoC - Reinstate Course 1 Alongside Course 2",
+  "group": "Short Course",
+  "subGroup": "Change of Course",
+  "description": "Provider A creates ZSC00001 and gets it approved. They remove it from the ILR (DELETE). They then add ZSC00002 for the same learner and get that approved. Finally they submit a single PUT containing both ZSC00001 (reinstated, no withdrawal date) and ZSC00002.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates Short Course 1 (ZSC00001)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key (Course 1)",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key-course1.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Removes Short Course 1 from ILR (DELETE)",
+      "verb": "DELETE",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider A) Creates Short Course 2 (ZSC00002)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "05-post-course2.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 2",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "06-approve-course2.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key (Course 2)",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "07-get-learning-key-course2.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Reinstates Course 1 and Supplies Course 2 in a Single PUT",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "payloadFile": "08-put-reinstate-both.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    }
+  ]
+}

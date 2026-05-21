@@ -28,6 +28,10 @@
       "extract": {}
     },
     {
+      "name": "Wait — inspect DB after pause, then continue with withdrawal",
+      "type": "Wait"
+    },
+    {
       "name": "SLD Converts Pause to Withdrawal (break becomes permanent)",
       "verb": "PUT",
       "route": "/providers/10005077/learning/{learningKey}",

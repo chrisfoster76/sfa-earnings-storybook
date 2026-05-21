@@ -1,7 +1,7 @@
 {
-  "name": "Short Course - Deletion",
+  "name": "Short Course - Removal",
   "group": "Short Course",
-  "description": "Creates a short course, approves it, then deletes it via DELETE",
+  "description": "Creates a short course, approves it, then removes it via DELETE",
   "wipeOnRun": true,
   "steps": [
     {
