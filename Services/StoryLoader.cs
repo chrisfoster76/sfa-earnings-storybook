@@ -14,6 +14,7 @@ public class StoryLoader
             return [];
 
         var entries = new List<StoryEntry>();
+        var loadErrors = 0;
 
         foreach (var dir in Directory.GetDirectories(StoriesRoot).Order())
         {
@@ -30,7 +31,14 @@ public class StoryLoader
             catch (Exception ex)
             {
                 Console.WriteLine($"  [warn] Could not load {storyFile}: {ex.Message}");
+                loadErrors++;
             }
+        }
+
+        if (loadErrors > 0)
+        {
+            Console.WriteLine($"\nPress any key to continue...");
+            Console.ReadKey(intercept: true);
         }
 
         return entries;

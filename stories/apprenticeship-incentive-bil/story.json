@@ -1,0 +1,88 @@
+{
+  "name": "90 day BiL eligibility",
+  "group": "Apprenticeships Incentives",
+  "description": "Creates and approves a 2-year apprenticeship for Riley Brooks (DOB 2008-01-01, start 2026-04-01). PUTs a break in learning starting on day 45 (pause 2026-05-15), resuming 2028-01-01. The learner accrues 45 more actual days post-break, reaching 90 total on withdrawal date 2028-02-14. The 90-day incentive milestone is reached — both incentive payments should be generated. Then moves the withdrawal back one day to 2028-02-13 (89 total days) — both incentives should be removed. Finally moves the return date forward one day to 2027-12-31, restoring 90 total days — both incentives should be regenerated. Then moves the withdrawal back one day to 2028-02-12 (89 total days) — both incentives should be removed again.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Submits Break In Learning — 45 pre-break + 45 post-break = 90 days total (withdraw 2028-02-14)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-bil-day90.json",
+      "extract": {}
+    },
+    {
+      "name": "90-day incentives generated (count = 2)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "SLD Moves Withdrawal Back to Day 89 (2028-02-13) — 45 pre-break + 44 post-break = 89 days total",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "04-put-bil-1day.json",
+      "extract": {}
+    },
+    {
+      "name": "90-day incentives removed (count = 0)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    },
+    {
+      "name": "SLD Moves Return Date Forward One Day (2027-12-31) — 45 pre-break + 45 post-break = 90 days total",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "05-put-bil-resume-earlier.json",
+      "extract": {}
+    },
+    {
+      "name": "90-day incentives restored (count = 2)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "SLD Moves Withdrawal Back to Day 89 (2028-02-12) — 45 pre-break + 44 post-break = 89 days total",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "06-put-bil-withdraw-earlier.json",
+      "extract": {}
+    },
+    {
+      "name": "90-day incentives removed (count = 0)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    }
+  ]
+}

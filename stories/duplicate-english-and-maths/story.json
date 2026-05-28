@@ -1,6 +1,7 @@
 {
   "name": "Duplicate English and Maths",
   "group": "Apprenticeship",
+  "subGroup": "English & Maths",
   "description": "Creates an apprenticeship via event, then PUTs two English and Maths items that are identical except for AimSequenceNumber",
   "wipeOnRun": true,
   "steps": [

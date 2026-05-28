@@ -1,0 +1,31 @@
+{
+  "name": "Completion with Achievement Date",
+  "group": "Apprenticeship",
+  "description": "Creates a 2-year apprenticeship (2025-08-01 to 2027-07-31), then PUTs a completion on the expected end date along with an achievement date (2027-09-15) representing when the EPA result was confirmed.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Records Completion with Achievement Date",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-completion-with-achievement.json",
+      "extract": {}
+    }
+  ]
+}

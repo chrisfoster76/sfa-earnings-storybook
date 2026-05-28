@@ -1,5 +1,5 @@
 {
-  "name": "Apprenticeship — Break In Learning + Completion",
+  "name": "Break In Learning + Completion",
   "group": "Apprenticeship",
   "subGroup": "Break In Learning",
   "description": "Creates a 2-year apprenticeship (2025-08-01 to 2027-07-31), then PUTs an update with a 3-month break in learning at the halfway point (pause 2026-07-31, resume 2026-11-01) and a completion date halfway through the post-break period (2027-05-01)",
@@ -27,6 +27,45 @@
       "route": "/providers/10005077/learning/{learningKey}",
       "payloadFile": "03-put-break-and-completion.json",
       "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "12 instalments in AY 2526",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-instalments-2526.sql",
+      "expected": [
+        { "field": "Count", "value": "12" }
+      ]
+    },
+    {
+      "name": "6 Regular instalments in AY 2627",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-regular-instalments-2627.sql",
+      "expected": [
+        { "field": "Count", "value": "6" }
+      ]
+    },
+    {
+      "name": "1 Completion and 1 Balancing instalment in AY 2627",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-completion-and-balancing-2627.sql",
+      "expected": [
+        { "field": "CompletionCount", "value": "1" },
+        { "field": "BalancingCount", "value": "1" }
+      ]
+    },
+    {
+      "name": "Total of all instalments is £8000",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "sum-all-instalments.sql",
+      "expected": [
+        { "field": "Total", "value": "8000" }
+      ]
     }
   ]
 }

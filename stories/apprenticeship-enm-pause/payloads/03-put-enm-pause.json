@@ -1,0 +1,52 @@
+{
+  "consumerReference": "testing",
+  "learner": {
+    "uln": 44444444,
+    "firstname": "Jordan",
+    "lastname": "Blake",
+    "dob": "2002-06-15",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "englishAndMaths": [
+      {
+        "course": "Maths",
+        "learnAimRef": "60269533",
+        "amount": 471,
+        "startDate": "2026-04-01",
+        "endDate": "2028-03-31",
+        "completionDate": null,
+        "withdrawalDate": null,
+        "pauseDate": "2026-10-01",
+        "priorLearningPercentage": null,
+        "aimSequenceNumber": 2,
+        "learningSupport": []
+      }
+    ],
+    "onProgramme": [
+      {
+        "standardCode": 21,
+        "learnAimRef": "ZPROG001",
+        "agreementId": "123",
+        "startDate": "2026-04-01",
+        "expectedEndDate": "2028-03-31",
+        "completionDate": null,
+        "withdrawalDate": null,
+        "pauseDate": null,
+        "learningSupport": [],
+        "care": {
+          "careleaver": false,
+          "employerConsent": false
+        },
+        "aimSequenceNumber": 1,
+        "costs": [
+          {
+            "trainingPrice": 6400,
+            "epaoPrice": 1600,
+            "fromDate": "2026-04-01"
+          }
+        ]
+      }
+    ]
+  }
+}

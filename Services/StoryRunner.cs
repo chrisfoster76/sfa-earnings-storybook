@@ -55,6 +55,7 @@ public class StoryRunner
             {
                 "EVENT"   => await RunEventStepAsync(stepNum, step, entry.FolderPath),
                 "SQL"     => await RunSqlStepAsync(stepNum, step, entry.FolderPath, context),
+                "ASSERT"  => await RunAssertStepAsync(stepNum, step, entry.FolderPath),
                 "CONTEXT" => RunContextStep(stepNum, step, context),
                 "WAIT"    => RunWaitForUserStep(stepNum, step),
                 _         => await RunHttpStepAsync(stepNum, step, entry.FolderPath, http, context)
@@ -326,6 +327,93 @@ public class StoryRunner
         catch (Exception ex)
         {
             PrintError($"SQL step failed: {ex.Message}");
+            return false;
+        }
+    }
+
+    // ── Assert step ──────────────────────────────────────────────────────────
+
+    private async Task<bool> RunAssertStepAsync(int stepNum, Step step, string folderPath)
+    {
+        if (string.IsNullOrWhiteSpace(step.ConnectionName) || !_config.Connections.TryGetValue(step.ConnectionName, out var connectionString))
+        {
+            PrintError($"Connection '{step.ConnectionName}' not found in appsettings.json Connections.");
+            return false;
+        }
+
+        string? query = step.Query;
+        if (step.QueryFile is not null)
+        {
+            var queryPath = Path.Combine(folderPath, "payloads", step.QueryFile);
+            if (!File.Exists(queryPath))
+            {
+                PrintError($"Query file not found: {queryPath}");
+                return false;
+            }
+            query = await File.ReadAllTextAsync(queryPath);
+        }
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            PrintError($"Assert step '{step.Name}' has no query or queryFile.");
+            return false;
+        }
+
+        _out.WriteLine($"  {stepNum}. {step.Name}");
+
+        try
+        {
+            await using var conn = new SqlConnection(connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new SqlCommand(query, conn);
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+            {
+                _out.ForegroundColor = ConsoleColor.Red;
+                _out.WriteLine("     FAIL (query returned no rows)");
+                _out.ResetColor();
+                return false;
+            }
+
+            var fieldResults = new List<(string Field, string Expected, string Actual, bool Passed)>();
+            foreach (var exp in step.Expected)
+            {
+                string actual;
+                try
+                {
+                    var ordinal = reader.GetOrdinal(exp.Field);
+                    actual = reader.IsDBNull(ordinal) ? "null" : reader.GetValue(ordinal).ToString()!;
+                }
+                catch { actual = "<column not found>"; }
+                fieldResults.Add((exp.Field, exp.Value, actual,
+                    string.Equals(actual, exp.Value, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            var passed = fieldResults.All(r => r.Passed);
+            _out.ForegroundColor = passed ? ConsoleColor.Green : ConsoleColor.Red;
+
+            if (passed)
+            {
+                var summary = string.Join(", ", fieldResults.Select(r => $"{r.Field}={r.Actual}"));
+                _out.WriteLine($"     PASS ({summary})");
+            }
+            else
+            {
+                _out.WriteLine("     FAIL");
+                foreach (var (field, expected, actual, ok) in fieldResults)
+                {
+                    _out.ForegroundColor = ok ? ConsoleColor.Green : ConsoleColor.Red;
+                    _out.WriteLine($"       {field}: expected {expected}, got {actual}");
+                }
+            }
+
+            _out.ResetColor();
+            return passed;
+        }
+        catch (Exception ex)
+        {
+            PrintError($"Assert step failed: {ex.Message}");
             return false;
         }
     }

@@ -1,8 +1,8 @@
 {
-  "name": "4: 42-day QP not reached; remove earnings",
+  "name": "4: 42-day QP not reached; completion retains full earnings",
   "group": "Qualifying Periods",
   "subGroup": "Completion",
-  "description": "Creates a 2-year apprenticeship (730-day planned duration, qualifying period = 42 days), approves it, then records a completion after 30 days in learning. Because 30 < 42, earnings for periods prior to the completion date should be removed.",
+  "description": "Creates a 2-year apprenticeship (730-day planned duration, qualifying period = 42 days), approves it, then records a completion after 30 days in learning. Although 30 < 42, completion always retains full earnings regardless of QP — the provider earns the full £6000.\n\nEarnings are not subject to Qualifying Periods for Completion. Completion payment is still payable, along with a Balancing payment to roll-up the remaining earnings.",
   "wipeOnRun": true,
   "steps": [
     {
@@ -27,6 +27,17 @@
       "route": "/providers/10005077/learning/{learningKey}",
       "payloadFile": "03-put-completion.json",
       "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Total of all instalments is £6000",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "sum-all-instalments.sql",
+      "expected": [
+        { "field": "Total", "value": "6000" }
+      ]
     }
   ]
 }

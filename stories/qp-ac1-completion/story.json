@@ -2,7 +2,7 @@
   "name": "1: 14-day QP and census date reached; retain earnings",
   "group": "Qualifying Periods",
   "subGroup": "Completion",
-  "description": "Same as AC1 but the apprenticeship starts on the 25th of the month, so the 14-day qualifying window spans April into May. Completion is recorded on exactly day 14 (2026-05-08), which meets the threshold — earnings should be retained. Tests correct day counting across a month boundary. Covers FLP-1424 AC1.",
+  "description": "Same as AC1 but the apprenticeship starts on the 25th of the month, so the 14-day qualifying window spans April into May. Completion is recorded on exactly day 14 (2026-05-08), which meets the threshold — earnings should be retained. Tests correct day counting across a month boundary. Covers FLP-1424 AC1.\n\nEarnings are not subject to Qualifying Periods for Completion. Completion payment is still payable, along with a Balancing payment to roll-up the remaining earnings.",
   "wipeOnRun": true,
   "steps": [
     {
@@ -27,6 +27,17 @@
       "route": "/providers/10005077/learning/{learningKey}",
       "payloadFile": "03-put-completion.json",
       "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Total of all instalments is £3000",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "sum-all-instalments.sql",
+      "expected": [
+        { "field": "Total", "value": "3000" }
+      ]
     }
   ]
 }

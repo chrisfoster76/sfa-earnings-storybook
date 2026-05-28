@@ -44,4 +44,8 @@ public class Step
     public string? PayloadFile { get; set; }
     /// <summary>Inline JSON body. Takes precedence over PayloadFile. Used in adhoc steps.</summary>
     public JToken? Body { get; set; }
+
+    // ── Assert step properties ───────────────────────────────────────────
+    /// <summary>Expected column values for an Assert step. Each field is checked independently.</summary>
+    public List<AssertionExpectation> Expected { get; set; } = [];
 }

@@ -1,0 +1,56 @@
+{
+  "name": "365 day Withdrawal eligibility",
+  "group": "Apprenticeships Incentives",
+  "description": "Creates and approves a 2-year apprenticeship for Riley Brooks (DOB 2008-01-01, start 2026-04-01). PUTs a withdrawal on the 365th day (2027-03-31) — the incentive milestone falls on that day, so both incentive payments should be generated. Then moves the withdrawal back one day to the 364th (2027-03-30), which is before the milestone — both incentives should be removed.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Submits Withdrawal on Day 365 (2027-03-31)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-withdrawal-day365.json",
+      "extract": {}
+    },
+    {
+      "name": "365-day incentives generated (count = 2)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "SLD Moves Withdrawal Back to Day 364 (2027-03-30)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "04-put-withdrawal-day364.json",
+      "extract": {}
+    },
+    {
+      "name": "365-day incentives removed (count = 0)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "1b: 14-day QP not reached; remove earnings",
+  "group": "Qualifying Periods",
+  "subGroup": "Withdrawal",
+  "description": "Same setup as AC1 — apprenticeship starts 2026-04-25, 14-day qualifying period. Withdrawal is recorded on day 13 (2026-05-07), one day short of the threshold — earnings should be removed.",
+  "extraDescription": "Covers FLP-1424 AC1b.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Records Withdrawal (13 days in learning — one day short of qualifying period)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-withdrawal.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "No earnings generated",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-all-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    }
+  ]
+}

@@ -368,9 +368,10 @@ public class MenuNavigator
     private static (string icon, ConsoleColor color, string badge) StepBadge(Models.Step step) =>
         step.Type.ToUpperInvariant() switch
         {
-            "EVENT"   => ("◉", ConsoleColor.Yellow,  "EVENT"),
-            "SQL"     => ("◆", ConsoleColor.Magenta, "SQL"),
-            "CONTEXT" => ("·", ConsoleColor.DarkGray,"CTX"),
+            "EVENT"   => ("◉", ConsoleColor.Yellow,    "EVENT"),
+            "SQL"     => ("◆", ConsoleColor.Magenta,   "SQL"),
+            "ASSERT"  => ("?", ConsoleColor.DarkYellow, "ASSERT"),
+            "CONTEXT" => ("·", ConsoleColor.DarkGray,  "CTX"),
             _ => step.Verb.ToUpperInvariant() switch     // Http
             {
                 "POST"   => ("▲", ConsoleColor.Green,   "POST"),

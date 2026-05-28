@@ -39,6 +39,24 @@
       "expected": [
         { "field": "Count", "value": "1" }
       ]
+    },
+    {
+      "name": "Regular instalment is £800",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "regular-instalment-amount.sql",
+      "expected": [
+        { "field": "Amount", "value": "800" }
+      ]
+    },
+    {
+      "name": "No Balancing or Completion payment",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-balancing-and-completion.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
     }
   ]
 }
