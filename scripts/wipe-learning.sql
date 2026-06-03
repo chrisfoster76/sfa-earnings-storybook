@@ -2,11 +2,8 @@
 DELETE FROM [EpisodePrice];
 DELETE FROM EnglishAndMathsBreakInLearning;
 DELETE FROM [EnglishAndMaths];
-DELETE FROM [LearningSupport];
 DELETE FROM EpisodeBreakInLearning;
 DELETE FROM ApprenticeshipLearningSupport;
-DELETE FROM [Episode];
-DELETE FROM [Learning];
 DELETE FROM History.LearningHistory;
 DELETE FROM [ApprenticeshipEpisode];
 DELETE FROM ApprenticeshipLearning;

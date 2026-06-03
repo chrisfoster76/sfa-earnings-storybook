@@ -4,6 +4,7 @@
   "subGroup": "Change of Provider",
   "description": "Provider A claims the 30% milestone via PUT before withdrawing. Provider B then joins, gets approved, and can only earn completion — the 30% is suppressed because Provider A already claimed it.",
   "wipeOnRun": true,
+  "tags": ["FLP-1522", "FLP-1809"],
   "steps": [
     {
       "name": "SLD (Provider A) Creates a Short Course",
@@ -50,11 +51,56 @@
       "extract": {}
     },
     {
+      "name": "Provider B: 30% instalment suppressed on creation (count = 0)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-thirty-percent-count.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    },
+    {
+      "name": "Provider B: completion instalment created (count = 1)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-learning-complete-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
       "name": "Employer Approves Provider B Short Course",
       "type": "Event",
       "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
       "payloadFile": "07-approve-provider-b.json",
       "delayMs": 3000
+    },
+    {
+      "name": "Provider B: 30% instalment still suppressed after approval (count = 0)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-thirty-percent-count.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    },
+    {
+      "name": "Provider B: completion instalment still present after approval (count = 1)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-learning-complete-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "Provider B: earnings profile marked as approved",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-profile-approved.sql",
+      "expected": [
+        { "field": "IsApproved", "value": "True" }
+      ]
     },
     {
       "name": "SLD (Provider B) Claims Completion",

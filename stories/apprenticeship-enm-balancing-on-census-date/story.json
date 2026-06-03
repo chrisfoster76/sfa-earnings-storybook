@@ -1,0 +1,61 @@
+{
+  "name": "E&M — Balancing on Census Date (FLP-1514)",
+  "group": "Apprenticeship",
+  "subGroup": "English & Maths",
+  "description": "Creates a 2-year apprenticeship (2026-04-01 to 2028-03-31), then PUTs a Maths aim (2026-04-01 to 2027-03-31) with completion on the census date (2026-09-30 = last day of month). Regression for FLP-1514: the Regular instalment for the completion month must be kept alongside the Balancing instalment. Bug: currently the Sep Regular is removed and its amount is folded into the Balancing.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Submits Maths with Completion on Census Date",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-enm-completion-on-census-date.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "6 Regular E&M instalments (Apr-Sep 2026)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-enm-regular.sql",
+      "expected": [
+        { "field": "Count", "value": "6" }
+      ]
+    },
+    {
+      "name": "1 Balancing E&M instalment",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "count-enm-balancing.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "Sep 2026 Regular instalment exists (AY 2627, DP 2)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "sep-regular.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    }
+  ]
+}

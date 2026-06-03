@@ -8,6 +8,7 @@ public class Story
     public string SubGroup { get; set; } = string.Empty;
     public string ExtraDescription { get; set; } = string.Empty;
     public bool WipeOnRun { get; set; } = true;
+    public List<string> Tags { get; set; } = [];
     public List<Step> Steps { get; set; } = [];
     public List<Assertion> Assertions { get; set; } = [];
 }

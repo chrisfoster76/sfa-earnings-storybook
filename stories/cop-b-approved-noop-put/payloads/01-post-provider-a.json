@@ -22,7 +22,7 @@
         "pauseDate": null,
         "aimSequenceNumber": 1,
         "actualEndDate": null,
-        "milestones": [ "ThirtyPercentLearningComplete" ]
+        "milestones": []
       }
     ]
   }

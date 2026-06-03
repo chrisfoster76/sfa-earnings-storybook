@@ -2,9 +2,11 @@
   "consumerReference": "testing",
   "learner": {
     "uln": 44444444,
+    "learnerRef": "string",
     "firstname": "Jordan",
     "lastname": "Blake",
     "dob": "2002-06-15",
+    "email": "jordan.blake@test.com",
     "hasEhcp": false
   },
   "delivery": {
@@ -31,7 +33,9 @@
             "epaoPrice": 1600,
             "fromDate": "2026-04-01"
           }
-        ]
+        ],
+        "percentageOfTrainingLeft": 100,
+        "isFlexiJob": false
       }
     ]
   }

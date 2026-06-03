@@ -1,0 +1,38 @@
+{
+  "name": "Short Course - No-op PUT",
+  "group": "Short Course",
+  "description": "Creates a short course with no milestones, approves it, then sends a PUT with no changes from the original POST.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Sends No-op PUT (no changes from POST)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "payloadFile": "04-put-noop.json",
+      "extract": {}
+    }
+  ]
+}

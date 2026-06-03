@@ -1,7 +1,7 @@
 {
   "name": "Apprenticeship — Deletion, Reinstatement & Withdrawal",
   "group": "Apprenticeship",
-  "description": "Creates an apprenticeship, removes it via DELETE, then reinstates it via PUT with a withdrawal date",
+  "description": "Creates an apprenticeship, removes it via DELETE, then reinstates it via POST with a withdrawal date",
   "wipeOnRun": true,
   "steps": [
     {
@@ -28,8 +28,8 @@
     },
     {
       "name": "SLD Reinstates the Apprenticeship with Withdrawal",
-      "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
       "payloadFile": "03-put-reinstate-withdrawn.json",
       "extract": {}
     }

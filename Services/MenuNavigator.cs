@@ -277,6 +277,12 @@ public class MenuNavigator
             if (!hasDesc && !hasExtra)
                 lines.Add(Styled("(no description)", ConsoleColor.DarkGray));
 
+            if (story.Tags.Count > 0)
+            {
+                lines.Add(Blank());
+                lines.Add(TagBadgeLine(story.Tags));
+            }
+
             var steps = story.Steps.Where(s => !s.Disabled).ToList();
             if (steps.Count > 0)
             {
@@ -296,6 +302,29 @@ public class MenuNavigator
         }
 
         return lines;
+    }
+
+    // Renders tag badges: white text on blue background, space-separated.
+    private static Action<int> TagBadgeLine(List<string> tags)
+    {
+        var t = tags;
+        return w =>
+        {
+            int used = 0;
+            foreach (var tag in t)
+            {
+                var badge = " " + tag + " ";
+                var bw = Vw(badge);
+                if (used + bw > w) break;
+                Console.BackgroundColor = ConsoleColor.DarkBlue;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(badge);
+                Console.ResetColor();
+                used += bw;
+                if (used < w) { Console.Write(" "); used++; }
+            }
+            if (used < w) Console.Write(new string(' ', w - used));
+        };
     }
 
     // ── Step rendering ────────────────────────────────────────────────────────

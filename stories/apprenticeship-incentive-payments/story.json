@@ -1,5 +1,5 @@
 {
-  "name": "2 yr App, under 19 (eligible)",
+  "name": "Eligibile",
   "group": "Apprenticeships Incentives",
   "description": "Creates and approves a 2-year apprenticeship for an 18-year-old learner (Riley Brooks, DOB 2008-01-01, start 2026-04-01). Both incentive milestones fall within the end date: the 90th day (2026-06-29, 2526 DP11) and the 365th day (2027-03-31, 2627 DP8). Provider and employer incentives (£500 each) should be generated at each milestone.",
   "wipeOnRun": true,

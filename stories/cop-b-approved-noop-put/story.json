@@ -1,0 +1,46 @@
+{
+  "name": "CoP - Provider B Approved Then No-op PUT",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
+  "description": "Provider A submits a learner (unapproved). Provider B submits the same learner on the same course (unapproved). Employer approves Provider B's record. Provider B then sends a PUT with no changes from their original POST.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider B) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "02-post-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider B Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "03-approve-provider-b.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "04-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD (Provider B) Sends No-op PUT (no changes from POST)",
+      "verb": "PUT",
+      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "payloadFile": "05-put-provider-b-noop.json",
+      "extract": {}
+    }
+  ]
+}

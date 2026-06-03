@@ -1,12 +1,10 @@
 {
   "consumerReference": "testing",
   "learner": {
-    "uln": 44444444,
-    "learnerRef": "string",
-    "firstname": "Jordan",
-    "lastname": "Blake",
+    "uln": 44444445,
+    "firstname": "Alex",
+    "lastname": "Turner",
     "dob": "2002-06-15",
-    "email": "jordan.blake@test.com",
     "hasEhcp": false
   },
   "delivery": {
@@ -16,8 +14,8 @@
         "learnAimRef": "60269533",
         "amount": 471,
         "startDate": "2026-04-01",
-        "endDate": "2028-03-31",
-        "completionDate": null,
+        "endDate": "2027-03-31",
+        "completionDate": "2026-09-30",
         "withdrawalDate": null,
         "pauseDate": null,
         "priorLearningPercentage": null,
@@ -35,12 +33,7 @@
         "completionDate": null,
         "withdrawalDate": null,
         "pauseDate": null,
-        "learningSupport": [
-          {
-            "startDate": "2026-04-01",
-            "endDate": "2026-12-15"
-          }
-        ],
+        "learningSupport": [],
         "care": {
           "careleaver": false,
           "employerConsent": false
@@ -52,9 +45,7 @@
             "epaoPrice": 1600,
             "fromDate": "2026-04-01"
           }
-        ],
-        "percentageOfTrainingLeft": 100,
-        "isFlexiJob": false
+        ]
       }
     ]
   }
