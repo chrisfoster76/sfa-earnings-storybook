@@ -1,0 +1,76 @@
+{
+  "name": "CoP - Provider A Claims 30%, Deleted, Provider B Posts (Unapproved)",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
+  "description": "Provider A creates a short course, gets approved, and claims the 30% milestone. Provider A's record is then removed via DELETE (ILR removal). Provider B creates a new short course for the same learner but is not approved and claims no milestones. Tests the state after Provider A has claimed 30% and been removed and Provider B is in a pending unapproved state.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider A Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-provider-a.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD (Provider A) Claims 30% Milestone",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-provider-a-30pct.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify Provider A earnings, then press Enter to continue with ILR removal",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD Removes Provider A Short Course (ILR Removal)",
+      "verb": "DELETE",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider B) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "06-post-provider-b.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    }
+  ]
+}

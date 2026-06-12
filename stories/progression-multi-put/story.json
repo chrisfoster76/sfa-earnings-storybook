@@ -1,0 +1,40 @@
+{
+  "name": "Restart - Single Provider, New Course via PUT",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "SLD submits ZSC00001 as completed. Employer approves. SLD then PUTs a single payload containing both ZSC00001 (the completed course) and ZSC00002 (a new course starting after completion). Exercises the multi-OnProgramme PUT array path.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001, completed)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (completed) and ZSC00002 (new course) in a Single Payload",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-both-courses.json",
+      "extract": {}
+    }
+  ],
+  "assertions": []
+}

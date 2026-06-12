@@ -20,18 +20,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key",
+      "name": "Get Learner Key",
       "type": "Sql",
       "connectionName": "Learning",
       "queryFile": "03-get-learning-key.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD Withdraws the Learner and Claims 30% Milestone (Provider 1)",
       "verb": "PUT",
-      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "04-put-withdrawal.json",
       "extract": {}
     },
@@ -52,7 +52,7 @@
     {
       "name": "SLD (Provider 2) Claims 30% Milestone and Completion",
       "verb": "PUT",
-      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "route": "/providers/10005078/shortCourses/{learnerKey}",
       "payloadFile": "08-put-completion-provider2.json",
       "extract": {}
     }
@@ -77,12 +77,12 @@
       ]
     },
     {
-      "name": "2 ThirtyPercentLearningComplete instalments (one per provider - TEMPORARY)",
+      "name": "1 30% instalment",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "assert-thirty-percent-instalments.sql",
       "expected": [
-        { "field": "Count", "value": "2" }
+        { "field": "Count", "value": "1" }
       ]
     },
     {

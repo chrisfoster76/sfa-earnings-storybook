@@ -1,0 +1,109 @@
+{
+  "name": "CoP - Provider A start date update after completion",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
+  "description": "Canonical CoP journey (A POST → A approve → A PUT withdrawal + 30% → B POST → B approve → B PUT 30% + completion), then Provider A updates their start date via a further PUT. Verifies that a start date change on a withdrawn, fully-settled Provider A episode does not alter instalment counts.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider 1) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course-provider1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider 1 Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event-provider1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Withdraws the Learner and Claims 30% Milestone (Provider 1)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-withdrawal.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider 2) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "05-post-short-course-provider2.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider 2 Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "06-apprenticeship-created-event-provider2.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD (Provider 2) Claims 30% Milestone and Completion",
+      "verb": "PUT",
+      "route": "/providers/10005078/shortCourses/{learnerKey}",
+      "payloadFile": "08-put-completion-provider2.json",
+      "extract": {}
+    },
+    {
+      "name": "Inspect DB state before Provider 1 start date update",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD (Provider 1) Updates Start Date",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "09-put-provider1-start-date-update.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "1 30% instalment",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-thirty-percent-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "1 LearningComplete instalment",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-learning-complete-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    }
+  ]
+}

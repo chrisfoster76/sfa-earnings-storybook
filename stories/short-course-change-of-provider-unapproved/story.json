@@ -27,32 +27,32 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key",
+      "name": "Get Learner Key",
       "type": "Sql",
       "connectionName": "Learning",
       "queryFile": "04-get-learning-key.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD (Provider 2) Claims 30% Milestone",
       "verb": "PUT",
-      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "route": "/providers/10005078/shortCourses/{learnerKey}",
       "payloadFile": "05-put-thirty-percent-provider2.json",
       "extract": {}
     },
     {
       "name": "SLD (Provider 2) Claims Completion",
       "verb": "PUT",
-      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "route": "/providers/10005078/shortCourses/{learnerKey}",
       "payloadFile": "06-put-completion-provider2.json",
       "extract": {}
     },
     {
       "name": "SLD Deletes Provider 2 Short Course",
       "verb": "DELETE",
-      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "route": "/providers/10005078/shortCourses/{learnerKey}",
       "extract": {}
     }
   ]

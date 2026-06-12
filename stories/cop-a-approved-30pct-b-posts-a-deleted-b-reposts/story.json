@@ -1,0 +1,88 @@
+{
+  "name": "CoP - Provider A Approved With 30%, Provider B 30% Suppressed, A Deleted, B Re-Posts",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
+  "description": "Provider A creates a short course claiming the 30% milestone and is approved. Provider B then posts for the same learner also claiming 30%, but the instalment is suppressed because Provider A's approved 30% takes precedence. Provider A's record is then removed via DELETE (ILR removal). Provider B re-posts with 30% and the instalment is now created since Provider A's approved claim has been removed.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Short Course and Claims 30%",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider A Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-provider-a.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key (Provider A)",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD (Provider B) Creates a Short Course and Claims 30%",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "04-post-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider A) Withdraws the Learner (still claiming 30%)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "05-put-provider-a-withdrawal.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Removes Provider A Short Course (ILR Removal)",
+      "verb": "DELETE",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider B) Re-Posts Short Course and Claims 30%",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "04-post-provider-b.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Provider B: 30% instalment now created (count = 1)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-thirty-percent-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    }
+  ]
+}

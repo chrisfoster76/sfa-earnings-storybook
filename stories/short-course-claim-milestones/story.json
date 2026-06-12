@@ -1,5 +1,5 @@
 {
-  "name": "Short Course - Claim Milestones",
+  "name": "Short Course - Claim 30% Milestone",
   "group": "Short Course",
   "description": "Creates a short course with no milestones, approves it, then claims ThirtyPercentLearningComplete via PUT",
   "wipeOnRun": true,
@@ -19,18 +19,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key",
+      "name": "Get Learner Key",
       "type": "Sql",
       "connectionName": "Learning",
       "queryFile": "03-get-learning-key.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
-      "name": "SLD Claims Both Milestones",
+      "name": "SLD Claims 30% Milestone",
       "verb": "PUT",
-      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "04-put-short-course.json",
       "extract": {}
     }

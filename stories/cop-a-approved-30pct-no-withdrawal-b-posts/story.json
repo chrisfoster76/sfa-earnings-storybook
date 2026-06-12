@@ -1,0 +1,41 @@
+{
+  "name": "CoP - Provider A Approved With 30% (No Withdrawal), Provider B Posts 30% [GAP]",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
+  "description": "Provider A creates a short course claiming the 30% milestone and is approved. Provider B then posts for the same learner also claiming 30%, without Provider A having withdrawn. EXPECTED: Provider B's 30% is suppressed because Provider A is approved and has claimed it. CURRENT BEHAVIOUR: suppression does not fire because IsThirtyPercentClaimedBySibling requires WithdrawalDate — this story will FAIL until that is fixed.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Short Course and Claims 30%",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider A Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-provider-a.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD (Provider B) Creates a Short Course and Claims 30%",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "03-post-provider-b.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Provider B: 30% instalment suppressed (count = 0)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-thirty-percent-count.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    }
+  ]
+}

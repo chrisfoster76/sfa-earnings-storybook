@@ -19,25 +19,25 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key",
+      "name": "Get Learner Key",
       "type": "Sql",
       "connectionName": "Learning",
       "queryFile": "03-get-learning-key.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD Claims 30% Milestone",
       "verb": "PUT",
-      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "04-put-thirty-percent.json",
       "extract": {}
     },
     {
       "name": "SLD Claims Completion",
       "verb": "PUT",
-      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "05-put-completion.json",
       "extract": {}
     },

@@ -20,18 +20,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key",
+      "name": "Get Learner Key",
       "type": "Sql",
       "connectionName": "Learning",
       "queryFile": "03-get-learning-key.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD (Provider A) Withdraws the Learner",
       "verb": "PUT",
-      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "04-put-provider-a-withdrawal.json",
       "extract": {}
     },
@@ -52,7 +52,7 @@
     {
       "name": "SLD Removes Provider B Short Course",
       "verb": "DELETE",
-      "route": "/providers/10005078/shortCourses/{learningKey}",
+      "route": "/providers/10005078/shortCourses/{learnerKey}",
       "extract": {}
     }
   ]

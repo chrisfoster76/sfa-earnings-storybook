@@ -20,18 +20,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key (Course 1)",
+      "name": "Get Learner Key (Course 1)",
       "type": "Sql",
       "connectionName": "Learning",
       "queryFile": "03-get-learning-key-course1.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD Removes Short Course 1 from ILR (DELETE)",
       "verb": "DELETE",
-      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
       "extract": {}
     },
     {
@@ -49,18 +49,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key (Course 2)",
+      "name": "Get Learner Key (Course 2)",
       "type": "Sql",
       "connectionName": "Learning",
       "queryFile": "07-get-learning-key-course2.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD Reinstates Course 1 and Supplies Course 2 in a Single PUT",
       "verb": "PUT",
-      "route": "/providers/10005077/shortCourses/{learningKey}",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "08-put-reinstate-both.json",
       "extract": {}
     }

@@ -1,0 +1,112 @@
+{
+  "name": "CoP - Provider A Claims 30% Pre-Approval, Approves Last",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
+  "description": "Provider A claims the 30% milestone and withdraws while still unapproved (via re-POST, since updates to an unapproved record arrive as fresh ILR submissions rather than PUTs), then Provider B joins. Provider A's employer approval is the last setup step, arriving immediately before Provider B's approval (rather than first, as in cop-a-claimed-30pct). Observes whether Provider B's 30% suppression still applies when Provider A's approval lands so late.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1522", "FLP-1809"],
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider A) Re-submits with 30% Claimed (still unapproved)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "02-post-provider-a-30pct.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider A) Re-submits with Withdrawal (still unapproved)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "03-post-provider-a-withdrawal.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider B) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "04-post-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "Get Provider B Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "05-get-learning-key-provider-b.sql",
+      "extract": {
+        "learnerKeyB": "LearnerKey"
+      }
+    },
+    {
+      "name": "Wait — inspect DB before Provider A approval, then continue",
+      "type": "Wait"
+    },
+    {
+      "name": "Employer Approves Provider A Short Course (last setup step)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "06-approve-provider-a.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Wait — inspect DB before Provider B approval, then continue",
+      "type": "Wait"
+    },
+    {
+      "name": "Employer Approves Provider B Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "07-approve-provider-b.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "AC2: Provider B 30% milestone earning is not calculated (count = 0)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-thirty-percent-count.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    },
+    {
+      "name": "AC2: Provider B completion earning becomes approved provisional, not payable (count = 1)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-learning-complete-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "AC2: Provider B completion earning is not payable",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-learning-complete-not-payable.sql",
+      "expected": [
+        { "field": "IsPayable", "value": "False" }
+      ]
+    },
+    {
+      "name": "AC2: Provider B approved learner is returned to SLD (profile approved)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-provider-b-profile-approved.sql",
+      "expected": [
+        { "field": "IsApproved", "value": "True" }
+      ]
+    },
+    {
+      "name": "SLD (Provider B) Claims Completion",
+      "verb": "PUT",
+      "route": "/providers/10005078/shortCourses/{learnerKeyB}",
+      "payloadFile": "08-put-provider-b-completion.json",
+      "extract": {}
+    }
+  ]
+}

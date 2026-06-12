@@ -1,4 +1,4 @@
-SELECT TOP 1 scl.[Key] AS LearningKey
+SELECT TOP 1 l.[Key] AS LearnerKey
 FROM ShortCourseLearning scl
 INNER JOIN Learner l ON l.[Key] = scl.[LearnerKey]
 INNER JOIN ShortCourseEpisode sce ON sce.[LearningKey] = scl.[Key]

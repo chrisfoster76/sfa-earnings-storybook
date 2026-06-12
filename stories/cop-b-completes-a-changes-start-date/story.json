@@ -1,0 +1,64 @@
+{
+  "name": "CoP - Provider B Completes, Provider A Changes Start Date",
+  "group": "Short Course",
+  "subGroup": "Change of Provider",
+  "description": "Provider A creates a short course and the employer approves it, but Provider A does not complete. Provider B then creates their episode for the same learner and course, the employer approves Provider B, and Provider B completes (claiming 30% and completion). Provider A then submits a PUT that shifts their start date by one day.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course-provider1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider A Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event-provider1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD (Provider B) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "04-post-short-course-provider2.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider B Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "05-apprenticeship-created-event-provider2.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD (Provider B) Claims 30% Milestone and Completes",
+      "verb": "PUT",
+      "route": "/providers/10005078/shortCourses/{learnerKey}",
+      "payloadFile": "06-put-completion-provider2.json",
+      "extract": {}
+    },
+    {
+      "name": "Wait — inspect DB after Provider B completion, then continue",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD (Provider A) Changes Start Date by 1 Day",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "07-put-change-start-date-provider1.json",
+      "extract": {}
+    }
+  ]
+}
