@@ -13,9 +13,6 @@ public class MenuNavigator
 
     // ── Config ────────────────────────────────────────────────────────────────
 
-    private static readonly string[] GroupOrder =
-        ["Short Course", "Apprenticeship", "Change of Circumstance"];
-
     private const int HeaderRows = 4; // lines consumed by PrintHeader()
     private const int PanelGap   = 2; // columns between the two boxes
 
@@ -501,52 +498,28 @@ public class MenuNavigator
 
     private static FolderNode BuildTree(List<StoryEntry> stories)
     {
-        var rootChildren = new List<Node>
-        {
-            new ActionNode("Run All Stories", stories)
-        };
-
-        var groups = stories
-            .GroupBy(s => string.IsNullOrWhiteSpace(s.Story.Group) ? "Other" : s.Story.Group)
-            .OrderBy(g => GroupSortKey(g.Key))
-            .ThenBy(g => g.Key);
-
-        foreach (var group in groups)
-        {
-            var groupChildren = new List<Node>();
-
-            var directStories = group
-                .Where(s => string.IsNullOrWhiteSpace(s.Story.SubGroup))
-                .OrderBy(s => s.Story.Name)
-                .ToList();
-
-            // "Run All in Folder" for direct stories in this group (not sub-folders)
-            if (directStories.Count > 0)
-                groupChildren.Add(new ActionNode("Run All in Folder", directStories));
-
-            foreach (var entry in directStories)
-                groupChildren.Add(new StoryNode(entry.Story.Name, entry));
-
-            foreach (var subGroup in group
-                .Where(s => !string.IsNullOrWhiteSpace(s.Story.SubGroup))
-                .GroupBy(s => s.Story.SubGroup!)
-                .OrderBy(sg => sg.Key))
-            {
-                var subGroupStories = subGroup.OrderBy(e => e.Story.Name).ToList();
-                var subChildren = new List<Node> { new ActionNode("Run All in Folder", subGroupStories) };
-                subChildren.AddRange(subGroupStories.Select(e => (Node)new StoryNode(e.Story.Name, e)));
-                groupChildren.Add(new FolderNode(subGroup.Key, subChildren));
-            }
-
-            rootChildren.Add(new FolderNode(group.Key, groupChildren));
-        }
-
+        var rootChildren = new List<Node> { new ActionNode("Run All Stories", stories) };
+        AddChildNodes(rootChildren, stories, depth: 0);
         return new FolderNode(string.Empty, rootChildren);
     }
 
-    private static int GroupSortKey(string name)
+    private static void AddChildNodes(List<Node> target, List<StoryEntry> stories, int depth)
     {
-        var i = Array.IndexOf(GroupOrder, name);
-        return i >= 0 ? i : GroupOrder.Length;
+        foreach (var entry in stories.Where(s => s.CategoryPath.Length == depth).OrderBy(s => s.Story.Name))
+            target.Add(new StoryNode(entry.Story.Name, entry));
+
+        foreach (var group in stories
+            .Where(s => s.CategoryPath.Length > depth)
+            .GroupBy(s => s.CategoryPath[depth])
+            .OrderBy(g => g.Key))
+        {
+            var folderStories = group.ToList();
+            var subChildren = new List<Node> { new ActionNode("Run All in Folder", folderStories) };
+            AddChildNodes(subChildren, folderStories, depth + 1);
+            target.Add(new FolderNode(ToDisplayName(group.Key), subChildren));
+        }
     }
+
+    private static string ToDisplayName(string folderName) =>
+        string.Concat(folderName.Select((c, i) => i > 0 && char.IsUpper(c) ? " " + c : c.ToString()));
 }

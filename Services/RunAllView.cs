@@ -124,12 +124,9 @@ public static class RunAllView
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static string Group(StoryEntry entry)
-    {
-        var g = entry.Story.Group;
-        var s = entry.Story.SubGroup;
-        return string.IsNullOrWhiteSpace(s) ? g : $"{g} / {s}";
-    }
+    private static string Group(StoryEntry entry) =>
+        string.Join(" / ", entry.CategoryPath.Select(p =>
+            string.Concat(p.Select((c, i) => i > 0 && char.IsUpper(c) ? " " + c : c.ToString()))));
 
     private static string Trunc(string s, int maxLen) =>
         s.Length <= maxLen ? s : s[..(maxLen - 1)] + "…";

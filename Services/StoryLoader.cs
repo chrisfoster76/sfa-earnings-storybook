@@ -16,17 +16,14 @@ public class StoryLoader
         var entries = new List<StoryEntry>();
         var loadErrors = 0;
 
-        foreach (var dir in Directory.GetDirectories(StoriesRoot).Order())
+        foreach (var storyFile in Directory.GetFiles(StoriesRoot, "story.json", SearchOption.AllDirectories).Order())
         {
-            var storyFile = Path.Combine(dir, "story.json");
-            if (!File.Exists(storyFile))
-                continue;
-
+            var dir = Path.GetDirectoryName(storyFile)!;
             try
             {
                 var story = JsonConvert.DeserializeObject<Story>(File.ReadAllText(storyFile));
                 if (story is not null)
-                    entries.Add(new StoryEntry(story, dir));
+                    entries.Add(new StoryEntry(story, dir, CategoryPath(dir)));
             }
             catch (Exception ex)
             {
@@ -42,5 +39,12 @@ public class StoryLoader
         }
 
         return entries;
+    }
+
+    private string[] CategoryPath(string storyDir)
+    {
+        var parts = Path.GetRelativePath(StoriesRoot, storyDir)
+            .Split(Path.DirectorySeparatorChar);
+        return parts.Length > 1 ? parts[..^1] : [];
     }
 }
