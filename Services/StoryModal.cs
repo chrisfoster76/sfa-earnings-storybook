@@ -80,7 +80,7 @@ public static class StoryModal
             });
 
             var buffered = new BufferedConsoleWriter(AddLine);
-            var success  = await runner.WithOutput(buffered).RunAsync(entry);
+            var result   = await runner.WithOutput(buffered).RunAsync(entry);
 
             cts.Cancel();
             await spinnerTask;
@@ -88,7 +88,7 @@ public static class StoryModal
             // Resolve spinner to tick or cross
             lock (renderLock)
             {
-                lines[spinnerIdx] = success
+                lines[spinnerIdx] = result.AllPassed
                     ? ("  ✓ Story completed", ConsoleColor.Green)
                     : ("  ✗ Story failed",    ConsoleColor.Red);
                 RenderContent(lines, left, top, innerW, innerH);

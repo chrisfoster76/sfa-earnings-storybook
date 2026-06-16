@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using LearnerDataStorybook.Models;
 using Microsoft.Data.SqlClient;
@@ -28,8 +29,9 @@ public class StoryRunner
 
     // ── Story entry point ─────────────────────────────────────────────────────
 
-    public async Task<bool> RunAsync(StoryEntry entry)
+    public async Task<StoryRunResult> RunAsync(StoryEntry entry, bool skipWaits = false)
     {
+        var sw    = Stopwatch.StartNew();
         var story = entry.Story;
         var context = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -57,12 +59,15 @@ public class StoryRunner
                 "SQL"     => await RunSqlStepAsync(stepNum, step, entry.FolderPath, context),
                 "ASSERT"  => await RunAssertStepAsync(stepNum, step, entry.FolderPath),
                 "CONTEXT" => RunContextStep(stepNum, step, context),
-                "WAIT"    => RunWaitForUserStep(stepNum, step),
+                "WAIT"    => skipWaits ? SkipWaitStep(stepNum, step) : RunWaitForUserStep(stepNum, step),
                 _         => await RunHttpStepAsync(stepNum, step, entry.FolderPath, http, context)
             };
 
             if (!success)
-                return false;
+            {
+                sw.Stop();
+                return new StoryRunResult(false, 0, story.Assertions.Count, sw.Elapsed);
+            }
 
             if (step.DelayMs > 0)
             {
@@ -78,9 +83,14 @@ public class StoryRunner
         _out.ResetColor();
 
         if (story.Assertions.Count > 0)
-            return await RunAssertionsAsync(story.Assertions, entry.FolderPath);
+        {
+            var (_, passed, total) = await RunAssertionsAsync(story.Assertions, entry.FolderPath);
+            sw.Stop();
+            return new StoryRunResult(true, passed, total, sw.Elapsed);
+        }
 
-        return true;
+        sw.Stop();
+        return new StoryRunResult(true, 0, 0, sw.Elapsed);
     }
 
     // ── Adhoc entry point ────────────────────────────────────────────────────
@@ -146,6 +156,14 @@ public class StoryRunner
         while (Console.ReadKey(true).Key != ConsoleKey.Enter) { }
         _out.ForegroundColor = ConsoleColor.Green;
         _out.WriteLine($"     Resuming.");
+        _out.ResetColor();
+        return true;
+    }
+
+    private bool SkipWaitStep(int stepNum, Step step)
+    {
+        _out.ForegroundColor = ConsoleColor.DarkGray;
+        _out.WriteLine($"  {stepNum}. {step.Name}  —  auto-skipped (run-all mode)");
         _out.ResetColor();
         return true;
     }
@@ -420,12 +438,14 @@ public class StoryRunner
 
     // ── Assertions ───────────────────────────────────────────────────────────
 
-    private async Task<bool> RunAssertionsAsync(List<Assertion> assertions, string folderPath)
+    private async Task<(bool allPassed, int passed, int total)> RunAssertionsAsync(List<Assertion> assertions, string folderPath)
     {
         _out.WriteLine("");
         _out.WriteLine("  Assertions:");
 
-        var allPassed = true;
+        var allPassed  = true;
+        var passCount  = 0;
+        var total      = 0;
 
         for (int i = 0; i < assertions.Count; i++)
         {
@@ -439,6 +459,8 @@ public class StoryRunner
                 _out.ResetColor();
                 continue;
             }
+
+            total++;
 
             if (string.IsNullOrWhiteSpace(assertion.ConnectionName) || !_config.Connections.TryGetValue(assertion.ConnectionName, out var connectionString))
             {
@@ -523,7 +545,8 @@ public class StoryRunner
                 }
 
                 _out.ResetColor();
-                if (!assertionPassed) allPassed = false;
+                if (assertionPassed) passCount++;
+                else allPassed = false;
             }
             catch (Exception ex)
             {
@@ -538,7 +561,7 @@ public class StoryRunner
         _out.ForegroundColor = allPassed ? ConsoleColor.Green : ConsoleColor.Red;
         _out.WriteLine(allPassed ? "  All assertions passed." : "  One or more assertions failed.");
         _out.ResetColor();
-        return allPassed;
+        return (allPassed, passCount, total);
     }
 
     // ── Printing ─────────────────────────────────────────────────────────────

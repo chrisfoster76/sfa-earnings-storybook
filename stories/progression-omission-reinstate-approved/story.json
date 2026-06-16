@@ -1,0 +1,133 @@
+{
+  "name": "Progression - Remove by Omission then Reinstate (Approved)",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "ZSC00001 completed and approved. A PUT adds ZSC00002 alongside ZSC00001. ZSC00002 is then approved. A second PUT omits ZSC00002, triggering removal by omission of an approved episode. A third PUT reinstates ZSC00002. Exercises the approved-episode reinstatement path (PUT to Earnings, not POST).",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001, completed)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (completed) + ZSC00002 (new) — Progression",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-both-courses.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 2 (ZSC00002)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "05-approve-course2.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Verify ZSC00002 is approved in Learning and Earnings DBs, then press Enter to remove ZSC00002 by omission",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00001 only — ZSC00002 removed by omission (approved episode)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "07-put-course1-only.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify ZSC00002 episode IsRemoved=true and Earnings instalments zeroed, then press Enter to reinstate",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00001 + ZSC00002 — reinstate ZSC00002 (approved episode via PUT)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "09-put-both-courses.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 non-removed ShortCourseEpisode rows in Earnings DB (ZSC00002 reinstated)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 approved earnings profiles (both ZSC00001 and ZSC00002 remain approved after reinstatement)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-approved-earnings-profiles.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ThirtyPercent instalments (reinstated ZSC00002 earnings recalculated)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-thirty-percent-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 LearningComplete instalments",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-learning-complete-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "1 payable ThirtyPercent instalment (ZSC00001 only — ZSC00002 approved but no milestone claimed)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-payable-thirty-percent.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "1 payable LearningComplete instalment (ZSC00001 only — ZSC00002 approved but no completion date)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-payable-learning-complete.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    }
+  ]
+}

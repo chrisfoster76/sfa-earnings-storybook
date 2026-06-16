@@ -1,8 +1,8 @@
 {
-  "name": "Progression after Completion (of Approved learning)",
+  "name": "Progression - Remove by Omission then Reinstate",
   "group": "Short Course",
   "subGroup": "Progression",
-  "description": "SLD submits ZSC00001 as completed. Employer approves. SLD then PUTs a single payload containing both ZSC00001 (the completed course) and ZSC00002 (a new course starting after completion). Exercises the multi-OnProgramme PUT array path.",
+  "description": "ZSC00001 completed and approved. A single PUT adds ZSC00002 alongside ZSC00001. A second PUT omits ZSC00002 entirely, triggering removal by omission. A third PUT reinstates ZSC00002. WAIT steps pause before each state-change so the DB can be inspected.",
   "wipeOnRun": true,
   "steps": [
     {
@@ -29,10 +29,32 @@
       }
     },
     {
-      "name": "SLD PUTs ZSC00001 (completed) and ZSC00002 (new course) in a Single Payload",
+      "name": "SLD PUTs ZSC00001 (completed) + ZSC00002 (new) — Progression",
       "verb": "PUT",
       "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "04-put-both-courses.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify 2 Learnings in Learning DB and 2 unapproved Earnings profiles, then press Enter to remove ZSC00002 by omission",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00001 only — ZSC00002 removed by omission",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "06-put-course1-only.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify ZSC00002 episode IsRemoved=true and Earnings profile deleted, then press Enter to reinstate",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00001 + ZSC00002 — reinstate ZSC00002",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "08-put-both-courses.json",
       "extract": {}
     }
   ],
@@ -47,7 +69,7 @@
       ]
     },
     {
-      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "name": "2 non-removed ShortCourseEpisode rows in Earnings DB (ZSC00002 reinstated)",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "assert-earnings-episodes.sql",
@@ -56,7 +78,7 @@
       ]
     },
     {
-      "name": "2 ThirtyPercent instalments (1 per course)",
+      "name": "2 ThirtyPercent instalments (reinstated ZSC00002 earnings profile recreated)",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "assert-thirty-percent-instalments.sql",
@@ -65,7 +87,7 @@
       ]
     },
     {
-      "name": "2 LearningComplete instalments (1 per course)",
+      "name": "2 LearningComplete instalments",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "assert-learning-complete-instalments.sql",

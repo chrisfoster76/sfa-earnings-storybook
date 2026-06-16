@@ -22,6 +22,15 @@ public sealed class SystemConsoleWriter : IConsoleWriter
     public void ResetColor() => Console.ResetColor();
 }
 
+// Discards all output — used when running stories silently (e.g. run-all mode).
+public sealed class NullConsoleWriter : IConsoleWriter
+{
+    public void Write(string text) { }
+    public void WriteLine(string text = "") { }
+    public ConsoleColor ForegroundColor { get; set; }
+    public void ResetColor() { }
+}
+
 // Accumulates text per-line; fires onLine(text, color) on each WriteLine.
 // ForegroundColor set before WriteLine determines the whole line's color.
 public sealed class BufferedConsoleWriter : IConsoleWriter

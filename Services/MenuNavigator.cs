@@ -9,6 +9,7 @@ public class MenuNavigator
     private abstract record Node(string Label);
     private record FolderNode(string Label, List<Node> Children) : Node(Label);
     private record StoryNode(string Label, StoryEntry Entry) : Node(Label);
+    private record ActionNode(string Label, List<StoryEntry> Stories) : Node(Label);
 
     // ── Config ────────────────────────────────────────────────────────────────
 
@@ -33,7 +34,7 @@ public class MenuNavigator
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    public StoryEntry? Run()
+    public MenuSelection Run()
     {
         Render();
         while (true)
@@ -60,7 +61,7 @@ public class MenuNavigator
                     Back(); Render(); break;
 
                 case ConsoleKey.Q when key.Modifiers == 0:
-                    return null;
+                    return new QuitSelection();
             }
         }
     }
@@ -73,18 +74,19 @@ public class MenuNavigator
         _stack.Push((folder, Math.Clamp(idx + delta, 0, folder.Children.Count - 1)));
     }
 
-    private StoryEntry? Activate()
+    private MenuSelection? Activate()
     {
         var (folder, idx) = _stack.Peek();
         return folder.Children[idx] switch
         {
-            FolderNode child => EnterFolder(child),
-            StoryNode story  => story.Entry,
-            _                => null
+            ActionNode action      => new RunAllSelection(action.Stories),
+            FolderNode child       => EnterFolder(child),
+            StoryNode story        => new RunStorySelection(story.Entry),
+            _                      => null
         };
     }
 
-    private StoryEntry? EnterFolder(FolderNode folder)
+    private MenuSelection? EnterFolder(FolderNode folder)
     {
         _stack.Push((folder, 0));
         return null;
@@ -161,7 +163,7 @@ public class MenuNavigator
 
         Console.SetCursorPosition(0, startRow + boxH);
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write("  ↑/↓ navigate    Enter/→ open    ←/Esc back    Q quit");
+        Console.Write("  ↑/↓ navigate    Enter/→ open/run    ←/Esc back    Q quit");
         Console.ResetColor();
     }
 
@@ -191,7 +193,7 @@ public class MenuNavigator
 
         Console.Write(" ");                             // 1 col indent (highlighted when selected)
 
-        var icon = node is FolderNode ? "📁" : "📄";
+        var icon = node switch { FolderNode => "📁", ActionNode => "▶ ", _ => "📄" };
         Console.Write(icon + " ");                      // 3 visual cols (emoji=2, space=1)
 
         // Remaining label area = contentWidth − 1 (indent) − 3 (icon) = contentWidth − 4
@@ -245,7 +247,24 @@ public class MenuNavigator
 
         var node = folder.Children[selIdx];
 
-        if (node is FolderNode fn)
+        if (node is ActionNode an)
+        {
+            var runCount  = an.Stories.Count(s => s.Story.WipeOnRun);
+            var skipCount = an.Stories.Count - runCount;
+
+            lines.Add(Styled("▶  " + an.Label, ConsoleColor.Cyan));
+            lines.Add(Blank());
+
+            var runLine = $"{runCount} {(runCount == 1 ? "story" : "stories")} will run";
+            if (skipCount > 0) runLine += $" · {skipCount} skipped (no wipeOnRun)";
+            lines.Add(Styled(runLine, ConsoleColor.Gray));
+
+            lines.Add(Blank());
+            lines.Add(Styled("WAIT steps are auto-skipped.", ConsoleColor.DarkGray));
+            lines.Add(Blank());
+            lines.Add(Styled("Press Enter or → to start.", ConsoleColor.DarkGray));
+        }
+        else if (node is FolderNode fn)
         {
             lines.Add(Styled("📁 " + fn.Label, ConsoleColor.Yellow));
             var count = CountStories(fn);
@@ -482,7 +501,10 @@ public class MenuNavigator
 
     private static FolderNode BuildTree(List<StoryEntry> stories)
     {
-        var rootChildren = new List<Node>();
+        var rootChildren = new List<Node>
+        {
+            new ActionNode("Run All Stories", stories)
+        };
 
         var groups = stories
             .GroupBy(s => string.IsNullOrWhiteSpace(s.Story.Group) ? "Other" : s.Story.Group)
@@ -493,9 +515,16 @@ public class MenuNavigator
         {
             var groupChildren = new List<Node>();
 
-            foreach (var entry in group
+            var directStories = group
                 .Where(s => string.IsNullOrWhiteSpace(s.Story.SubGroup))
-                .OrderBy(s => s.Story.Name))
+                .OrderBy(s => s.Story.Name)
+                .ToList();
+
+            // "Run All in Folder" for direct stories in this group (not sub-folders)
+            if (directStories.Count > 0)
+                groupChildren.Add(new ActionNode("Run All in Folder", directStories));
+
+            foreach (var entry in directStories)
                 groupChildren.Add(new StoryNode(entry.Story.Name, entry));
 
             foreach (var subGroup in group
@@ -503,10 +532,9 @@ public class MenuNavigator
                 .GroupBy(s => s.Story.SubGroup!)
                 .OrderBy(sg => sg.Key))
             {
-                var subChildren = subGroup
-                    .OrderBy(e => e.Story.Name)
-                    .Select(e => (Node)new StoryNode(e.Story.Name, e))
-                    .ToList();
+                var subGroupStories = subGroup.OrderBy(e => e.Story.Name).ToList();
+                var subChildren = new List<Node> { new ActionNode("Run All in Folder", subGroupStories) };
+                subChildren.AddRange(subGroupStories.Select(e => (Node)new StoryNode(e.Story.Name, e)));
                 groupChildren.Add(new FolderNode(subGroup.Key, subChildren));
             }
 

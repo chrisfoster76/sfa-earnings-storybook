@@ -1,12 +1,12 @@
 {
-  "name": "Progression after Completion (of Approved learning)",
+  "name": "Progression - Adjusted Completion Date on Original Episode",
   "group": "Short Course",
   "subGroup": "Progression",
-  "description": "SLD submits ZSC00001 as completed. Employer approves. SLD then PUTs a single payload containing both ZSC00001 (the completed course) and ZSC00002 (a new course starting after completion). Exercises the multi-OnProgramme PUT array path.",
+  "description": "ZSC00001 posted with 30% milestone and completion date, then approved. A PUT adds ZSC00002 alongside ZSC00001 (progression). A second PUT adjusts the completion date on ZSC00001 while keeping ZSC00002 in the payload — exercising that updates to the original episode still flow through to Earnings correctly when a progression episode also exists.",
   "wipeOnRun": true,
   "steps": [
     {
-      "name": "SLD Creates Short Course 1 (ZSC00001, completed)",
+      "name": "SLD Creates Short Course 1 (ZSC00001, 30% + completion)",
       "verb": "POST",
       "route": "/providers/10005077/shortCourses",
       "payloadFile": "01-post-course1.json",
@@ -29,10 +29,21 @@
       }
     },
     {
-      "name": "SLD PUTs ZSC00001 (completed) and ZSC00002 (new course) in a Single Payload",
+      "name": "SLD PUTs ZSC00001 (30% + completion 2026-01-15) + ZSC00002 (new) — Progression",
       "verb": "PUT",
       "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "04-put-both-courses.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify 2 Learnings created, ZSC00002 unapproved earnings profile, then press Enter to adjust ZSC00001 completion date",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (30% + adjusted completion 2026-01-20) + ZSC00002 — date correction on original episode",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "06-put-adjusted-completion.json",
       "extract": {}
     }
   ],
@@ -89,6 +100,15 @@
       "queryFile": "assert-payable-learning-complete.sql",
       "expected": [
         { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "ZSC00001 LearningComplete instalment in delivery period 6 (adjusted completion date 2026-01-20 still in January)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-learning-complete-delivery-period.sql",
+      "expected": [
+        { "field": "DeliveryPeriod", "value": "6" }
       ]
     }
   ]

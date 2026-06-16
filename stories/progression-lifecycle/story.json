@@ -1,0 +1,130 @@
+{
+  "name": "Progression - ZSC00002 Lifecycle (Approve, 30%, Withdrawal, Completion)",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "ZSC00001 completed and approved. A PUT adds ZSC00002 (unapproved progression episode). Employer then approves ZSC00002. Subsequent PUTs drive ZSC00002 through its lifecycle: 30% milestone, withdrawal, then withdrawal replaced by completion. WAIT steps pause between each state change for DB inspection.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001, completed)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (completed) + ZSC00002 (new) — Progression",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-progression.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify ZSC00002 unapproved earnings profile created, then press Enter to approve ZSC00002",
+      "type": "Wait"
+    },
+    {
+      "name": "Employer Approves Short Course 2",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "06-approve-course2.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Verify ZSC00002 approved earnings profile, then press Enter to claim 30%",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00002 claiming 30% milestone",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "06-put-30pct.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify ZSC00002 30% milestone recorded in earnings, then press Enter to withdraw",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00002 with withdrawal date",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "08-put-withdrawal.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify ZSC00002 earnings recalculated after withdrawal, then press Enter to replace with completion",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00002 replacing withdrawal with completion date",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "10-put-completion.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 approved earnings profiles (ZSC00001 and ZSC00002 both approved)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-approved-earnings-profiles.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 payable ThirtyPercent instalments (both courses approved with milestone claimed)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-payable-thirty-percent.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 payable LearningComplete instalments (both courses approved with completion date)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-payable-learning-complete.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    }
+  ]
+}

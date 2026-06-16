@@ -122,10 +122,13 @@ else
     var nav = new MenuNavigator(stories, PrintHeader);
     while (true)
     {
-        var entry = nav.Run();
-        if (entry is null) break;
+        var selection = nav.Run();
+        if (selection is QuitSelection) break;
 
-        await StoryModal.ShowAsync(entry, runner, wiper);
+        if (selection is RunStorySelection s)
+            await StoryModal.ShowAsync(s.Entry, runner, wiper);
+        else if (selection is RunAllSelection r)
+            await RunAllView.ShowAsync(r.Stories, runner, wiper, PrintHeader);
     }
 }
 
