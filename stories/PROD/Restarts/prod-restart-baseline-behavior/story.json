@@ -1,0 +1,66 @@
+{
+  "name": "PROD: Restart of Same Course After Withdrawal, Same Provider — Baseline Behavior (No Dedicated Flag, Detection Not Built)",
+  "description": "PROD baseline — Restart (FLP-1806) has no dedicated feature flag and full Restart detection (adding a second episode) does not exist yet (see upcoming/restarts.md). UpdateShortCourseCommandHandler.HandleSingleItem now has a deliberate short-circuit: when the matched episode for the requested UKPRN IsTerminal (approved AND (withdrawn or completed)), the restart PUT is ignored as if it were not in the incoming payload at all — no fields are overwritten, no second episode is created, and the call returns IsIgnored=true. ZSC00001 is POSTed and approved, then withdrawn via PUT (terminal episode). SLD then re-submits the same course/provider with a new start date after the withdrawal, simulating a restart attempt, via PUT against the existing learnerKey. This was confirmed as a genuine baseline risk before the short-circuit was added: the restart PUT used to fall through to learning.Update() and silently overwrite the withdrawn episode's StartDate/WithdrawalDate in place. The assertions below confirm the short-circuit holds: 1 episode, with its original StartDate and WithdrawalDate both untouched by the restart attempt.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1806", "PROD", "exploratory"],
+  "steps": [
+    {
+      "name": "SLD POSTs ZSC00001 (no milestones)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves ZSC00001",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Withdraws the Learner via PUT (terminal episode)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-withdrawal.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Re-PUTs the same course/provider with a new start date after withdrawal (restart attempt)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "05-put-restart-attempt.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Still exactly 1 ShortCourseEpisode row for ZSC00001/Provider A (restart attempt did not create a second episode)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-episode-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "Episode untouched by the restart PUT — silently ignored (short-circuit)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-episode-state-after-restart.sql",
+      "expected": [
+        { "field": "StartDate", "value": "2025-08-01" },
+        { "field": "WithdrawalDate", "value": "2026-01-15" }
+      ]
+    }
+  ]
+}

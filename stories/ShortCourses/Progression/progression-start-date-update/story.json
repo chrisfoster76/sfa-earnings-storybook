@@ -1,0 +1,80 @@
+{
+  "name": "Progression - Start Date Update on Unapproved Episode (Gap Story)",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "ZSC00001 completed and approved. A PUT adds ZSC00002 (unapproved, startDate 2026-02-01, expectedEndDate 2027-01-31). A second PUT changes ZSC00002's startDate to 2026-03-01. Documents the known gap: StartDate changes on unapproved episodes are not forwarded to Earnings. The ThirtyPercent instalment for ZSC00002 should update to delivery period 11 (estimated 30% point for a Mar 2026 start, landing in Jun 2026) but currently stays at period 10 (May 2026, the original Feb start). Assertion expects 11 and will fail until the gap is fixed.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1894"],
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001, completed)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (completed) + ZSC00002 (new, startDate 2026-02-01) — Progression",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-progression.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify ZSC00002 unapproved earnings profile created with period 7 ThirtyPercent instalment, then press Enter to send start date update",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (completed) + ZSC00002 with updated startDate 2026-03-01 — date change not forwarded to Earnings",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "06-put-start-date-updated.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "ZSC00002 ThirtyPercent instalment updated to delivery period 11 (estimated 30% point for Mar 2026 start — currently FAILS at 10 because StartDate changes are not forwarded to Earnings)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-thirty-percent-unapproved-delivery-period.sql",
+      "expected": [
+        { "field": "DeliveryPeriod", "value": "11" }
+      ]
+    }
+  ]
+}

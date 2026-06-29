@@ -1,0 +1,37 @@
+{
+  "name": "Progression via Single Bundled POST (Never-Seen-Before Learner)",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "Regression story for the FLP-1858 gating bug: SLD's very first contact with this learner is a single POST bundling two different course codes (ZSC00001, already completed and unapproved, and ZSC00002, a new course) in one OnProgramme array - no prior POST establishes ZSC00001 first. CreateDraftShortCourseCommandHandler used to compute 'does this learner have any existing Learning' once from the DB before looping the bundled items, so a brand-new learner bundled with 2+ course codes in one request bypassed the ShortCourseProgression gate entirely. Fixed by updating that flag after each item processed within the same request. Asserts both Learnings/episodes are created correctly from the single bundled POST.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1858"],
+  "steps": [
+    {
+      "name": "SLD POSTs ZSC00001 (already completed, unapproved) and ZSC00002 (new course) in a Single Bundled Payload for a learner never seen before",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-both-courses.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "name": "Progression - New Provider Adds a Different Course",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "Progression so far has only been exercised with the same provider adding a second course via a bundled PUT (see progression-lifecycle). This story covers Progression across providers: Provider A completes ZSC00001 and the employer approves it. A completely different provider, Provider B, who has no prior relationship with this learner and therefore no learnerKey to PUT against, then POSTs a different course (ZSC00002) for the same learner (matched by ULN). CODE-READING: CreateDraftShortCourseCommandHandler.HandleSingleItem resolves the learning by LearnerKey+CourseCode; since ZSC00002 has no existing Learning, it hits the `learning == null` branch, gated only by ShortCourseProgression (not by ShortCourseChangeOfProvider, since this isn't 'an existing Learning with a different-provider episode' — it's a brand new Learning). The provider on the new episode should simply be whatever UKPRN is in the route/payload (Provider B), with no connection back to Provider A's episode. Expect 2 separate ShortCourseLearning rows (one per course code), ZSC00001's episode still on Provider A and untouched, and ZSC00002's new episode on Provider B, unapproved.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1894"],
+  "steps": [
+    {
+      "name": "SLD (Provider A) POSTs ZSC00001 (completed)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves ZSC00001",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD (Provider B) POSTs ZSC00002 for the same learner (new provider, no existing relationship)",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "03-post-course2-provider-b.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseLearning rows for this learner (one per course code)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-count.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows total (no merge across providers/courses)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-episode-count.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "ZSC00001 episode still on Provider A, completion untouched",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-course1-provider-a.sql",
+      "expected": [
+        { "field": "Ukprn", "value": "10005077" },
+        { "field": "CompletionDate", "value": "2026-01-15" }
+      ]
+    },
+    {
+      "name": "ZSC00002 episode created on Provider B, unapproved (not ignored, not attached to Provider A)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-course2-provider-b.sql",
+      "expected": [
+        { "field": "Ukprn", "value": "10005078" },
+        { "field": "IsApproved", "value": "False" }
+      ]
+    }
+  ]
+}

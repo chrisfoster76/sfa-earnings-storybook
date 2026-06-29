@@ -1,0 +1,6 @@
+SELECT COUNT(*) AS [Count]
+FROM [ShortCourseEpisode] [sce]
+INNER JOIN [ShortCourseLearning] [scl] ON [scl].[Key] = [sce].[LearningKey]
+INNER JOIN [Learner] [l] ON [l].[Key] = [scl].[LearnerKey]
+WHERE [l].[Uln] = '1000000009'
+  AND [scl].[TrainingCode] = 'ZSC00002'

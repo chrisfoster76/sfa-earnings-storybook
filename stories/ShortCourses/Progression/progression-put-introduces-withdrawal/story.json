@@ -1,0 +1,96 @@
+{
+  "name": "Progression — Withdrawal Introduced in the Same PUT as the New Course",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "Variant of progression-multi-put-withdrawal: the initial POST leaves ZSC00001 active (no withdrawalDate) and it is approved in that state. SLD then PUTs a single payload that simultaneously adds the withdrawalDate to ZSC00001 and introduces ZSC00002 as a new course — rather than ZSC00001 already being withdrawn before the progression PUT arrives. Exploratory: checking how the handler copes with the withdrawal and the progression both landing in the same request.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1894"],
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001, active, no withdrawal)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (now withdrawn) and ZSC00002 (new course) in a Single Payload",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-both-courses.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "1 ThirtyPercent instalment (ZSC00002 only — ZSC00001 withdrawn with no milestone, instalment removed)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-thirty-percent-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "1 LearningComplete instalment (ZSC00002 only — ZSC00001 withdrawn with no milestone, instalment removed)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-learning-complete-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "0 payable ThirtyPercent instalments (ZSC00001 withdrawn, ZSC00002 unapproved)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-payable-thirty-percent.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    },
+    {
+      "name": "0 payable LearningComplete instalments (ZSC00001 withdrawn, ZSC00002 unapproved)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-payable-learning-complete.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    }
+  ]
+}

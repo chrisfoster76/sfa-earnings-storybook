@@ -1,0 +1,121 @@
+{
+  "name": "Progression then Change of Provider — cross-provider episode added via PUT (FLP-1858 fix)",
+  "group": "Short Course",
+  "subGroup": "Multi Feature",
+  "description": "Regression story for a fixed defect (NOT in scope for FLP-1894 — that ticket is the same-provider PUT path only and is dev complete; this belongs to the broader cross-provider Progression work, FLP-1858, and the FLP-1861 POST path it depends on). Provider A completes and is approved on ZSC00001 (so this learner's ULN remains in Provider A's GET response indefinitely) — the Progression half of this story: the learner has finished a course with Provider A. Provider B then POSTs ZSC00002 — a fully realistic, SLD-contract-compliant POST, since Provider B has never seen this ULN in their own GET response (Provider B's genuine first contact) — the Change-of-Provider half of this story; this cleanly creates a second Learning under Provider B's UKPRN (relies on the GetByLearnerKey -> GetByLearnerKeyAndCourseCode fix). Provider A then PUTs ZSC00002 back: because the learner's ULN is already in Provider A's GET response (from ZSC00001), SLD has no choice but to route this as a PUT, not a POST. The inner finds the Learning for ZSC00002 (owned by Provider B's UKPRN) — until the fix, UpdateShortCourseCommandHandler.HandleSingleItem had no branch for 'Learning found by CourseCode, but the matching episode's Ukprn differs from the request's Ukprn' and would crash with an unhandled InvalidOperationException (500). Fixed: when ShortCourseChangeOfProvider is enabled, the handler now adds a new episode to the existing Learning instead of crashing, and the outer API sends that new episode to Earnings as a create (Earnings POST), since it has no prior record there. EXPECTED: the final step succeeds (200), and ZSC00002 ends up with 2 episodes (Provider B's original + Provider A's newly-added one) on a single Learning. See upcoming/subsequent-course-same-provider.md (Multi-Feature Interaction Scenarios, #3) in the earnings docs repo for the full analysis.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1858", "FLP-1861"],
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001) with Provider A — completed",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1 (Provider A)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD (Provider B) POSTs ZSC00002 — Provider B's genuine first contact with this learner, creates a second Learning under Provider B's UKPRN",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "04-post-zsc00002-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider A) PUTs ZSC00002 — same LearnerKey, same CourseCode, but the existing episode for ZSC00002 belongs to Provider B's UKPRN. EXPECTED: 200, a new episode is added to the existing Learning",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "05-put-zsc00002-provider-a.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "ZSC00001: 1 ShortCourseEpisode row in Learning DB (Provider A only)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc1-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "ZSC00002: 2 ShortCourseEpisode rows in Learning DB (Provider B's original + Provider A's added episode)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc2-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "ZSC00002's 2 episodes belong to a single Learning (CoP via PUT, not a third Learning)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc2-single-learning.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "3 ShortCourseEpisode rows total in Learning DB for this learner",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-total-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "3" }
+      ]
+    },
+    {
+      "name": "ZSC00001: 1 ShortCourseEpisode row in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc1-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "ZSC00002: 2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc2-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "ZSC00002's 2 episodes share a single LearningKey in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc2-single-learning.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "3 ShortCourseEpisode rows total in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-total-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "3" }
+      ]
+    }
+  ]
+}

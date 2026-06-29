@@ -1,7 +1,7 @@
 {
   "name": "Short Course - Withdrawal",
   "group": "Short Course",
-  "description": "Creates a short course with no milestones, approves it, then withdraws the learner via PUT with withdrawalDate",
+  "description": "Creates a short course with no milestones, approves it, withdraws the learner via PUT with withdrawalDate and withdrawalReasonCode, then re-PUTs with the reason code corrected",
   "wipeOnRun": true,
   "steps": [
     {
@@ -32,6 +32,13 @@
       "verb": "PUT",
       "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "04-put-withdrawal.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Corrects the Withdrawal Reason",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "05-put-withdrawal-reason-corrected.json",
       "extract": {}
     }
   ]

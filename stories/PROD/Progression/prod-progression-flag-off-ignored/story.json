@@ -1,0 +1,44 @@
+{
+  "name": "PROD: Progression to a New Course Is Silently Ignored (Flag Off)",
+  "description": "Proves that with FeatureFlags.ShortCourseProgression OFF (the shipped, prod-like state), a second course code bundled in the same SLD POST as the learner's first course is silently ignored: CreateDraftShortCourseCommandHandler marks that item IsIgnored=true, no second ShortCourseLearning/Episode is created, and the API still returns a 2xx response. Run this story only with ShortCourseProgression disabled. A never-seen-before learner is POSTed with ZSC00001 (already completed) and ZSC00002 (a new course) bundled in a single OnProgramme array. Expect: 200 response, exactly 1 episode (ZSC00001 only), no episode for ZSC00002.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1858", "PROD"],
+  "steps": [
+    {
+      "name": "SLD POSTs ZSC00001 (completed, unapproved) and ZSC00002 (new course) bundled, for a learner never seen before",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-both-courses.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Exactly 1 ShortCourseEpisode row in Learning DB (ZSC00001 only)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episode-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "No episode exists for ZSC00002 in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-no-zsc00002-episode.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    },
+    {
+      "name": "Exactly 1 ShortCourseEpisode row in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episode-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    }
+  ]
+}

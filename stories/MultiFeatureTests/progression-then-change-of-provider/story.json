@@ -1,0 +1,127 @@
+{
+  "name": "Progression, then Change of Provider on the Progression Episode",
+  "group": "Multi Feature Tests",
+  "description": "Provider A creates ZSC00001, completes it, and progresses the learner onto ZSC00002 via PUT (in the same payload as the completion). Provider A then withdraws ZSC00002. Provider B — who has no prior episode for this learner — POSTs the same learner onto ZSC00002. Expected: a second episode is added to ZSC00002's existing Learning (Change of Provider), not a separate third Learning. Exercises the untested 'Progression, then CoP on the new episode' interaction documented in upcoming/subsequent-course-same-provider.md; depends on CreateDraftShortCourseCommandHandler's GetByLearnerKey lookup being CourseCode-scoped (FLP-1858).",
+  "wipeOnRun": true,
+  "tags": ["FLP-1858", "FLP-1894"],
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates Short Course 1 (ZSC00001)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD (Provider A) Completes ZSC00001 and Progresses onto ZSC00002 in a Single PUT",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-complete-course1-add-course2.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider A) Withdraws ZSC00002",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "05-put-withdraw-course2.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider B) Creates a Short Course for ZSC00002 (Change of Provider)",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "06-post-provider-b-course2.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "ZSC00001: 1 ShortCourseEpisode row in Learning DB (Provider A only)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc1-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "ZSC00002: 2 ShortCourseEpisode rows in Learning DB (Provider A withdrawn + Provider B)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc2-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "ZSC00002's 2 episodes belong to a single Learning (CoP, not a third Learning)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc2-single-learning.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "3 ShortCourseEpisode rows total in Learning DB for this learner",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-total-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "3" }
+      ]
+    },
+    {
+      "name": "ZSC00001: 1 ShortCourseEpisode row in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc1-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "ZSC00002: 2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc2-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "ZSC00002's 2 episodes share a single LearningKey in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc2-single-learning.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "3 ShortCourseEpisode rows total in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-total-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "3" }
+      ]
+    }
+  ]
+}

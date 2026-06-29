@@ -69,6 +69,10 @@ public static class RunAllView
             Console.WriteLine();
 
             if (ok) passCount++; else failCount++;
+
+            // Delay between stories to reduce flakiness
+            if (i < runnable.Count - 1)
+                await Task.Delay(1000);
         }
 
         // Skipped stories

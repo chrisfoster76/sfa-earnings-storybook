@@ -1,0 +1,55 @@
+{
+  "name": "Provider A — Second Course via Standalone POST (After Completion)",
+  "group": "Short Course",
+  "subGroup": "New Provider",
+  "description": "Provider A POSTs ZSC00001, gets it approved, claims the 30% milestone, then completes it. Provider A then POSTs the same learner onto a different course (ZSC00002) as a brand new, standalone POST (not bundled in the same OnProgramme array as ZSC00001) and gets that approved too. Exercises CreateDraftShortCourseCommandHandler's GetByLearnerKeyAndCourseCode lookup: a learner who already has a ShortCourseLearning row for one CourseCode must still get a clean second Learning created for the new CourseCode, rather than colliding with or being mismatched against the first.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1858", "FLP-1861"],
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001, no milestones)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1 (ZSC00001)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Claims 30% Milestone on ZSC00001",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-30pct.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Completes ZSC00001",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "05-put-completion.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD POSTs ZSC00002 as a Brand New, Standalone Submission (not bundled with ZSC00001)",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "06-post-course2.json",
+      "extract": {}
+    }
+  ],
+  "assertions": []
+}

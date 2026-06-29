@@ -1,0 +1,36 @@
+{
+  "name": "PROD: Repeat of Same Course, Same Provider — Baseline Behavior (No Dedicated Flag)",
+  "description": "EXPLORATORY — unlike Change of Provider and Progression, there is no dedicated feature flag for 'Repeat' (same course code, same provider, after the first run is terminal). Run with both flags off to capture the genuine prod baseline. A learner is bundled-POSTed with two runs of ZSC00001 for the same provider: item 1 already completed (2026-01-15), item 2 a new run starting 2026-02-01. Because CreateDraftShortCourseCommandHandler resolves both items to the same Learning by CourseCode, and no Restart-detection logic exists yet (see upcoming/restarts.md, FLP-1806), the actual outcome here is UNVERIFIED — it may be silently ignored (no second episode, matching the other PROD stories), or it may incorrectly upsert/overwrite the first episode. The assertion below checks the silent-ignore hypothesis (still 1 episode, unchanged dates); if it fails, that is itself useful evidence of what current prod behavior actually is and should be written back into upcoming/restarts.md.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1865", "FLP-1806", "PROD", "exploratory"],
+  "steps": [
+    {
+      "name": "SLD bundled-POSTs ZSC00001 (completed) and a second run of ZSC00001 (new start date) for the same provider",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-both-courses.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Still exactly 1 ShortCourseEpisode row for ZSC00001/Provider A (silent-ignore hypothesis)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-episode-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "Original episode's StartDate/CompletionDate unchanged (no overwrite)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-episode-dates-unchanged.sql",
+      "expected": [
+        { "field": "StartDate", "value": "2025-08-01" },
+        { "field": "CompletionDate", "value": "2026-01-15" }
+      ]
+    }
+  ]
+}

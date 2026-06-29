@@ -1,0 +1,78 @@
+{
+  "name": "Progression - Remove by Omission then Reinstate via POST [GAP]",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "ZSC00001 and ZSC00002 are POSTed together in a single bundled OnProgramme array (neither course ever approved). SLD then re-POSTs with ZSC00001 omitted entirely, and finally re-POSTs with both courses again to reinstate ZSC00001 — exercising removal-by-omission and reinstatement purely on the POST route (mirrors progression-omission-reinstate, which exercises the same mechanic on PUT). EXPECTED: ZSC00001 is removed by omission, then reinstated, matching PUT's RemoveOmittedLearnings behaviour. CURRENT BEHAVIOUR: CreateDraftShortCourseCommandHandler has no RemoveOmittedLearnings equivalent — it only loops the items present in the POST's OnProgramme array and never touches a Learning that's absent from the request, so ZSC00001 is left untouched (not removed) by the omission-POST. This story will FAIL until that gap is fixed.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1858"],
+  "steps": [
+    {
+      "name": "SLD POSTs ZSC00001 + ZSC00002 Together (Single Bundled Payload)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-both-courses.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Re-POSTs ZSC00002 Only — ZSC00001 Omitted",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "02-post-course2-only.json",
+      "extract": {}
+    },
+    {
+      "name": "ZSC00001 episode is removed by omission",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-zsc1-is-removed.sql",
+      "expected": [
+        { "field": "IsRemoved", "value": "True" }
+      ]
+    },
+    {
+      "name": "SLD Re-POSTs ZSC00001 + ZSC00002 Together — Reinstate ZSC00001",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "03-post-both-courses-reinstate.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 non-removed ShortCourseEpisode rows in Earnings DB (ZSC00001 reinstated)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ThirtyPercent instalments (reinstated ZSC00001 earnings profile recreated)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-thirty-percent-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 LearningComplete instalments",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-learning-complete-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    }
+  ]
+}

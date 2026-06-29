@@ -1,0 +1,45 @@
+{
+  "name": "Short Course - Remove 30% Milestone",
+  "group": "Short Course",
+  "description": "Creates a short course with no milestones, approves it, claims ThirtyPercentLearningComplete via PUT, then PUTs again removing the milestone",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Claims 30% Milestone",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-claim-milestone.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Removes 30% Milestone",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "05-put-remove-milestone.json",
+      "extract": {}
+    }
+  ]
+}

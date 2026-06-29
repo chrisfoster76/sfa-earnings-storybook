@@ -4,6 +4,7 @@
   "subGroup": "Progression",
   "description": "ZSC00001 completed and approved. A single PUT adds ZSC00002 alongside ZSC00001. A second PUT omits ZSC00002 entirely, triggering removal by omission. A third PUT reinstates ZSC00002. WAIT steps pause before each state-change so the DB can be inspected.",
   "wipeOnRun": true,
+  "tags": ["FLP-1894"],
   "steps": [
     {
       "name": "SLD Creates Short Course 1 (ZSC00001, completed)",

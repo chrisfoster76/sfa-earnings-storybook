@@ -1,0 +1,104 @@
+{
+  "name": "Progression - DELETE removes both episodes",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "ZSC00001 completed and approved. A PUT adds ZSC00002 (unapproved progression episode). A DELETE then removes the learner for the provider, verified by assertions immediately after. Both courses are reinstated together in a single bundled POST (ZSC00001 retains its completion date/milestone), the Employer approves ZSC00002, then a final PUT records completion for ZSC00002. Verifies 4 payable earnings instalments exist (ThirtyPercent + LearningComplete for each course).",
+  "wipeOnRun": true,
+  "tags": ["FLP-1894"],
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001, completed)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (completed) + ZSC00002 (new) — Progression",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-progression.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD DELETEs the learner — removes both episodes",
+      "verb": "DELETE",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "extract": {}
+    },
+    {
+      "name": "0 active ShortCourseEpisode rows in Learning DB (both removed)",
+      "type": "Assert",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    },
+    {
+      "name": "0 active ShortCourseEpisode rows in Earnings DB (both removed)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    },
+    {
+      "name": "Verify both episodes removed, then press Enter to re-POST both courses",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD re-POSTs ZSC00001 + ZSC00002 Together — Reinstate Both (ZSC00001 retains completion)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "08-post-both-courses-reinstate.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify both episodes reinstated (unapproved), then press Enter to approve ZSC00002",
+      "type": "Wait"
+    },
+    {
+      "name": "Employer Approves Short Course 2",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "06-approve-course2.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD PUTs ZSC00001 + ZSC00002 — Completion for ZSC00002",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "10-put-completion.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "4 payable earnings instalments exist",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-payable-earnings.sql",
+      "expected": [
+        { "field": "Count", "value": "4" }
+      ]
+    }
+  ]
+}

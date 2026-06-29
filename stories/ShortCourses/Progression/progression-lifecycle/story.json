@@ -4,6 +4,7 @@
   "subGroup": "Progression",
   "description": "ZSC00001 completed and approved. A PUT adds ZSC00002 (unapproved progression episode). Employer then approves ZSC00002. Subsequent PUTs drive ZSC00002 through its lifecycle: 30% milestone, withdrawal, then withdrawal replaced by completion. WAIT steps pause between each state change for DB inspection.",
   "wipeOnRun": true,
+  "tags": ["FLP-1894"],
   "steps": [
     {
       "name": "SLD Creates Short Course 1 (ZSC00001, completed)",

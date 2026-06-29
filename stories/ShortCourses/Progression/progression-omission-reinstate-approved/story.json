@@ -4,6 +4,7 @@
   "subGroup": "Progression",
   "description": "ZSC00001 completed and approved. A PUT adds ZSC00002 alongside ZSC00001. ZSC00002 is then approved. A second PUT omits ZSC00002, triggering removal by omission of an approved episode. A third PUT reinstates ZSC00002. Exercises the approved-episode reinstatement path (PUT to Earnings, not POST).",
   "wipeOnRun": true,
+  "tags": ["FLP-1894"],
   "steps": [
     {
       "name": "SLD Creates Short Course 1 (ZSC00001, completed)",

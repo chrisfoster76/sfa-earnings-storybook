@@ -1,0 +1,132 @@
+{
+  "name": "CoP + Progression: Provider A withdraws X (unapproved), Provider B completes Y, Provider A PUTs tweak to X and adds new Z",
+  "group": "Short Course",
+  "subGroup": "Multi Feature",
+  "description": "Multi-feature interaction: Provider A (UKPRN 10005077) POSTs ZSC00001 as withdrawn (unapproved — no approval event). Provider B (UKPRN 10005078) POSTs ZSC00002 as completed for the same learner (unapproved, different course). Provider A then PUTs a bundled payload carrying ZSC00001 (withdrawal date tweaked: 2025-11-15 → 2025-11-20), ZSC00002 (CoP — Provider A also now submitting this course, start 2026-04-01, completionDate 2026-05-31), and ZSC00003 (brand-new third course). RUN WITH: ShortCourseChangeOfProvider=OFF, ShortCourseProgression=ON. With CoP off, Provider A's ZSC00002 item in the PUT is silently ignored — only the ZSC00001 update and the ZSC00003 progression land. Provider A's ZSC00002 item carries a completionDate (2026-05-31) intentionally different from Provider B's (2026-03-15), acting as a canary: if the ignored item incorrectly mutates Provider B's episode the completion-date assertions will fail. Expects 3 distinct ShortCourseEpisode rows (ZSC00001 Provider A, ZSC00002 Provider B only, ZSC00003 Provider A) in both DBs, and Provider B's ZSC00002 completion date unchanged at 2026-03-15. PREREQUISITE: ZSC00003 must exist in the test environment's courses reference data — the story will fail at step 4 until it is added.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1858", "FLP-1894", "CoP-OFF", "Progression-ON"],
+  "steps": [
+    {
+      "name": "SLD (Provider A) POSTs ZSC00001 — withdrawn, unapproved",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-x-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider B) POSTs ZSC00002 — completed, unapproved, different course",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "02-post-y-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "Get Learner Key (from Provider A's ZSC00001 episode)",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD (Provider A) PUTs ZSC00001 (withdrawal date tweaked to 2025-11-20), ZSC00002 (CoP — silently ignored with CoP off; carries completionDate 2026-05-31 as canary), and ZSC00003 (new course) in one payload",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-x-tweaked-and-z-provider-a.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "ZSC00001: 1 ShortCourseEpisode row in Learning DB (Provider A only)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc1-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "ZSC00002: 1 ShortCourseEpisode row in Learning DB (Provider B only — Provider A's CoP episode silently ignored)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc2-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "ZSC00002: completionDate in Learning DB is still Provider B's 2026-03-15 (not mutated by Provider A's 2026-05-31)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc2-completion-date.sql",
+      "expected": [
+        { "field": "CompletionDate", "value": "2026-03-15" }
+      ]
+    },
+    {
+      "name": "ZSC00003: 1 ShortCourseEpisode row in Learning DB (Provider A, created by PUT)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc3-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "3 ShortCourseEpisode rows total in Learning DB for this learner",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-total-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "3" }
+      ]
+    },
+    {
+      "name": "ZSC00001: 1 ShortCourseEpisode row in Earnings DB (start 2025-08-01)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc1-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "ZSC00002: 1 ShortCourseEpisode row in Earnings DB (Provider B only — CoP episode silently ignored)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc2-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "ZSC00002: completionDate in Earnings DB is still Provider B's 2026-03-15 (not mutated by Provider A's 2026-05-31)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc2-completion-date.sql",
+      "expected": [
+        { "field": "CompletionDate", "value": "2026-03-15" }
+      ]
+    },
+    {
+      "name": "ZSC00003: 1 ShortCourseEpisode row in Earnings DB (start 2026-01-01)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc3-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "3 ShortCourseEpisode rows total in Earnings DB across both providers",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-total-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "3" }
+      ]
+    }
+  ]
+}

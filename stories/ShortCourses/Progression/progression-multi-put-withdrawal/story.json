@@ -4,6 +4,7 @@
   "subGroup": "Progression",
   "description": "SLD submits ZSC00001 as withdrawn. Employer approves. SLD then PUTs a single payload containing both ZSC00001 (the withdrawn course) and ZSC00002 (a new course). Exercises Progression dispatch for the withdrawal case.",
   "wipeOnRun": true,
+  "tags": ["FLP-1894"],
   "steps": [
     {
       "name": "SLD Creates Short Course 1 (ZSC00001, withdrawn)",

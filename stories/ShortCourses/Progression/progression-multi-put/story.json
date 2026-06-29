@@ -2,8 +2,9 @@
   "name": "Progression after Completion (of Approved learning)",
   "group": "Short Course",
   "subGroup": "Progression",
-  "description": "SLD submits ZSC00001 as completed. Employer approves. SLD then PUTs a single payload containing both ZSC00001 (the completed course) and ZSC00002 (a new course starting after completion). Exercises the multi-OnProgramme PUT array path.",
+  "description": "SLD submits ZSC00001 as completed. Employer approves. SLD then PUTs a single payload containing both ZSC00001 (the completed course) and ZSC00002 (a new course starting after completion). Employer approves ZSC00002. SLD PUTs the same payload again as a workaround. Exercises the multi-OnProgramme PUT array path with both courses approved.",
   "wipeOnRun": true,
+  "tags": ["FLP-1894"],
   "steps": [
     {
       "name": "SLD Creates Short Course 1 (ZSC00001, completed)",
@@ -30,6 +31,20 @@
     },
     {
       "name": "SLD PUTs ZSC00001 (completed) and ZSC00002 (new course) in a Single Payload",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-both-courses.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 2",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "05-approve-course2.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD PUTs the Same Payload Again (Workaround)",
       "verb": "PUT",
       "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "04-put-both-courses.json",
@@ -74,16 +89,16 @@
       ]
     },
     {
-      "name": "1 payable ThirtyPercent instalment (ZSC00001 only — ZSC00002 unapproved)",
+      "name": "2 payable ThirtyPercent instalments (1 per course)",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "assert-payable-thirty-percent.sql",
       "expected": [
-        { "field": "Count", "value": "1" }
+        { "field": "Count", "value": "2" }
       ]
     },
     {
-      "name": "1 payable LearningComplete instalment (ZSC00001 only — ZSC00002 unapproved)",
+      "name": "1 payable LearningComplete instalment (ZSC00001 only — ZSC00002 not completed)",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "assert-payable-learning-complete.sql",

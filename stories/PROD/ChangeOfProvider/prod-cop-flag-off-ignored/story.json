@@ -1,0 +1,51 @@
+{
+  "name": "PROD: Change of Provider Is Silently Ignored (Flag Off)",
+  "description": "Proves that with FeatureFlags.ShortCourseChangeOfProvider OFF (the shipped, prod-like state), a second provider's POST for a learner already known to a different provider is silently ignored: CreateDraftShortCourseCommandHandler returns null for that item, no new ShortCourseLearning/Episode is created, and the API still returns a 2xx response. Run this story only with ShortCourseChangeOfProvider disabled. Provider A POSTs ZSC00001 (unapproved). Provider B then POSTs the same course code for the same learner. Expect: 200/204 response, exactly 1 episode total (Provider A's), no episode for Provider B's UKPRN.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1801", "FLP-1522", "PROD"],
+  "steps": [
+    {
+      "name": "Provider A (10005077) POSTs ZSC00001 (unapproved)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "Provider B (10005078) POSTs the same course for the same learner",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "02-post-short-course-provider-b.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Exactly 1 ShortCourseEpisode row in Learning DB (Provider A only)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episode-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "No episode exists for Provider B in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-no-provider-b-episode.sql",
+      "expected": [
+        { "field": "Count", "value": "0" }
+      ]
+    },
+    {
+      "name": "Exactly 1 ShortCourseEpisode row in Earnings DB (Provider A only)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episode-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    }
+  ]
+}

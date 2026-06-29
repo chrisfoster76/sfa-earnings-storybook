@@ -1,0 +1,30 @@
+{
+  "name": "Progression - Change of Provider, Provider B Approved",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "SLD POSTs the same short course (ZSC00001) for the same learner with Provider A. Without Provider A ever being approved, SLD then POSTs the same course again for Provider B. The employer approves Provider B's record only.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider B) Creates the Same Short Course",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses",
+      "payloadFile": "02-post-short-course-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider B Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "03-apprenticeship-created-event-provider-b.json",
+      "delayMs": 3000
+    }
+  ]
+}
