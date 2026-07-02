@@ -1,0 +1,60 @@
+{
+  "name": "Pre-Approval Removal",
+  "group": "Short Course",
+  "description": "SLD POSTs a learner onto two short courses in a single bundled OnProgramme payload: ZSC00001 is complete, ZSC00002 is still continuing (no completion or withdrawal date). Neither course is ever approved. SLD then re-POSTs the same payload with ZSC00002 omitted entirely, removing it by omission before it was ever approved.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD POSTs ZSC00001 (complete) and ZSC00002 (continuing) in a Single Bundled Payload",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-both-courses.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Re-POSTs ZSC00001 Only — ZSC00002 Omitted",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "02-post-course1-only.json",
+      "extract": {}
+    },
+    {
+      "name": "ZSC00002 episode is removed by omission (Learning DB)",
+      "type": "Assert",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc2-is-removed.sql",
+      "expected": [
+        { "field": "IsRemoved", "value": "True" }
+      ]
+    },
+    {
+      "name": "ZSC00002 episode is removed by omission (Earnings DB)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc2-is-removed.sql",
+      "expected": [
+        { "field": "IsRemoved", "value": "True" }
+      ]
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "1 non-removed ShortCourseEpisode row in Earnings DB (ZSC00001 only)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    }
+  ]
+}

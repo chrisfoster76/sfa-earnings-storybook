@@ -1,0 +1,29 @@
+{
+  "consumerReference": "CR-70001726-020720261340",
+  "learner": {
+    "uln": "7430758303",
+    "learnerRef": "FLP-1875",
+    "firstname": "APZbuo",
+    "lastname": "learner3",
+    "dob": "2006-06-12",
+    "email": "APZbuo.IRpffoSHA@l38cxwya.mailosaur.net",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "onProgramme": [
+      {
+        "courseCode": "ZSC00004",
+        "agreementId": "",
+        "startDate": "2026-06-22",
+        "expectedEndDate": "2026-07-31",
+        "completionDate": "2026-08-30",
+        "withdrawalDate": null,
+        "withdrawalReasonCode": null,
+        "learningSupport": [],
+        "pauseDate": null,
+        "aimSequenceNumber": 1,
+        "milestones": [ "ThirtyPercentLearningComplete" ]
+      }
+    ]
+  }
+}

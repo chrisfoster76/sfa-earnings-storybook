@@ -2,7 +2,7 @@
   "name": "Progression after Completion (of Approved learning)",
   "group": "Short Course",
   "subGroup": "Progression",
-  "description": "SLD submits ZSC00001 as completed. Employer approves. SLD then PUTs a single payload containing both ZSC00001 (the completed course) and ZSC00002 (a new course starting after completion). Employer approves ZSC00002. SLD PUTs the same payload again as a workaround. Exercises the multi-OnProgramme PUT array path with both courses approved.",
+  "description": "SLD submits ZSC00001 as completed. Employer approves. SLD then PUTs a single payload containing both ZSC00001 (the completed course) and ZSC00002 (a new course starting after completion). Employer approves ZSC00002. SLD then PUTs again, this time giving ZSC00002 a CompletionDate too. Exercises the multi-OnProgramme PUT array path with both courses approved and both eventually completed.",
   "wipeOnRun": true,
   "tags": ["FLP-1894"],
   "steps": [
@@ -44,10 +44,10 @@
       "delayMs": 3000
     },
     {
-      "name": "SLD PUTs the Same Payload Again (Workaround)",
+      "name": "SLD PUTs Both Courses Again, ZSC00002 Now Completed",
       "verb": "PUT",
       "route": "/providers/10005077/shortCourses/{learnerKey}",
-      "payloadFile": "04-put-both-courses.json",
+      "payloadFile": "06-put-both-courses-zsc2-complete.json",
       "extract": {}
     }
   ],
@@ -98,12 +98,12 @@
       ]
     },
     {
-      "name": "1 payable LearningComplete instalment (ZSC00001 only — ZSC00002 not completed)",
+      "name": "2 payable LearningComplete instalments (both courses now completed)",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "assert-payable-learning-complete.sql",
       "expected": [
-        { "field": "Count", "value": "1" }
+        { "field": "Count", "value": "2" }
       ]
     }
   ]

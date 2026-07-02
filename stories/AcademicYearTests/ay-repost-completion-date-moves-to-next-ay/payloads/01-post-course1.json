@@ -12,17 +12,17 @@
   "delivery": {
     "onProgramme": [
       {
-        "courseCode": "ZSC00002",
-        "agreementId": "789",
-        "startDate": "2027-09-01",
-        "expectedEndDate": "2027-09-30",
-        "completionDate": null,
+        "courseCode": "ZSC00001",
+        "agreementId": "123",
+        "startDate": "2026-06-01",
+        "expectedEndDate": "2026-07-31",
+        "completionDate": "2026-07-31",
         "withdrawalDate": null,
         "learningSupport": [],
         "pauseDate": null,
         "aimSequenceNumber": 1,
         "actualEndDate": null,
-        "milestones": ["ThirtyPercentLearningComplete"]
+        "milestones": []
       }
     ]
   }

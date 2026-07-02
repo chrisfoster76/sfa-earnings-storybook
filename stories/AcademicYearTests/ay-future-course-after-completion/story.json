@@ -1,7 +1,7 @@
 {
   "name": "Completed Course, Then a Different Course in a Future Academic Year",
   "group": "Academic Year Tests",
-  "description": "SLD POSTs a learner onto ZSC00001 starting 2026-06-01 and already completing 2026-06-30, employer approves it. SLD then POSTs the same learner onto a different course, ZSC00002, starting 2027-09-01 with a one-month expected duration and no completion or withdrawal date — over a year later, in a later academic year, with no employer approval. Exercises a large temporal gap and an academic-year boundary crossing between a learner's two short courses with the same provider.\n\nCurrently learning does not have a concept of Academic Year, so \"subsequent Academic Year\" has no meaning beyond it resulting in a POST (if no learning was continuing) which appears to be fine, but the second POST (re-POST of the same payload) already removes the first learning, as the apparently absent OnProgrammes relating to the previous year are treated as omissions.",
+  "description": "SLD POSTs a learner onto ZSC00001 starting 2026-06-01 and already completing 2026-06-30, employer approves it. SLD then POSTs the same learner onto a different course, ZSC00002, starting 2027-09-01 with a one-month expected duration and no completion or withdrawal date — over a year later, in a later academic year — via the new-style route with academicYear=2627 explicitly appended to the query string. Employer approves ZSC00002 too. Exercises a large temporal gap and an academic-year boundary crossing between a learner's two short courses with the same provider.",
   "wipeOnRun": true,
   "steps": [
     {
@@ -19,31 +19,26 @@
       "delayMs": 3000
     },
     {
-      "name": "SLD Creates Short Course 2 (ZSC00002) for the Same Learner, Starting Sep 2027",
+      "type": "Wait",
+      "name": "Pause Before Creating Short Course 2"
+    },
+    {
+      "name": "SLD Creates Short Course 2 (ZSC00002) for the Same Learner, Starting Sep 2027 — new-style URI with academicYear=2627",
       "verb": "POST",
-      "route": "/providers/10005077/shortCourses",
+      "route": "/providers/10005077/shortCourses?academicYear=2627",
       "payloadFile": "03-post-course2.json",
       "extract": {}
     },
     {
       "type": "Wait",
-      "name": "Pause Before Next Step"
+      "name": "Pause Before Approving Short Course 2"
     },
     {
-      "name": "Get Learner Key",
-      "type": "Sql",
-      "connectionName": "Learning",
-      "queryFile": "04-get-learner-key.sql",
-      "extract": {
-        "learnerKey": "LearnerKey"
-      }
-    },
-    {
-      "name": "SLD no-op PUTs Short Course 2 (ZSC00002) with the Same Payload",
-      "verb": "PUT",
-      "route": "/providers/10005077/shortCourses/{learnerKey}",
-      "payloadFile": "03-post-course2.json",
-      "extract": {}
+      "name": "Employer Approves Short Course 2",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "04-approve-course2.json",
+      "delayMs": 3000
     }
   ]
 }

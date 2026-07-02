@@ -48,6 +48,24 @@
       "extract": {}
     },
     {
+      "name": "ZSC00002 episode is removed by omission (Learning DB)",
+      "type": "Assert",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc2-is-removed.sql",
+      "expected": [
+        { "field": "IsRemoved", "value": "True" }
+      ]
+    },
+    {
+      "name": "ZSC00002 episode is removed by omission (Earnings DB)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc2-is-removed.sql",
+      "expected": [
+        { "field": "IsRemoved", "value": "True" }
+      ]
+    },
+    {
       "name": "Verify ZSC00002 episode IsRemoved=true and Earnings profile deleted, then press Enter to reinstate",
       "type": "Wait"
     },

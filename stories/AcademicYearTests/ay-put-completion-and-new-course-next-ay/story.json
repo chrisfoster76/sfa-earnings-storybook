@@ -1,0 +1,38 @@
+{
+  "name": "PUT Completes Original Course and Adds a Subsequent-AY Course, Using academicYear Query Param",
+  "group": "Academic Year Tests",
+  "description": "SLD POSTs ZSC00001 starting 2026-06-01 (25/26) with no completion or withdrawal date, employer approves it. SLD then PUTs via the new-style route (/providers/{ukprn}/shortCourses/{learnerKey}, rather than the legacy learnerKey-less form) with academicYear=2627 explicitly appended to the query string: the PUT gives ZSC00001 a CompletionDate of 2026-07-31 (still within 25/26) and, in the same payload, adds a new course ZSC00002 that both starts and completes in August 2026 — squarely within AY 26/27, matching the academicYear query param on the request. Exercises whether the academicYear query param is honoured/required when a single PUT spans a completion in one AY and a new course in the next.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001), Starts June 2026, No Completion/Withdrawal",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (completed 2026-07-31) + ZSC00002 (new, Aug 2026) — new-style URI with academicYear=2627",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}?academicYear=2627",
+      "payloadFile": "04-put-both-courses.json",
+      "extract": {}
+    }
+  ]
+}

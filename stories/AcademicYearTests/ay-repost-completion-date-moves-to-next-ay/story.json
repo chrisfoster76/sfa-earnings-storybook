@@ -1,0 +1,29 @@
+{
+  "name": "Re-POST Moves CompletionDate into the Next AY, Using academicYear Query Param",
+  "group": "Academic Year Tests",
+  "description": "SLD POSTs ZSC00001 starting 2026-06-01 with a CompletionDate of 2026-07-31 — course starts and completes within AY 25/26. Employer approves it. SLD then re-POSTs the same learner/course via the new-style route with academicYear=2627 explicitly appended to the query string, changing CompletionDate (and ExpectedEndDate) to 2026-08-31 — now landing in AY 26/27. This is a re-POST (not a PUT), since the SLD contract only PUTs once a learnerKey exists from a prior POST/GET round-trip; here we're exercising the POST route's own academicYear query param to see how an already-approved course's completion date crossing an AY boundary is handled purely via POST.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001), Completes 2026-07-31 (AY 25/26)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD Re-POSTs ZSC00001 with CompletionDate Moved to 2026-08-31 (AY 26/27) — new-style URI with academicYear=2627",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses?academicYear=2627",
+      "payloadFile": "03-repost-completion-in-august.json",
+      "extract": {}
+    }
+  ]
+}

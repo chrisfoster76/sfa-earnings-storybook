@@ -1,0 +1,73 @@
+{
+  "name": "Progression - Bundled POST with Withdrawal, then PUT Omits Progression and Tweaks Withdrawal Date",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "Reported bug (FLP-1908). Same-academic-year scenario: ZSC00001 runs 2025-08-01 to withdrawal 2026-01-20, and ZSC00002 starts 2026-02-01 — both fall within AY 25/26 (2025-08-01 to 2026-07-31), so FLP-1895 AY-scoping of the omission candidate set is not a factor here. SLD POSTs ZSC00001 (withdrawn) and ZSC00002 (a new progression course) together in a single bundled OnProgramme array. The employer approves ZSC00001 only — ZSC00002 remains unapproved. SLD then PUTs again, but this time the payload omits ZSC00002 entirely (should trigger removal by omission) and also changes ZSC00001's withdrawal date in the same request. Exploratory story — no assertions yet on the specific defect; run and inspect DB state manually to confirm whether ZSC00002 is correctly removed by omission and whether ZSC00001's withdrawal date update takes effect when both changes land in the same PUT.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1908"],
+  "steps": [
+    {
+      "name": "SLD POSTs ZSC00001 (withdrawn) and ZSC00002 (new progression course, same AY) in a Single Bundled Payload",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-both-courses.json",
+      "extract": {}
+    },
+    {
+      "name": "Get Learner Key for ZSC00001",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "Employer Approves ZSC00001 Only",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "03-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Verify ZSC00001 approved and ZSC00002 unapproved, then press Enter to PUT the omission + withdrawal date tweak",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00001 only (ZSC00002 omitted) with an updated withdrawal date",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "05-put-course1-only-withdrawal-tweak.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "ZSC00001 episode is not removed",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-course1-not-removed.sql",
+      "expected": [
+        { "field": "IsRemoved", "value": "False" }
+      ]
+    },
+    {
+      "name": "ZSC00001 withdrawal date updated",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-course1-withdrawal-date.sql",
+      "expected": [
+        { "field": "WithdrawalDate", "value": "2026-01-20" }
+      ]
+    },
+    {
+      "name": "ZSC00002 episode removed by omission",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-course2-removed.sql",
+      "expected": [
+        { "field": "IsRemoved", "value": "True" }
+      ]
+    }
+  ]
+}

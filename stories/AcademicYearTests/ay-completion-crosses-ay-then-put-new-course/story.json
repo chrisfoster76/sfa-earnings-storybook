@@ -1,0 +1,53 @@
+{
+  "name": "Completion Crosses AY Boundary, Then a New Course Added via PUT",
+  "group": "Academic Year Tests",
+  "description": "SLD POSTs a learner onto ZSC00001 starting 2026-06-01 and already completing 2026-08-31 — the course starts in AY 25/26 but its CompletionDate falls in AY 26/27. Employer approves it. SLD then PUTs (rather than POSTs) a single payload containing both ZSC00001 and a new course, ZSC00002, starting 2027-09-01 with a one-month expected duration and no completion or withdrawal date, via the new-style route with academicYear=2627 and the learnerKey obtained after approval. Employer approves ZSC00002 too. Variant of `ay-future-course-after-completion` — exercises a completion date that itself straddles the AY boundary, and the multi-item PUT array path (rather than a standalone POST) for adding the new course.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001), Completion Crosses into AY 26/27",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "type": "Wait",
+      "name": "Pause Before PUTting Short Course 2"
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 + ZSC00002 (New, Starting Sep 2027) in a Single Payload — new-style URI with academicYear=2627",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}?academicYear=2627",
+      "payloadFile": "04-put-both-courses.json",
+      "extract": {}
+    },
+    {
+      "type": "Wait",
+      "name": "Pause Before Approving Short Course 2"
+    },
+    {
+      "name": "Employer Approves Short Course 2",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "05-approve-course2.json",
+      "delayMs": 3000
+    }
+  ]
+}

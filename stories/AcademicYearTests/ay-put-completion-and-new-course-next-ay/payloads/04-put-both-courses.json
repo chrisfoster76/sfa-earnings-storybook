@@ -15,14 +15,27 @@
         "courseCode": "ZSC00001",
         "agreementId": "123",
         "startDate": "2026-06-01",
-        "expectedEndDate": "2026-06-30",
-        "completionDate": "2026-06-30",
+        "expectedEndDate": "2027-05-31",
+        "completionDate": "2026-07-31",
         "withdrawalDate": null,
         "learningSupport": [],
         "pauseDate": null,
         "aimSequenceNumber": 1,
         "actualEndDate": null,
-        "milestones": [ "ThirtyPercentLearningComplete" ]
+        "milestones": []
+      },
+      {
+        "courseCode": "ZSC00002",
+        "agreementId": "123",
+        "startDate": "2026-08-01",
+        "expectedEndDate": "2026-08-31",
+        "completionDate": "2026-08-31",
+        "withdrawalDate": null,
+        "learningSupport": [],
+        "pauseDate": null,
+        "aimSequenceNumber": 2,
+        "actualEndDate": null,
+        "milestones": []
       }
     ]
   }

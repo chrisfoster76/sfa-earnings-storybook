@@ -1,0 +1,30 @@
+{
+  "ApprenticeshipId": 2,
+  "ApprenticeshipHashedId": "",
+  "Uln": 7430758303,
+  "ProviderId": 10005077,
+  "LearningType": "ApprenticeshipUnit",
+  "DateOfBirth": "2000-01-01T00:00:00Z",
+  "FirstName": "John",
+  "LastName": "Smith",
+  "IsOnFlexiPaymentPilot": true,
+  "ActualStartDate": "2026-08-15",
+  "StartDate": "2026-08-15",
+  "EndDate": "2027-09-30T00:00:00Z",
+  "TrainingCode": "ZSC00003",
+  "TrainingCourseVersion": "",
+  "TrainingCourseOption": "",
+  "TrainingType": "Standard",
+  "LegalEntityName": "Test Org",
+  "AccountLegalEntityId": 1,
+  "AccountId": 1,
+  "PriceEpisodes": [
+    {
+      "Cost": 3000,
+      "EndPointAssessmentPrice": 0,
+      "TrainingPrice": 3000,
+      "FromDate": "2027-09-01T00:00:00Z",
+      "ToDate": "2027-09-30T00:00:00Z"
+    }
+  ]
+}
