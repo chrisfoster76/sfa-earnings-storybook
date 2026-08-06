@@ -40,6 +40,7 @@ public class StoryRunner
             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
         };
         using var http = new HttpClient(handler) { BaseAddress = new Uri(_config.BaseUrl) };
+        var pending = new List<Task>();
 
         for (int i = 0; i < story.Steps.Count; i++)
         {
@@ -60,7 +61,7 @@ public class StoryRunner
                 "ASSERT"  => await RunAssertStepAsync(stepNum, step, entry.FolderPath),
                 "CONTEXT" => RunContextStep(stepNum, step, context),
                 "WAIT"    => skipWaits ? SkipWaitStep(stepNum, step) : RunWaitForUserStep(stepNum, step),
-                _         => await RunHttpStepAsync(stepNum, step, entry.FolderPath, http, context)
+                _         => await RunHttpStepAsync(stepNum, step, entry.FolderPath, http, context, pending)
             };
 
             if (!success)
@@ -76,6 +77,14 @@ public class StoryRunner
                 _out.ResetColor();
                 await Task.Delay(step.DelayMs);
             }
+        }
+
+        if (pending.Count > 0)
+        {
+            _out.ForegroundColor = ConsoleColor.DarkGray;
+            _out.WriteLine($"\n  Waiting for {pending.Count} fire-and-forget request(s) to complete...");
+            _out.ResetColor();
+            await Task.WhenAll(pending);
         }
 
         _out.ForegroundColor = ConsoleColor.Green;
@@ -105,6 +114,7 @@ public class StoryRunner
             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
         };
         using var http = new HttpClient(handler) { BaseAddress = new Uri(_config.BaseUrl) };
+        var pending = new List<Task>();
 
         var success = step.Type.ToUpperInvariant() switch
         {
@@ -112,7 +122,7 @@ public class StoryRunner
             "SQL"     => await RunSqlStepAsync(1, step, adhocFolder, context),
             "CONTEXT" => RunContextStep(1, step, context),
             "WAIT"    => RunWaitForUserStep(1, step),
-            _         => await RunHttpStepAsync(1, step, adhocFolder, http, context)
+            _         => await RunHttpStepAsync(1, step, adhocFolder, http, context, pending)
         };
 
         if (success)
@@ -129,6 +139,9 @@ public class StoryRunner
             _out.ResetColor();
             await Task.Delay(step.DelayMs);
         }
+
+        if (pending.Count > 0)
+            await Task.WhenAll(pending);
     }
 
     // ── Context step ─────────────────────────────────────────────────────────
@@ -172,7 +185,8 @@ public class StoryRunner
 
     private async Task<bool> RunHttpStepAsync(
         int stepNum, Step step, string folderPath,
-        HttpClient http, Dictionary<string, string> context)
+        HttpClient http, Dictionary<string, string> context,
+        List<Task>? pending = null)
     {
         var route = ResolveTemplate(step.Route, context);
         string? body = null;
@@ -193,6 +207,19 @@ public class StoryRunner
         }
 
         PrintHttpStepStart(stepNum, step, route, body);
+
+        if (step.FireAndForget)
+        {
+            _out.ForegroundColor = ConsoleColor.Yellow;
+            _out.WriteLine("fired, not waiting");
+            _out.ResetColor();
+
+            var stepNumCaptured = stepNum;
+            var task = SendFireAndForgetAsync(http, step.Verb, route, body, stepNumCaptured);
+            pending?.Add(task);
+
+            return true;
+        }
 
         HttpResponseMessage response;
         try
@@ -216,6 +243,33 @@ public class StoryRunner
 
         ExtractValues(step, responseBody, context);
         return true;
+    }
+
+    private async Task SendFireAndForgetAsync(
+        HttpClient http, string verb, string route, string? body, int stepNum)
+    {
+        try
+        {
+            var response = await SendAsync(http, verb, route, body);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            _out.ForegroundColor = response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red;
+            _out.WriteLine($"     [fire-and-forget] step {stepNum} completed: {(int)response.StatusCode} {response.ReasonPhrase}");
+            _out.ResetColor();
+
+            if (!response.IsSuccessStatusCode && !string.IsNullOrWhiteSpace(responseBody))
+            {
+                _out.ForegroundColor = ConsoleColor.DarkGray;
+                _out.WriteLine(Indent(PrettyJson(responseBody), 5));
+                _out.ResetColor();
+            }
+        }
+        catch (Exception ex)
+        {
+            _out.ForegroundColor = ConsoleColor.Red;
+            _out.WriteLine($"     [fire-and-forget] step {stepNum} request failed: {ex.Message}");
+            _out.ResetColor();
+        }
     }
 
     // ── Event step ───────────────────────────────────────────────────────────

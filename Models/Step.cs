@@ -36,6 +36,15 @@ public class Step
     /// </summary>
     public string? CaptureStatusAs { get; set; }
 
+    /// <summary>
+    /// If true, this HTTP step is sent without awaiting the response — the story moves
+    /// on to the next step immediately. Useful for provoking race conditions between two
+    /// in-flight requests. The response is still awaited (and logged) before the story
+    /// finishes, but it cannot participate in status checks, Extract, or CaptureStatusAs
+    /// since those need to run synchronously with the step.
+    /// </summary>
+    public bool FireAndForget { get; set; } = false;
+
     // ── Event step properties ────────────────────────────────────────────
     /// <summary>Full type name of the NServiceBus event to publish (e.g. "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent").</summary>
     public string? EventType { get; set; }

@@ -1,20 +1,29 @@
 {
   "name": "Temporary ULNs",
-  "description": "Provider POSTs a short course learner (Alan Alpha) using the temporary/placeholder ULN 9999999999 (learnerRef TEMPULN-01), then POSTs again with the same temp ULN and same course code (ZSC00001) but a different learnerRef and name (Beth Bravo, TEMPULN-02) - two separate requests, one after the other, revealing they were two different learners sharing the placeholder ULN.",
+  "description": "Provider first POSTs and waits for a short course on a different course code (ZSC00002) for the temporary/placeholder ULN 9999999999, so a learner record already exists under that ULN. Then two more POSTs are fired without waiting for a response - Alan Alpha (learnerRef TEMPULN-01) and Beth Bravo (learnerRef TEMPULN-02), both on course ZSC00001 - to provoke a race condition between two different learners sharing the placeholder ULN against an existing record.",
   "wipeOnRun": true,
   "steps": [
     {
-      "name": "SLD Create Short Course - Temporary ULN (9999999999)",
+      "name": "SLD Create Short Course - Temporary ULN (9999999999), Establishes Learner Record",
       "verb": "POST",
       "route": "/providers/10005077/shortCourses",
       "payloadFile": "01-post-short-course.json",
       "extract": {}
     },
     {
-      "name": "SLD Create Short Course Again - Same Temporary ULN, Same Course",
+      "name": "SLD Create Short Course - Temporary ULN (9999999999)",
       "verb": "POST",
       "route": "/providers/10005077/shortCourses",
       "payloadFile": "02-post-short-course.json",
+      "fireAndForget": true,
+      "extract": {}
+    },
+    {
+      "name": "SLD Create Short Course Again - Same Temporary ULN, Same Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "03-post-short-course.json",
+      "fireAndForget": true,
       "extract": {}
     }
   ]
