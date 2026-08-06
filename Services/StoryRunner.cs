@@ -84,7 +84,7 @@ public class StoryRunner
 
         if (story.Assertions.Count > 0)
         {
-            var (_, passed, total) = await RunAssertionsAsync(story.Assertions, entry.FolderPath);
+            var (_, passed, total) = await RunAssertionsAsync(story.Assertions, entry.FolderPath, context);
             sw.Stop();
             return new StoryRunResult(true, passed, total, sw.Elapsed);
         }
@@ -206,10 +206,13 @@ public class StoryRunner
         }
 
         var responseBody = await response.Content.ReadAsStringAsync();
-        PrintHttpStepResult(response, responseBody);
+        PrintHttpStepResult(response, responseBody, step.IgnoreFailureStatus);
+
+        if (!string.IsNullOrWhiteSpace(step.CaptureStatusAs))
+            context[step.CaptureStatusAs] = ((int)response.StatusCode).ToString();
 
         if (!response.IsSuccessStatusCode)
-            return false;
+            return step.IgnoreFailureStatus;
 
         ExtractValues(step, responseBody, context);
         return true;
@@ -438,7 +441,7 @@ public class StoryRunner
 
     // ── Assertions ───────────────────────────────────────────────────────────
 
-    private async Task<(bool allPassed, int passed, int total)> RunAssertionsAsync(List<Assertion> assertions, string folderPath)
+    private async Task<(bool allPassed, int passed, int total)> RunAssertionsAsync(List<Assertion> assertions, string folderPath, Dictionary<string, string> context)
     {
         _out.WriteLine("");
         _out.WriteLine("  Assertions:");
@@ -451,6 +454,16 @@ public class StoryRunner
         {
             var assertion = assertions[i];
             var num = i + 1;
+
+            if (string.Equals(assertion.Type, "Context", StringComparison.OrdinalIgnoreCase))
+            {
+                total++;
+                if (RunContextAssertion(num, assertion, context))
+                    passCount++;
+                else
+                    allPassed = false;
+                continue;
+            }
 
             if (!string.Equals(assertion.Type, "Sql", StringComparison.OrdinalIgnoreCase))
             {
@@ -564,6 +577,40 @@ public class StoryRunner
         return (allPassed, passCount, total);
     }
 
+    // Compares run-context values (e.g. a status code captured via a step's CaptureStatusAs)
+    // against expected values, with no DB round-trip.
+    private bool RunContextAssertion(int num, Assertion assertion, Dictionary<string, string> context)
+    {
+        var fieldResults = assertion.Expected.Select(exp =>
+        {
+            var actual = context.TryGetValue(exp.Field, out var value) ? value : "<not set>";
+            return (exp.Field, exp.Value, Actual: actual,
+                Passed: string.Equals(actual, exp.Value, StringComparison.OrdinalIgnoreCase));
+        }).ToList();
+
+        var assertionPassed = fieldResults.All(r => r.Passed);
+        _out.ForegroundColor = assertionPassed ? ConsoleColor.Green : ConsoleColor.Red;
+        _out.Write($"  {num}. {assertion.Name}  —  ");
+
+        if (assertionPassed)
+        {
+            var summary = string.Join(", ", fieldResults.Select(r => $"{r.Field}={r.Actual}"));
+            _out.WriteLine($"PASS ({summary})");
+        }
+        else
+        {
+            _out.WriteLine("FAIL");
+            foreach (var (field, expected, actual, passed) in fieldResults)
+            {
+                _out.ForegroundColor = passed ? ConsoleColor.Green : ConsoleColor.Red;
+                _out.WriteLine($"       {field}: expected {expected}, got {actual}");
+            }
+        }
+
+        _out.ResetColor();
+        return assertionPassed;
+    }
+
     // ── Printing ─────────────────────────────────────────────────────────────
 
     private void PrintHttpStepStart(int num, Step step, string route, string? body)
@@ -591,18 +638,29 @@ public class StoryRunner
         }
     }
 
-    private void PrintHttpStepResult(HttpResponseMessage response, string body)
+    private void PrintHttpStepResult(HttpResponseMessage response, string body, bool ignoreFailureStatus = false)
     {
         var statusText = $"{(int)response.StatusCode} {response.ReasonPhrase}";
-        _out.ForegroundColor = response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red;
+        _out.ForegroundColor = response.IsSuccessStatusCode ? ConsoleColor.Green
+            : ignoreFailureStatus ? ConsoleColor.Yellow
+            : ConsoleColor.Red;
         _out.WriteLine(statusText);
         _out.ResetColor();
 
         if (!response.IsSuccessStatusCode)
         {
-            _out.ForegroundColor = ConsoleColor.Red;
-            _out.WriteLine("     Story stopped.");
-            _out.ResetColor();
+            if (ignoreFailureStatus)
+            {
+                _out.ForegroundColor = ConsoleColor.Yellow;
+                _out.WriteLine("     Non-2xx expected — story continues.");
+                _out.ResetColor();
+            }
+            else
+            {
+                _out.ForegroundColor = ConsoleColor.Red;
+                _out.WriteLine("     Story stopped.");
+                _out.ResetColor();
+            }
 
             if (!string.IsNullOrWhiteSpace(body))
             {

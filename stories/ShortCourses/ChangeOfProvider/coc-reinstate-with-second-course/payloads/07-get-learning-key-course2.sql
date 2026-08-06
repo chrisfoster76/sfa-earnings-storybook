@@ -4,5 +4,5 @@ INNER JOIN [Learner] [l] ON [l].[Key] = [scl].[LearnerKey]
 INNER JOIN [ShortCourseEpisode] [sce] ON [sce].[LearningKey] = [scl].[Key]
 WHERE [l].[Uln] = 23456734
   AND [sce].[UKPRN] = 10005077
-  AND [sce].[TrainingCode] = 'ZSC00002'
+  AND [scl].[TrainingCode] = 'ZSC00002'
   AND [sce].[StartDate] = '2026-02-01'

@@ -23,6 +23,19 @@ public class Step
     /// </summary>
     public Dictionary<string, string> Extract { get; set; } = [];
 
+    /// <summary>
+    /// If true, a non-2xx response from this HTTP step does not stop the story.
+    /// Use for stories that deliberately exercise an error path.
+    /// </summary>
+    public bool IgnoreFailureStatus { get; set; } = false;
+
+    /// <summary>
+    /// If set, the numeric HTTP status code of this step's response is stored in the
+    /// run context under this key (regardless of success/failure), for later assertion
+    /// via a "Context" type assertion.
+    /// </summary>
+    public string? CaptureStatusAs { get; set; }
+
     // ── Event step properties ────────────────────────────────────────────
     /// <summary>Full type name of the NServiceBus event to publish (e.g. "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent").</summary>
     public string? EventType { get; set; }

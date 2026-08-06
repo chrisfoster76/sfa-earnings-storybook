@@ -1,0 +1,59 @@
+{
+  "name": "Short Course - CompletionDate Removed via PUT, Alongside an Attempted StartDate Change (FLP-1918 Gap)",
+  "group": "Short Course",
+  "description": "SLD POSTs ZSC00001 already carrying a CompletionDate (2026-03-15), starting 2025-08-01. Employer approves it. SLD then PUTs the same course with CompletionDate set to null (retracting the completion) AND an attempted StartDate change (2025-08-01 → 2025-09-01) in the same payload. StartDate is immutable once posted, so it's expected to be ignored — but UpdateShortCourseCommandHandler's isRestartAttempt guard misfires here: because the episode already has an actual end date (HasActualEndDate), the differing StartDate is treated as a restart attempt and the entire item is dropped (returns IsIgnored=true before learning.Update runs), so the CompletionDate retraction never applies either. GAP STORY — currently FAILS. See tickets/FLP-1918.md.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1918"],
+  "steps": [
+    {
+      "name": "SLD Creates a Short Course (ZSC00001) with CompletionDate 2026-03-15",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 with CompletionDate Removed (2026-03-15 → null) AND StartDate Changed (2025-08-01 → 2025-09-01, Expected to be Ignored)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-completion-date-removed.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Learning DB: CompletionDate is null and StartDate still 2025-08-01 (fails if the StartDate change leaked through)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-dates.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "Earnings DB: CompletionDate is null and StartDate still 2025-08-01 (fails if the StartDate change leaked through)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-dates.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "consumerReference": "testing",
+  "learner": {
+    "uln": 1000000011,
+    "learnerRef": "TEMPULN-02",
+    "firstname": "Beth",
+    "lastname": "Bravo",
+    "dob": "2004-02-14",
+    "email": "beth.bravo@test.com",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "onProgramme": [
+      {
+        "courseCode": "ZSC00002",
+        "agreementId": "123",
+        "startDate": "2025-08-01",
+        "expectedEndDate": "2026-07-31",
+        "completionDate": null,
+        "withdrawalDate": null,
+        "learningSupport": [],
+        "pauseDate": null,
+        "aimSequenceNumber": 1,
+        "actualEndDate": null,
+        "milestones": []
+      }
+    ]
+  }
+}

@@ -18,6 +18,7 @@
   "LegalEntityName": "Test Org",
   "AccountLegalEntityId": 1,
   "AccountId": 1,
+  "ApprenticeshipEmployerTypeOnApproval": "Levy",
   "PriceEpisodes": [
     {
       "Cost": 3000,

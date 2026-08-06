@@ -1,0 +1,28 @@
+{
+  "name": "Temporary ULN - One POST, Two Courses, Then Corrected With Real ULNs",
+  "description": "Single provider first POSTs one short course learner using the temporary/placeholder ULN 9999999999, enrolled on two different courses in the same request (same start date, different course codes, no approval/milestones). The SLD then submits a correction: two further POSTs, identical in structure, but each course is now assigned to its own proper, distinct ULN - revealing they were two different learners all along.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create Short Course - Learner on Two Courses (ULN 9999999999)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-learner-one.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Correction - Learner One, Course ZSC00001, Real ULN",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "02-post-learner-one-real-uln.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Correction - Learner Two, Course ZSC00002, Real ULN",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "03-post-learner-two-real-uln.json",
+      "extract": {}
+    }
+  ]
+}

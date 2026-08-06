@@ -1,0 +1,113 @@
+{
+  "name": "Progression - Course 1 Withdrawal Date Tweak After Course 2 Approved",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "ZSC00001 posted claiming the 30% milestone, then approved. SLD sends an update that withdraws ZSC00001 and, in the same payload, adds ZSC00002 (progression) also claiming its 30% milestone — the employer then approves ZSC00002. SLD sends a further update that only tweaks ZSC00001's withdrawal date (2026-01-20 to 2026-01-25), with ZSC00002 unchanged in the same payload. Verifies the withdrawal date correction on the original episode flows through to Earnings correctly once a second, approved progression episode exists alongside it.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001, 30% milestone claimed)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (withdrawn 2026-01-20) + ZSC00002 (new, 30% milestone claimed) — Progression",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-withdraw-course1-add-course2.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 2 (ZSC00002)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "05-approve-course2.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Verify ZSC00001 withdrawn and ZSC00002 approved with payable 30%, then press Enter to tweak ZSC00001's withdrawal date",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (withdrawal date corrected to 2026-01-25) + ZSC00002 (unchanged)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "07-put-course1-withdrawal-tweak.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "ZSC00001 withdrawal date updated in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-course1-withdrawal-date-learning.sql",
+      "expected": [
+        { "field": "WithdrawalDate", "value": "2026-01-25" }
+      ]
+    },
+    {
+      "name": "ZSC00001 withdrawal date updated in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-course1-withdrawal-date-earnings.sql",
+      "expected": [
+        { "field": "WithdrawalDate", "value": "2026-01-25" }
+      ]
+    },
+    {
+      "name": "2 ThirtyPercent instalments (1 per course)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-thirty-percent-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 payable ThirtyPercent instalments (both courses approved with milestone claimed)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-payable-thirty-percent.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "Short Course - Claim 30% Milestone (Non-Levy Employer)",
+  "group": "Short Course",
+  "description": "Creates a short course with no milestones, approves it with the employer marked NonLevy on the approval event, then claims ThirtyPercentLearningComplete via PUT. Verifies the Earnings-side episode records EmployerType as NonLevy (FLP-1926) rather than the previously hard-coded Levy.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer (NonLevy) Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 8000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Claims 30% Milestone",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-short-course.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Episode EmployerType is NonLevy in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-employer-type.sql",
+      "expected": [
+        { "field": "EmployerType", "value": "0" }
+      ]
+    }
+  ]
+}

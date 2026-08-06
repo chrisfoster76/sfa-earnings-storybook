@@ -70,9 +70,9 @@ public static class RunAllView
 
             if (ok) passCount++; else failCount++;
 
-            // Delay between stories to reduce flakiness
+            // Delay between stories to reduce flakiness; longer cool-down after a failure
             if (i < runnable.Count - 1)
-                await Task.Delay(1000);
+                await Task.Delay(ok ? 1000 : 5000);
         }
 
         // Skipped stories

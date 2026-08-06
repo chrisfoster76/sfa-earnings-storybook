@@ -1,0 +1,26 @@
+{
+  "name": "Short Course - Invalid Course Code",
+  "group": "Error Handling",
+  "description": "POSTs a short course with course code ZSC00404 — the das-commitments-stubs Courses API stub hardcodes this one code to return a 404 lookup response (any other unrecognised code falls through to the default successful lookup and would NOT reproduce this). The 404 causes ShortCourseLookupService to throw InvalidCourseException, which ShortCoursesController maps to a 422 response.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create a Short Course with an unknown course code",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-invalid-course-code.json",
+      "extract": {},
+      "ignoreFailureStatus": true,
+      "captureStatusAs": "createShortCourseStatusCode"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Returns 422 Unprocessable Entity",
+      "type": "Context",
+      "expected": [
+        { "field": "createShortCourseStatusCode", "value": "422" }
+      ]
+    }
+  ]
+}

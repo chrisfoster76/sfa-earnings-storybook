@@ -1,0 +1,60 @@
+{
+  "name": "Short Course - PUT Attempts StartDate Change Alongside CompletionDate (StartDate Immutable)",
+  "group": "Short Course",
+  "description": "SLD POSTs ZSC00001 with no completion date, starting 2025-08-01. Employer approves it. SLD then PUTs the same course with a changed StartDate (2025-08-01 → 2025-09-01) and a new CompletionDate (null → 2026-03-15) in the same payload. StartDate cannot be changed once posted — only CompletionDate can be updated via PUT. Asserts the CompletionDate change takes effect while StartDate is left unchanged at 2025-08-01, in both Learning and Earnings DBs.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates a Short Course (ZSC00001), No Completion Date",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 with StartDate Changed (2025-08-01 → 2025-09-01, Expected to be Ignored) and CompletionDate Added (null → 2026-03-15)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-start-and-completion-date.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Learning DB: StartDate unchanged, CompletionDate updated",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-dates.sql",
+      "expected": [
+        { "field": "StartDate", "value": "2025-08-01" },
+        { "field": "CompletionDate", "value": "2026-03-15" }
+      ]
+    },
+    {
+      "name": "Earnings DB: StartDate unchanged, CompletionDate updated",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-dates.sql",
+      "expected": [
+        { "field": "StartDate", "value": "2025-08-01" },
+        { "field": "CompletionDate", "value": "2026-03-15" }
+      ]
+    }
+  ]
+}

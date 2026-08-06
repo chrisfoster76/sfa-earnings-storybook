@@ -1,0 +1,93 @@
+{
+  "name": "Progression - Different Course, Different Provider, Subsequent AY (A Withdraws, B Completes)",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "Provider A (UKPRN 10005077) POSTs ZSC00001 for the learner, starting 2025-09-01 and withdrawn 2026-01-15 — entirely within AY 25/26. Employer approves it. In the following academic year, Provider B (UKPRN 10005078) POSTs a genuinely different course, ZSC00002, starting 2026-09-01 and completing 2027-02-15 (AY 26/27), via the new-style route with academicYear=2627 explicitly appended. Employer approves Provider B's course too. Provider B then PUTs again, nudging the completionDate a few days later (2027-02-15 → 2027-02-20), to check that a post-approval completion-date adjustment on the second, cross-AY, different-provider episode is applied cleanly. Not a Change-of-Provider scenario — CoP is same course code, different provider; this is a different course code and a different provider, i.e. a cross-AY variant of `progression-different-course-b-approved`. GetByLearnerKeyAndCourseCode should create a second, independent Learning for Provider B's course code, and the AY-scoped omission-removal predicate (FLP-1875/FLP-1895) should not touch Provider A's already-withdrawn AY 25/26 episode when Provider B's AY 26/27 POST lands. Expects 2 ShortCourseEpisode rows (one per provider) in both Learning and Earnings DBs, and Provider B's completion date updated to 2027-02-20.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1861", "FLP-1875"],
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates Short Course ZSC00001, Starts Sep 2025, Withdrawn Jan 2026 (AY 25/26)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1-provider-a.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider A's Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1-provider-a.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD (Provider B) Creates a Different Short Course, ZSC00002, Starting Sep 2026 and Completing Feb 2027 (AY 26/27) — new-style URI with academicYear=2627",
+      "verb": "POST",
+      "route": "/providers/10005078/shortCourses?academicYear=2627",
+      "payloadFile": "03-post-course2-provider-b.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Provider B's Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "04-approve-course2-provider-b.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key (from Provider B's ZSC00002 episode)",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "05-get-learner-key-provider-b.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD (Provider B) PUTs ZSC00002 Again, Completion Date Adjusted from 2027-02-15 to 2027-02-20",
+      "verb": "PUT",
+      "route": "/providers/10005078/shortCourses/{learnerKey}?academicYear=2627",
+      "payloadFile": "06-put-completion-adjusted-provider-b.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB (one per provider, Provider A's not removed by omission)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB across both providers",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "Provider B's ZSC00002 completion date updated to 2027-02-20 in Learning DB, StartDate unchanged",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-zsc2-completion-date.sql",
+      "expected": [
+        { "field": "StartDate", "value": "2026-09-01" },
+        { "field": "CompletionDate", "value": "2027-02-20" }
+      ]
+    },
+    {
+      "name": "Provider B's ZSC00002 completion date updated to 2027-02-20 in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-zsc2-completion-date.sql",
+      "expected": [
+        { "field": "CompletionDate", "value": "2027-02-20" }
+      ]
+    }
+  ]
+}

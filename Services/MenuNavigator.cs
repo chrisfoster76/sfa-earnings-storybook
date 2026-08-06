@@ -514,7 +514,10 @@ public class MenuNavigator
             .OrderBy(g => g.Key))
         {
             var folderStories = group.ToList();
+            var directStories = folderStories.Where(s => s.CategoryPath.Length == depth + 1).ToList();
             var subChildren = new List<Node> { new ActionNode("Run All in Folder", folderStories) };
+            if (directStories.Count > 0 && directStories.Count != folderStories.Count)
+                subChildren.Add(new ActionNode("Run All in Folder (No Subfolders)", directStories));
             AddChildNodes(subChildren, folderStories, depth + 1);
             target.Add(new FolderNode(ToDisplayName(group.Key), subChildren));
         }

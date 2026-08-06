@@ -2,7 +2,7 @@
   "name": "Repeat of Same Course via Single Bundled POST",
   "group": "Short Course",
   "subGroup": "Repeats",
-  "description": "Learner completes ZSC00001, then starts a new run of the *same* course code with the same provider — and both items arrive together in a single bundled POST (no precursor POST establishes the first run independently). Item 1 is already completed and unapproved (completionDate 2026-01-15); item 2 is a new run of ZSC00001 starting 2026-02-01, after item 1's completion. Exploratory story — no assertions yet; covers FLP-1865 (Resume: same course, same provider, same A/Y) territory but via the bundled-POST route rather than a precursor POST + later PUT.",
+  "description": "Learner completes ZSC00001, then starts a new run of the *same* course code with the same provider — and both items arrive together in a single bundled POST (no precursor POST establishes the first run independently). Item 1 is already completed and unapproved (completionDate 2026-01-15); item 2 is a new run of ZSC00001 starting 2026-02-01, after item 1's completion. Exploratory story — no assertions yet; covers FLP-1865 (Resume: same course, same provider, same A/Y) territory but via the bundled-POST route rather than a precursor POST + later PUT. Note: this bundled-two-items-same-course-code POST currently hits a bug in CreateDraftShortCourseCommandHandler (GetByLearnerKeyAndCourseCode only queries the DB, so item 2's lookup misses the in-memory Learning just created for item 1) — a follow-up PUT to complete item 2 is not meaningful until that's fixed, since it's not yet defined which persisted Learning it would even be targeting.",
   "wipeOnRun": true,
   "tags": ["FLP-1865"],
   "steps": [

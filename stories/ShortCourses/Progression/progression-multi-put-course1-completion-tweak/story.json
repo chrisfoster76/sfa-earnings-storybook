@@ -1,0 +1,139 @@
+{
+  "name": "Progression after Completion (of Approved learning), then Course 1 Completion Date Tweak",
+  "group": "Short Course",
+  "subGroup": "Progression",
+  "description": "SLD submits ZSC00001 as completed. Employer approves. SLD then PUTs a single payload containing both ZSC00001 (the completed course) and ZSC00002 (a new course starting after completion). Employer approves ZSC00002. SLD then PUTs again, this time giving ZSC00002 a CompletionDate too. Finally, SLD PUTs once more, restating ZSC00002 unchanged while making a small correction to ZSC00001's CompletionDate (2026-01-15 to 2026-01-20) — verifying that a completion date tweak on the original episode still flows through to Earnings correctly once a second, completed progression episode also exists in the same payload.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1894"],
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001, completed)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (completed) and ZSC00002 (new course) in a Single Payload",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-both-courses.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 2",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "05-approve-course2.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD PUTs Both Courses Again, ZSC00002 Now Completed",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "06-put-both-courses-zsc2-complete.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify both courses' 30% and completion instalments are payable, then press Enter to tweak ZSC00001's completion date",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs ZSC00001 (completion date corrected to 2026-01-20) + ZSC00002 (unchanged)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "07-put-course1-completion-tweak.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "2 ShortCourseEpisode rows in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-learning-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 ShortCourseEpisode rows in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-earnings-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "ZSC00001 completion date updated in Learning DB",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "assert-course1-completion-date-learning.sql",
+      "expected": [
+        { "field": "CompletionDate", "value": "2026-01-20" }
+      ]
+    },
+    {
+      "name": "ZSC00001 completion date updated in Earnings DB",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-course1-completion-date-earnings.sql",
+      "expected": [
+        { "field": "CompletionDate", "value": "2026-01-20" }
+      ]
+    },
+    {
+      "name": "2 ThirtyPercent instalments (1 per course)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-thirty-percent-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 LearningComplete instalments (1 per course)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-learning-complete-instalments.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 payable ThirtyPercent instalments (1 per course)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-payable-thirty-percent.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "2 payable LearningComplete instalments (both courses completed, ZSC00001 date corrected)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "assert-payable-learning-complete.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    }
+  ]
+}
