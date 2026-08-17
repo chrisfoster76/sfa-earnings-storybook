@@ -1,0 +1,67 @@
+{
+  "consumerReference": "testing",
+  "learner": {
+    "uln": 44444446,
+    "learnerRef": "string",
+    "firstname": "Jamie",
+    "lastname": "Ellis",
+    "dob": "2000-01-01",
+    "email": "jamie.ellis@test.com",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "englishAndMaths": [],
+    "onProgramme": [
+      {
+        "standardCode": 21,
+        "learnAimRef": "ZPROG001",
+        "agreementId": "123",
+        "startDate": "2026-04-01",
+        "expectedEndDate": "2028-03-31",
+        "completionDate": null,
+        "withdrawalDate": null,
+        "pauseDate": "2026-06-01",
+        "learningSupport": [],
+        "care": {
+          "careleaver": false,
+          "employerConsent": false
+        },
+        "aimSequenceNumber": 1,
+        "costs": [
+          {
+            "trainingPrice": 6400,
+            "epaoPrice": 1600,
+            "fromDate": "2026-04-01"
+          }
+        ],
+        "percentageOfTrainingLeft": 100,
+        "isFlexiJob": false
+      },
+      {
+        "standardCode": 21,
+        "learnAimRef": "ZPROG001",
+        "agreementId": "123",
+        "startDate": "2026-07-01",
+        "expectedEndDate": "2028-05-30",
+        "completionDate": null,
+        "withdrawalDate": null,
+        "pauseDate": null,
+        "learningSupport": [],
+        "care": {
+          "careleaver": false,
+          "employerConsent": false
+        },
+        "aimSequenceNumber": 1,
+        "costs": [
+          {
+            "trainingPrice": 6400,
+            "epaoPrice": 1600,
+            "fromDate": "2026-04-01"
+          }
+        ],
+        "percentageOfTrainingLeft": 100,
+        "isFlexiJob": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Temporary ULNs - Race (No Existing Record)",
+  "description": "No pre-existing learner record for the temporary/placeholder ULN 9999999999 - Provider 10005077 fires two POSTs without waiting for a response - Alan Alpha (learnerRef TEMPULN-01) and Beth Bravo (learnerRef TEMPULN-02), both on course ZSC00001 - to provoke a race condition between two different learners sharing the placeholder ULN with no existing record to race against, only each other.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create Short Course - Temporary ULN (9999999999)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "fireAndForget": true,
+      "extract": {}
+    },
+    {
+      "name": "SLD Create Short Course Again - Same Temporary ULN, Same Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "02-post-short-course.json",
+      "fireAndForget": true,
+      "extract": {}
+    }
+  ]
+}

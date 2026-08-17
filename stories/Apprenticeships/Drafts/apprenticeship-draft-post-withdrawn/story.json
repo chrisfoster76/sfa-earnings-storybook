@@ -1,0 +1,29 @@
+{
+  "name": "Apprenticeship — Draft POST With Withdrawal Date",
+  "group": "Apprenticeship",
+  "description": "POSTs a draft apprenticeship learner (ULN 44444444, standard 21, StartDate 2026-04-01) to the LearnerData Outer API with a WithdrawalDate already set on the OnProgramme item (2026-07-01, three months after StartDate) — no approval event, no earlier POST. Exercises CreateDraftApprenticeshipLearningCommandHandler.CreateDraftLearning's fall-through call to learning.Update(updateModel) straight after AddEpisode: the withdrawal isn't part of episode creation itself, it's picked up by UpdateWithdrawalDate -> EpisodeDomainModel.Withdraw on the same call that creates the row. The draft is left unapproved (IsApproved false) with the episode withdrawn but not removed (IsRemoved stays false — Withdraw only stamps WithdrawalDate, distinct from RemoveLearner/Remove).",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "SLD Creates the Draft Apprenticeship, Already Withdrawn",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship-withdrawn.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Episode is withdrawn, unapproved, not removed",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "02-episode-withdrawn.sql",
+      "expected": [
+        { "field": "IsApproved", "value": "False" },
+        { "field": "IsRemoved", "value": "False" },
+        { "field": "WithdrawalDate", "value": "2026-07-01" }
+      ]
+    }
+  ]
+}

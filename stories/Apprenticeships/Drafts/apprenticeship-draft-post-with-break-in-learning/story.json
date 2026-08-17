@@ -1,0 +1,16 @@
+{
+  "name": "Apprenticeship — Draft POST With Break In Learning",
+  "group": "Apprenticeship",
+  "description": "POSTs an apprenticeship learner to the LearnerData Outer API, with no prior creation via ApprenticeshipCreatedEvent, where the OnProgramme array already declares a break in learning (two matching standardCode/agreementId items — the first paused, the second resuming after a gap). Exercises IBreaksInLearningService.CalculateOnProgrammeBreaksInLearning on the create path, confirming the derived BreakInLearning is carried through UpdateLearningRequestBodyBuilder into Learning Inner's CreateDraftApprenticeship POST and processed by ApprenticeshipLearningDomainModel.Update the same way it is on PUT. No approval step — use the Commitments Fake UI to approve.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "SLD Create an Apprenticeship With a Break In Learning Already Declared",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship-with-bil.json",
+      "extract": {}
+    }
+  ]
+}

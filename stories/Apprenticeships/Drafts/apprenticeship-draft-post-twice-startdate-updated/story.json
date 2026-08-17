@@ -1,0 +1,43 @@
+{
+  "name": "Apprenticeship — Draft POST Twice, StartDate Updated",
+  "group": "Apprenticeship",
+  "description": "POSTs the same apprenticeship learner (ULN 44444447, standard 21) twice with no ApprenticeshipCreatedEvent in between. The second POST changes OnProgramme StartDate (2026-04-01 -> 2026-04-15) and its cost FromDate to match. CreateDraftApprenticeshipLearningCommandHandler.Handle finds the draft learning already exists via GetByLearnerKey and merges the resubmission's changed fields via learning.Update(updateModel) — the second POST's StartDate change is applied, still on the same episode (no second episode is created). No approval step — the draft is left unapproved.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "SLD Creates the Draft Apprenticeship (StartDate 2026-04-01)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Re-POSTs the Same Apprenticeship With a Changed StartDate (2026-04-15)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "02-post-apprenticeship-startdate-changed.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Still only one episode for the learner",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "03-count-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "Episode StartDate updated to the second POST's value",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "04-episode-start-date.sql",
+      "expected": [
+        { "field": "StartDate", "value": "2026-04-15" }
+      ]
+    }
+  ]
+}

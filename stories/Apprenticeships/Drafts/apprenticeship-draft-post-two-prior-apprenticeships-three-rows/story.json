@@ -1,0 +1,81 @@
+{
+  "name": "Apprenticeship — Draft POST With TWO Prior Apprenticeships (Three Rows)",
+  "group": "Apprenticeship",
+  "description": "Approves two different prior apprenticeships (standards 30 and 31) for the same learner/provider, both completing in AY 25/26, then POSTs a third, new draft apprenticeship (standard 21). Each approval goes through the classic AddLearningCommandHandler path (ApprenticeshipCreatedEvent), which inserts its own row into ApprenticeshipLearning — so by the time the draft POST lands, the learner has TWO ApprenticeshipLearning rows, for different courses to the new one. CreateDraftApprenticeshipLearningCommandHandler.Handle now calls GetAllByLearnerKey(learner.Key, ukprn, courseCode) — course-scoped, returning a list — instead of the old unconditional GetByLearnerKey().SingleOrDefaultAsync() that used to throw InvalidOperationException the moment a learner had more than one ApprenticeshipLearning row. Since neither prior row matches the new draft's course, SelectExistingLearningToUpdate finds no candidate and a fresh third row is created. Expect a 202 on the final POST (the outer API's async-accepted response) and three ApprenticeshipLearning rows for the learner.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "Commitments Approves Prior Apprenticeship #1, Standard 30, Ending 2026-03-31 (AY 25/26)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-approve-prior-apprenticeship-1-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key (Prior Apprenticeship #1)",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key-1.sql",
+      "extract": {
+        "learningKey1": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Records Completion on Prior Apprenticeship #1",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey1}",
+      "payloadFile": "03-put-completion-1.json",
+      "extract": {}
+    },
+    {
+      "name": "Commitments Approves Prior Apprenticeship #2, Standard 31, Ending 2026-06-30 (AY 25/26)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "04-approve-prior-apprenticeship-2-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key (Prior Apprenticeship #2)",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "05-get-learning-key-2.sql",
+      "extract": {
+        "learningKey2": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Records Completion on Prior Apprenticeship #2",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey2}",
+      "payloadFile": "06-put-completion-2.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Create a New Draft Apprenticeship, Standard 21, Same Learner/Provider",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "07-post-new-draft-apprenticeship.json",
+      "extract": {},
+      "captureStatusAs": "postDraftStatusCode"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Draft POST succeeds (no .Single() crash with 2 prior rows)",
+      "type": "Context",
+      "expected": [
+        { "field": "postDraftStatusCode", "value": "202" }
+      ]
+    },
+    {
+      "name": "Learner now has three ApprenticeshipLearning rows",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "08-count-apprenticeship-learnings.sql",
+      "expected": [
+        { "field": "Count", "value": "3" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "Apprenticeship — Draft POST Twice, Course Code Changed",
+  "group": "Apprenticeship",
+  "description": "POSTs the same apprenticeship learner (ULN 44444448) twice with no ApprenticeshipCreatedEvent in between. The second POST changes the course (standardCode 21 -> 30), same UKPRN. CreateDraftApprenticeshipLearningCommandHandler.Handle looks up the existing draft via GetAllByLearnerKey(learner.Key, ukprn, courseCode) — scoped by course code as well as UKPRN — so the second POST's changed course code means the lookup finds no match against the first draft. Unlike apprenticeship-draft-post-twice-startdate-updated (where an unrelated field change on the same course still resolves to the same draft), this is NOT treated as an update: a second, independent unapproved ApprenticeshipLearning row is created for the new course, leaving both drafts in place rather than merging them onto one row.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "SLD Creates the Draft Apprenticeship (standardCode 21)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Re-POSTs the Same Learner With a Different Course (standardCode 30)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "02-post-apprenticeship-course-code-changed.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Two separate ApprenticeshipLearning rows exist for the learner, one per course",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "03-count-learnings.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "The two learnings' episodes carry distinct training codes",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "04-distinct-training-codes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "Both episodes remain unapproved drafts",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "05-count-unapproved-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    }
+  ]
+}
