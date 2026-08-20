@@ -13,12 +13,13 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key",
+      "name": "Get Learning and Learner Keys",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "02-get-learning-key.sql",
+      "queryFile": "02-get-learning-and-learner-keys.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learningKey": "LearningKey",
+        "learnerKey": "LearnerKey"
       }
     },
     {
@@ -35,7 +36,7 @@
     {
       "name": "SLD Removes the Apprenticeship",
       "verb": "DELETE",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}?academicYear=2526",
       "extract": {}
     },
     {
