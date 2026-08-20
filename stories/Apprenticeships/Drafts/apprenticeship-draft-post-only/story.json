@@ -1,0 +1,28 @@
+{
+  "name": "Apprenticeship — Draft POST only",
+  "group": "Apprenticeship",
+  "description": "POSTs a draft apprenticeship learner to the LearnerData Outer API and checks it lands as an unapproved draft — exercises FLP-1537's POST path in isolation, without the FLP-2009 approval event.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Episode exists as an unapproved draft",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "02-episode-draft.sql",
+      "expected": [
+        { "field": "IsApproved", "value": "False" }
+      ]
+    }
+  ]
+}

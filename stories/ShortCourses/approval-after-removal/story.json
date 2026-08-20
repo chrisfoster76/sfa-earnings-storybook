@@ -1,0 +1,37 @@
+{
+  "name": "Approval After Removal",
+  "group": "Short Course",
+  "description": "SLD POSTs ZSC00001 (unapproved). SLD then re-POSTs, switching the course to ZSC00002 — ZSC00001 is dropped from the OnProgramme array and should be removed by omission (IsRemoved=1) before it was ever approved. An approval event then arrives for ZSC00001 anyway (a stale/late employer approval racing the course switch). Exploratory — no assertions. Does the IsRemoved=1 ZSC00001 episode get IsApproved=1 and earnings generated?",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates Short Course (ZSC00001)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course-x.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Re-POSTs, Switching Course to ZSC00002 — ZSC00001 Omitted",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "02-post-course-y-only.json",
+      "extract": {}
+    },
+    {
+      "name": "Verify ZSC00001 is IsRemoved=true (unapproved) in Learning/Earnings DBs, then press Enter to fire the stale approval for ZSC00001",
+      "type": "Wait"
+    },
+    {
+      "name": "Employer Approves ZSC00001 — Arrives After the Course Switch",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "03-approve-course-x.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Inspect DB — did the IsRemoved ZSC00001 episode get IsApproved=1 and earnings/instalments generated?",
+      "type": "Wait"
+    }
+  ]
+}

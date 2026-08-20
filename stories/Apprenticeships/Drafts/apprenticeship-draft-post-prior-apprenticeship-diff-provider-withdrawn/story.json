@@ -1,0 +1,39 @@
+{
+  "name": "Apprenticeship — Draft POST With Prior Apprenticeship (Different Provider, Withdrawn)",
+  "group": "Apprenticeship",
+  "description": "Variant of 'Apprenticeship — Draft POST With Prior Apprenticeship (Previous AY)'. First creates a different apprenticeship (standard 30) for the same learner but with a DIFFERENT provider (10005078), due to end 2026-03-31 — AY 25/26, the previous academic year — then withdraws the learner from it (rather than completing) on 2026-03-31. The learner therefore already has one ApprenticeshipLearning row, belonging to a different provider, before the new draft POST (standard 21, provider 10005077) is sent. Tests whether the FLP-1537 known bug (CreateDraftApprenticeshipLearningCommandHandler.Handle calls ApprenticeshipLearningRepository.GetByLearnerKey unconditionally on every POST, and GetByLearnerKey is .SingleOrDefaultAsync(x => x.LearnerKey == key) — throws InvalidOperationException the moment a learner has more than one ApprenticeshipLearning row) still reproduces when the prior row is scoped to a different provider. No approval step for the new course — use the Commitments Fake UI to approve.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "Commitments Approves a Prior Apprenticeship, Standard 30, Different Provider, Ending 2026-03-31 (AY 25/26)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-approve-prior-apprenticeship-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key (Prior Apprenticeship)",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Records Withdrawal on the Prior Apprenticeship",
+      "verb": "PUT",
+      "route": "/providers/10005078/learning/{learningKey}",
+      "payloadFile": "03-put-withdrawal.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Create a New Draft Apprenticeship, Standard 21, Same Learner, Different Provider",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "04-post-new-draft-apprenticeship.json",
+      "extract": {}
+    }
+  ]
+}

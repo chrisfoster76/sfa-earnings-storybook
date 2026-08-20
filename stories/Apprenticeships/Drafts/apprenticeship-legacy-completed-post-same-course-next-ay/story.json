@@ -1,0 +1,50 @@
+{
+  "name": "Apprenticeship — Legacy Completed (AY 25/26), Same Course POST Next AY (26/27)",
+  "group": "Apprenticeship",
+  "description": "Provider A's apprenticeship (standard 21) is a 'legacy' record: created directly by Commitments' ApprenticeshipCreatedEvent, never a draft. Provider A then completes it via PUT, entirely within AY 25/26 (start 2026-04-01, completion 2026-06-01) — via the legacy PUT route (/providers/{ukprn}/learning/{learningKey}), no academicYear param needed since it's still AY 25/26. Provider A then POSTs a new draft for the SAME learner and SAME course (standard 21), this time starting in AY 26/27 (2026-08-01) — a same-provider, same-course repeat of a completed apprenticeship in the following academic year, via the new-style route (/providers/{ukprn}/apprenticeships?academicYear=2627) rather than the legacy /learners route, since this POST is for the next academic year. Exploratory: CreateDraftApprenticeshipLearningCommandHandler.Handle calls ApprenticeshipLearningRepository.GetByLearnerKey unconditionally, unscoped by course code or UKPRN (unlike short courses' provider/course-scoped lookup) — with the completed standard-21 row as the only existing ApprenticeshipLearning row at POST time, it's not confirmed whether the handler correctly creates a new row for the new AY or mistakenly matches/reuses the completed row since the course code is identical. This story captures actual current behaviour rather than asserting a known-correct contract.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship (Provider A, Standard 21, Never a Draft, AY 25/26)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learning Key (Standard 21, Provider A)",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learning-key.sql",
+      "extract": {
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD (Provider A) Records Completion, Standard 21, Within AY 25/26",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learningKey}",
+      "payloadFile": "03-put-completion.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider A) Creates a Draft Apprenticeship, Same Standard 21, AY 26/27",
+      "verb": "POST",
+      "route": "/providers/10005077/apprenticeships?academicYear=2627",
+      "payloadFile": "04-post-same-course-next-ay.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Two separate ApprenticeshipLearning rows exist for the learner (completed AY 25/26, new draft AY 26/27)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "05-count-learnings.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    }
+  ]
+}

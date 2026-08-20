@@ -1,0 +1,52 @@
+{
+  "name": "Apprenticeship — Draft POST, Approved, Different Provider Posts",
+  "group": "Apprenticeship",
+  "description": "SLD POSTs a draft apprenticeship for Provider A (standard 21), Commitments approves it via ApprenticeshipCreatedEvent, then Provider B POSTs the same learner onto the same course (standard 21). Apprenticeships have no dedicated Change of Provider feature (unlike short courses), so this captures baseline behaviour: CreateDraftApprenticeshipLearningCommandHandler.Handle looks up the existing draft via GetAllByLearnerKey(learner.Key, ukprn, courseCode), scoped by UKPRN as well as course code — Provider B's UKPRN doesn't match Provider A's approved episode, so the lookup finds no match and a second, independent unapproved ApprenticeshipLearning row is created for Provider B rather than the POST being treated as an update to Provider A's approved row.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "SLD (Provider A) Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship-provider-a.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship (Provider A)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event-provider-a.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD (Provider B) Creates a Draft Apprenticeship for the Same Learner and Course",
+      "verb": "POST",
+      "route": "/providers/10005078/learners",
+      "payloadFile": "03-post-apprenticeship-provider-b.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Two separate ApprenticeshipLearning rows exist for the learner, one per provider",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "04-count-learnings.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "Provider A's episode remains approved, Provider B's is an unapproved draft",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "05-episode-approval-status.sql",
+      "expected": [
+        { "field": "ApprovedCount", "value": "1" },
+        { "field": "UnapprovedCount", "value": "1" }
+      ]
+    }
+  ]
+}
