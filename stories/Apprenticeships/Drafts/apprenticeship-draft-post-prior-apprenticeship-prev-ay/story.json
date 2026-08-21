@@ -3,7 +3,9 @@
   "group": "Apprenticeship",
   "description": "Same as 'Apprenticeship — Draft POST', but first creates and completes a different apprenticeship (standard 30) for the same learner/provider, due to end 2026-03-31 — AY 25/26, the previous academic year. The learner therefore already has one ApprenticeshipLearning row before the new draft POST (standard 21) is sent. Reproduces the FLP-1537 known bug: CreateDraftApprenticeshipLearningCommandHandler.Handle calls ApprenticeshipLearningRepository.GetByLearnerKey unconditionally on every POST, and GetByLearnerKey is .SingleOrDefaultAsync(x => x.LearnerKey == key) — throws InvalidOperationException the moment a learner has more than one ApprenticeshipLearning row. No approval step for the new course — use the Commitments Fake UI to approve.",
   "wipeOnRun": true,
-  "tags": ["FLP-1537"],
+  "tags": [
+    "FLP-1537"
+  ],
   "steps": [
     {
       "name": "Commitments Approves a Prior Apprenticeship, Standard 30, Ending 2026-03-31 (AY 25/26)",
@@ -13,18 +15,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key (Prior Apprenticeship)",
+      "name": "Get Learner Key (Prior Apprenticeship)",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "02-get-learning-key.sql",
+      "queryFile": "02-get-learner-key.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD Records Completion on the Prior Apprenticeship",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "03-put-completion.json",
       "extract": {}
     },

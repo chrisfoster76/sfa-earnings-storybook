@@ -1,0 +1,95 @@
+{
+  "name": "Apprenticeship — DELETE Then Re-POST Same Course, Next AY",
+  "group": "Apprenticeship",
+  "description": "Commitments approves an apprenticeship (standard 21) entirely within AY 25/26 (StartDate 2025-09-01, EndDate 2026-07-31). SLD/Provider then DELETEs the learner scoped to AY 25/26. Provider then POSTs the same learner onto the same course (standard 21) via the new-style route with academicYear=2627, all dates entirely within AY 26/27 (StartDate 2026-09-01, ExpectedEndDate 2027-07-31). Exercises the interaction between DELETE's academic-year scoping and CreateDraftApprenticeshipLearningCommandHandler.Handle's GetAllByLearnerKey(learner.Key, ukprn, courseCode) lookup: since the AY 25/26 row is removed, and the new POST's dates fall in a different AY, a second, independent ApprenticeshipLearning row should be created for the same learner/course/provider rather than the POST being treated as an update of (or blocked by) the removed row.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship, Standard 21, Entirely Within AY 25/26",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Removes the Apprenticeship, Scoped to AY 25/26",
+      "verb": "DELETE",
+      "route": "/providers/10005077/learning/{learnerKey}?academicYear=2526",
+      "extract": {}
+    },
+    {
+      "name": "Wait — inspect DB after deletion, then continue with re-POST",
+      "type": "Wait"
+    },
+    {
+      "name": "Provider Re-POSTs the Same Learner Onto the Same Course, Standard 21, Entirely Within AY 26/27",
+      "verb": "POST",
+      "route": "/providers/10005077/apprenticeships?academicYear=2627",
+      "payloadFile": "03-post-apprenticeship-ay2627.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "The AY 25/26 episode remains approved but is now removed",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "04-episode-removed-ay2526.sql",
+      "expected": [
+        {
+          "field": "IsApproved",
+          "value": "True"
+        },
+        {
+          "field": "IsRemoved",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "A new, independent unapproved draft exists for AY 26/27",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "05-new-draft-episode-ay2627.sql",
+      "expected": [
+        {
+          "field": "TrainingCode",
+          "value": "21"
+        },
+        {
+          "field": "IsApproved",
+          "value": "False"
+        },
+        {
+          "field": "IsRemoved",
+          "value": "False"
+        },
+        {
+          "field": "StartDate",
+          "value": "2026-09-01"
+        }
+      ]
+    },
+    {
+      "name": "Two separate ApprenticeshipLearning rows exist for the learner",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "06-count-learnings.sql",
+      "expected": [
+        {
+          "field": "Count",
+          "value": "2"
+        }
+      ]
+    }
+  ]
+}

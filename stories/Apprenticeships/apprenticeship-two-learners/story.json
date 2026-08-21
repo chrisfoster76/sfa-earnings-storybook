@@ -18,34 +18,34 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key — Learner 1",
+      "name": "Get Learner Key — Learner 1",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "03-get-learning-key-learner1.sql",
+      "queryFile": "03-get-learner-key-learner1.sql",
       "extract": {
-        "learningKey1": "LearningKey"
+        "learnerKey1": "LearnerKey"
       }
     },
     {
-      "name": "Get Learning Key — Learner 2",
+      "name": "Get Learner Key — Learner 2",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "04-get-learning-key-learner2.sql",
+      "queryFile": "04-get-learner-key-learner2.sql",
       "extract": {
-        "learningKey2": "LearningKey"
+        "learnerKey2": "LearnerKey"
       }
     },
     {
       "name": "SLD Submits Updated Details — Learner 1",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey1}",
+      "route": "/providers/10005077/learning/{learnerKey1}",
       "payloadFile": "05-put-learner1.json",
       "extract": {}
     },
     {
       "name": "SLD Submits Updated Details — Learner 2",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey2}",
+      "route": "/providers/10005077/learning/{learnerKey2}",
       "payloadFile": "06-put-learner2.json",
       "extract": {}
     }

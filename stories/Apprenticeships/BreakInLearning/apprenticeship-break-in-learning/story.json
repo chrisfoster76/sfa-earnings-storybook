@@ -13,18 +13,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key",
+      "name": "Get Learner Key",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "02-get-learning-key.sql",
+      "queryFile": "02-get-learner-key.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD Submits Break In Learning and Completion",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "03-put-break-and-completion.json",
       "extract": {}
     }
@@ -36,7 +36,10 @@
       "connectionName": "Earnings",
       "queryFile": "count-instalments-2526.sql",
       "expected": [
-        { "field": "Count", "value": "12" }
+        {
+          "field": "Count",
+          "value": "12"
+        }
       ]
     },
     {
@@ -45,7 +48,10 @@
       "connectionName": "Earnings",
       "queryFile": "count-regular-instalments-2627.sql",
       "expected": [
-        { "field": "Count", "value": "6" }
+        {
+          "field": "Count",
+          "value": "6"
+        }
       ]
     },
     {
@@ -54,8 +60,14 @@
       "connectionName": "Earnings",
       "queryFile": "count-completion-and-balancing-2627.sql",
       "expected": [
-        { "field": "CompletionCount", "value": "1" },
-        { "field": "BalancingCount", "value": "1" }
+        {
+          "field": "CompletionCount",
+          "value": "1"
+        },
+        {
+          "field": "BalancingCount",
+          "value": "1"
+        }
       ]
     },
     {
@@ -64,7 +76,10 @@
       "connectionName": "Earnings",
       "queryFile": "sum-all-instalments.sql",
       "expected": [
-        { "field": "Total", "value": "8000" }
+        {
+          "field": "Total",
+          "value": "8000"
+        }
       ]
     }
   ]

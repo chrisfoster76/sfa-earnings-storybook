@@ -12,18 +12,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key",
+      "name": "Get Learner Key",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "02-get-learning-key.sql",
+      "queryFile": "02-get-learner-key.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD Submits Break In Learning — 182 pre-break + 183 post-break = 365 days total (withdraw 2028-07-01)",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "03-put-bil-day365.json",
       "extract": {}
     },
@@ -33,13 +33,16 @@
       "connectionName": "Earnings",
       "queryFile": "count-incentives.sql",
       "expected": [
-        { "field": "Count", "value": "2" }
+        {
+          "field": "Count",
+          "value": "2"
+        }
       ]
     },
     {
       "name": "SLD Moves Withdrawal Back to Day 364 (2028-06-30) — 182 pre-break + 182 post-break = 364 days total",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "04-put-bil-day364.json",
       "extract": {}
     },
@@ -49,13 +52,16 @@
       "connectionName": "Earnings",
       "queryFile": "count-incentives.sql",
       "expected": [
-        { "field": "Count", "value": "0" }
+        {
+          "field": "Count",
+          "value": "0"
+        }
       ]
     },
     {
       "name": "SLD Moves Return Date Forward One Day (2027-12-31) — 182 pre-break + 183 post-break = 365 days total",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "05-put-bil-resume-earlier.json",
       "extract": {}
     },
@@ -65,13 +71,16 @@
       "connectionName": "Earnings",
       "queryFile": "count-incentives.sql",
       "expected": [
-        { "field": "Count", "value": "2" }
+        {
+          "field": "Count",
+          "value": "2"
+        }
       ]
     },
     {
       "name": "SLD Moves Withdrawal Back to Day 364 (2028-06-29) — 182 pre-break + 182 post-break = 364 days total",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "06-put-bil-withdraw-earlier.json",
       "extract": {}
     },
@@ -81,13 +90,16 @@
       "connectionName": "Earnings",
       "queryFile": "count-incentives.sql",
       "expected": [
-        { "field": "Count", "value": "0" }
+        {
+          "field": "Count",
+          "value": "0"
+        }
       ]
     },
     {
       "name": "SLD Lengthens Break by One Day (pause 2026-09-30) — 183 pre-break + 182 post-break = 365 days total",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "07-put-bil-pause-later.json",
       "extract": {}
     },
@@ -97,7 +109,10 @@
       "connectionName": "Earnings",
       "queryFile": "count-incentives.sql",
       "expected": [
-        { "field": "Count", "value": "2" }
+        {
+          "field": "Count",
+          "value": "2"
+        }
       ]
     }
   ]

@@ -3,7 +3,9 @@
   "group": "Apprenticeship",
   "description": "Approves two different prior apprenticeships (standards 30 and 31) for the same learner/provider, both completing in AY 25/26, then POSTs a third, new draft apprenticeship (standard 21). Each approval goes through the classic AddLearningCommandHandler path (ApprenticeshipCreatedEvent), which inserts its own row into ApprenticeshipLearning — so by the time the draft POST lands, the learner has TWO ApprenticeshipLearning rows, for different courses to the new one. CreateDraftApprenticeshipLearningCommandHandler.Handle now calls GetAllByLearnerKey(learner.Key, ukprn, courseCode) — course-scoped, returning a list — instead of the old unconditional GetByLearnerKey().SingleOrDefaultAsync() that used to throw InvalidOperationException the moment a learner had more than one ApprenticeshipLearning row. Since neither prior row matches the new draft's course, SelectExistingLearningToUpdate finds no candidate and a fresh third row is created. Expect a 202 on the final POST (the outer API's async-accepted response) and three ApprenticeshipLearning rows for the learner.",
   "wipeOnRun": true,
-  "tags": ["FLP-1537"],
+  "tags": [
+    "FLP-1537"
+  ],
   "steps": [
     {
       "name": "Commitments Approves Prior Apprenticeship #1, Standard 30, Ending 2026-03-31 (AY 25/26)",
@@ -13,18 +15,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key (Prior Apprenticeship #1)",
+      "name": "Get Learner Key (Prior Apprenticeship #1)",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "02-get-learning-key-1.sql",
+      "queryFile": "02-get-learner-key-1.sql",
       "extract": {
-        "learningKey1": "LearningKey"
+        "learnerKey1": "LearnerKey"
       }
     },
     {
       "name": "SLD Records Completion on Prior Apprenticeship #1",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey1}",
+      "route": "/providers/10005077/learning/{learnerKey1}",
       "payloadFile": "03-put-completion-1.json",
       "extract": {}
     },
@@ -36,18 +38,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key (Prior Apprenticeship #2)",
+      "name": "Get Learner Key (Prior Apprenticeship #2)",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "05-get-learning-key-2.sql",
+      "queryFile": "05-get-learner-key-2.sql",
       "extract": {
-        "learningKey2": "LearningKey"
+        "learnerKey2": "LearnerKey"
       }
     },
     {
       "name": "SLD Records Completion on Prior Apprenticeship #2",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey2}",
+      "route": "/providers/10005077/learning/{learnerKey2}",
       "payloadFile": "06-put-completion-2.json",
       "extract": {}
     },
@@ -65,7 +67,10 @@
       "name": "Draft POST succeeds (no .Single() crash with 2 prior rows)",
       "type": "Context",
       "expected": [
-        { "field": "postDraftStatusCode", "value": "202" }
+        {
+          "field": "postDraftStatusCode",
+          "value": "202"
+        }
       ]
     },
     {
@@ -74,7 +79,10 @@
       "connectionName": "Learning",
       "queryFile": "08-count-apprenticeship-learnings.sql",
       "expected": [
-        { "field": "Count", "value": "3" }
+        {
+          "field": "Count",
+          "value": "3"
+        }
       ]
     }
   ]

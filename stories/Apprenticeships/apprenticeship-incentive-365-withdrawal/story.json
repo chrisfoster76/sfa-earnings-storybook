@@ -12,18 +12,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key",
+      "name": "Get Learner Key",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "02-get-learning-key.sql",
+      "queryFile": "02-get-learner-key.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD Submits Withdrawal on Day 365 (2027-03-31)",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "03-put-withdrawal-day365.json",
       "extract": {}
     },
@@ -33,13 +33,16 @@
       "connectionName": "Earnings",
       "queryFile": "count-incentives.sql",
       "expected": [
-        { "field": "Count", "value": "2" }
+        {
+          "field": "Count",
+          "value": "2"
+        }
       ]
     },
     {
       "name": "SLD Moves Withdrawal Back to Day 364 (2027-03-30)",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "04-put-withdrawal-day364.json",
       "extract": {}
     },
@@ -49,7 +52,10 @@
       "connectionName": "Earnings",
       "queryFile": "count-incentives.sql",
       "expected": [
-        { "field": "Count", "value": "0" }
+        {
+          "field": "Count",
+          "value": "0"
+        }
       ]
     }
   ]

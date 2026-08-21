@@ -1,9 +1,11 @@
 {
   "name": "Apprenticeship — Legacy Completed (AY 25/26), Same Then Different Provider POST Course 2 (AY 26/27)",
   "group": "Apprenticeship",
-  "description": "Provider A's apprenticeship (standard 21) is a 'legacy' record: created directly by Commitments' ApprenticeshipCreatedEvent, never a draft — starts 2024-08-01 (AY 24/25) with a planned EndDate of 2026-07-31 (the last day of AY 25/26), a near-two-year standard. Provider A then completes it via PUT on 2026-06-01, a couple of months ahead of the original planned end but still within AY 25/26 — via the legacy PUT route (/providers/{ukprn}/learning/{learningKey}), no academicYear param needed since it's still AY 25/26. Provider A then POSTs a draft for a different course (standard 91) starting in AY 26/27, via the new-style route (/providers/{ukprn}/apprenticeships?academicYear=2627) rather than the legacy /learners route, since this POST is for the next academic year. Provider B then POSTs a draft for the same learner and same course (standard 91), also starting in AY 26/27, via the same new-style route. Checks CreateDraftApprenticeshipLearningCommandHandler.Handle's GetAllByLearnerKey(learner.Key, ukprn, courseCode) lookup across three dimensions at once: a completed prior-course row is not matched by course code, and Provider A's own course-2 draft is not matched by Provider B's UKPRN — so three independent ApprenticeshipLearning rows should exist: the completed standard-21 row, Provider A's unapproved standard-91 draft, and Provider B's unapproved standard-91 draft.",
+  "description": "Provider A's apprenticeship (standard 21) is a 'legacy' record: created directly by Commitments' ApprenticeshipCreatedEvent, never a draft — starts 2024-08-01 (AY 24/25) with a planned EndDate of 2026-07-31 (the last day of AY 25/26), a near-two-year standard. Provider A then completes it via PUT on 2026-06-01, a couple of months ahead of the original planned end but still within AY 25/26 — via the legacy PUT route (/providers/{ukprn}/learning/{learnerKey}), no academicYear param needed since it's still AY 25/26. Provider A then POSTs a draft for a different course (standard 91) starting in AY 26/27, via the new-style route (/providers/{ukprn}/apprenticeships?academicYear=2627) rather than the legacy /learners route, since this POST is for the next academic year. Provider B then POSTs a draft for the same learner and same course (standard 91), also starting in AY 26/27, via the same new-style route. Checks CreateDraftApprenticeshipLearningCommandHandler.Handle's GetAllByLearnerKey(learner.Key, ukprn, courseCode) lookup across three dimensions at once: a completed prior-course row is not matched by course code, and Provider A's own course-2 draft is not matched by Provider B's UKPRN — so three independent ApprenticeshipLearning rows should exist: the completed standard-21 row, Provider A's unapproved standard-91 draft, and Provider B's unapproved standard-91 draft.",
   "wipeOnRun": true,
-  "tags": ["FLP-1537"],
+  "tags": [
+    "FLP-1537"
+  ],
   "steps": [
     {
       "name": "Commitments Approves an Apprenticeship (Provider A, Standard 21, Never a Draft, Start 2024-08-01, Planned End 2026-07-31)",
@@ -13,18 +15,18 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learning Key (Standard 21, Provider A)",
+      "name": "Get Learner Key (Standard 21, Provider A)",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "02-get-learning-key.sql",
+      "queryFile": "02-get-learner-key.sql",
       "extract": {
-        "learningKey": "LearningKey"
+        "learnerKey": "LearnerKey"
       }
     },
     {
       "name": "SLD (Provider A) Records Completion, Standard 21, Within AY 25/26",
       "verb": "PUT",
-      "route": "/providers/10005077/learning/{learningKey}",
+      "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "03-put-completion-standard21.json",
       "extract": {}
     },
@@ -50,7 +52,10 @@
       "connectionName": "Learning",
       "queryFile": "06-count-learnings.sql",
       "expected": [
-        { "field": "Count", "value": "3" }
+        {
+          "field": "Count",
+          "value": "3"
+        }
       ]
     },
     {
@@ -59,8 +64,14 @@
       "connectionName": "Learning",
       "queryFile": "07-episode-approval-status.sql",
       "expected": [
-        { "field": "ApprovedCount", "value": "1" },
-        { "field": "UnapprovedCount", "value": "2" }
+        {
+          "field": "ApprovedCount",
+          "value": "1"
+        },
+        {
+          "field": "UnapprovedCount",
+          "value": "2"
+        }
       ]
     }
   ]
