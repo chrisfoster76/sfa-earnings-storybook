@@ -1,0 +1,57 @@
+{
+  "name": "Apprenticeship — Draft POST With TWO Prior Apprenticeships (Same Course, PROD-like)",
+  "group": "Apprenticeship",
+  "description": "Same as 'Apprenticeship — Draft POST With TWO Prior Apprenticeships (Three Rows)', except both prior apprenticeships are standard 21 — the SAME course as the subsequent draft POST — instead of standards 30/31, and neither is completed or withdrawn. PROD-like: for legacy records we have no completion or withdrawal information at all, so both priors stay approved and untouched (no PUT) after the ApprenticeshipCreatedEvent creates them. Each approval goes through the classic AddLearningCommandHandler path and inserts its own row into ApprenticeshipLearning, so by the time the draft POST lands the learner has TWO approved, not-removed ApprenticeshipLearning rows for standard 21. CreateDraftApprenticeshipLearningCommandHandler.Handle calls GetAllByLearnerKey(learner.Key, ukprn, courseCode) — course-scoped — so both prior rows are now returned as course matches, unlike the three-rows story where neither prior matched. SelectExistingLearningToUpdate only treats an unapproved draft or a single approved-and-removed (IsRemoved) row as a candidate to update/reinstate; neither prior qualifies, so existingLearning is still null — a fresh third row is created despite the course-scoped query now returning two matches. Expect a 202 on the final POST and three ApprenticeshipLearning rows for the learner, all standard 21.",
+  "wipeOnRun": true,
+  "tags": [
+    "FLP-1537"
+  ],
+  "steps": [
+    {
+      "name": "Employer Approves Prior Apprenticeship #1, Standard 21, Ending 2026-03-31 (AY 25/26)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-approve-prior-apprenticeship-1-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves Prior Apprenticeship #2, Standard 21, Ending 2026-06-30 (AY 25/26)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "04-approve-prior-apprenticeship-2-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD Create a New Draft Apprenticeship, Standard 21, Same Learner/Provider/Course",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "07-post-new-draft-apprenticeship.json",
+      "extract": {},
+      "captureStatusAs": "postDraftStatusCode"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Draft POST succeeds (course-scoped query with 2 same-course prior rows doesn't cause ambiguity)",
+      "type": "Context",
+      "expected": [
+        {
+          "field": "postDraftStatusCode",
+          "value": "202"
+        }
+      ]
+    },
+    {
+      "name": "Learner now has three ApprenticeshipLearning rows",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "08-count-apprenticeship-learnings.sql",
+      "expected": [
+        {
+          "field": "Count",
+          "value": "3"
+        }
+      ]
+    }
+  ]
+}

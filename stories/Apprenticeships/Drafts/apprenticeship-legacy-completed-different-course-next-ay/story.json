@@ -1,0 +1,95 @@
+{
+  "name": "Apprenticeship — Legacy Completed (Near Year-End, AY 25/26), Different Course POST Next AY (26/27)",
+  "group": "Apprenticeship",
+  "description": "Provider A's apprenticeship (standard 21) is a 'legacy' record: created directly by Commitments' ApprenticeshipCreatedEvent, never a draft — planned start 2025-08-01, planned end 2026-07-31 (AY 25/26). Provider A then completes it via PUT, with completion (2026-07-30) and achievement (2026-07-31) both landing right at the tail end of AY 25/26 — one day before, and on, the last day of the academic year (2026-07-31) — via the legacy PUT route (/providers/{ukprn}/learning/{learnerKey}) addressed by LearnerKey (FLP-2052). Provider A then POSTs a new draft for the SAME learner but a DIFFERENT course (standard 30), starting in AY 26/27 (2026-08-01), via the new-style route (/providers/{ukprn}/apprenticeships?academicYear=2627). Same provider throughout — no second provider involved, unlike apprenticeship-legacy-completed-both-post-course2. Exercises CreateDraftApprenticeshipLearningCommandHandler.Handle's GetAllByLearnerKey(learner.Key, ukprn, courseCode) lookup: the completed standard-21 row isn't a candidate for the standard-30 course code, so a second, independent, unapproved ApprenticeshipLearning row should be created rather than the POST being treated as an update. Commitments then approves the standard-30 draft via ApprenticeshipCreatedEvent (AddLearningCommandHandler's approval branch). Provider A then DELETEs the learner scoped to AY 26/27 (academicYear=2627) — exercises the AY boundary in ApprenticeshipLearningDomainModel.OverlapsAcademicYear (StartDate <= dates.End && CompletionDate >= dates.Start) right at the edge: standard-21's CompletionDate (2026-07-30) sits one day before AY 26/27's start (2026-08-01), so it should NOT overlap AY 26/27 and must be excluded from the DELETE, leaving only standard-30 removed.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship (Provider A, Standard 21, Never a Draft, AY 25/26)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key (Standard 21, Provider A)",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD (Provider A) Records Completion, Standard 21 (Completes 2026-07-30, One Day Before AY 25/26 Ends)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "03-put-completion.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD (Provider A) Creates a Draft Apprenticeship, Different Course (Standard 30), AY 26/27",
+      "verb": "POST",
+      "route": "/providers/10005077/apprenticeships?academicYear=2627",
+      "payloadFile": "04-post-different-course-next-ay.json",
+      "extract": {}
+    },
+    {
+      "name": "Two separate ApprenticeshipLearning rows exist for the learner (completed standard 21 AY 25/26, new standard 30 draft AY 26/27)",
+      "type": "Assert",
+      "connectionName": "Learning",
+      "queryFile": "05-count-learnings.sql",
+      "expected": [
+        { "field": "Count", "value": "2" }
+      ]
+    },
+    {
+      "name": "New standard-30 row is an unapproved draft, not removed, starting within AY 26/27",
+      "type": "Assert",
+      "connectionName": "Learning",
+      "queryFile": "06-new-course-episode.sql",
+      "expected": [
+        { "field": "TrainingCode", "value": "30" },
+        { "field": "IsApproved", "value": "False" },
+        { "field": "IsRemoved", "value": "False" },
+        { "field": "StartDate", "value": "2026-08-01" }
+      ]
+    },
+    {
+      "name": "Commitments Approves the Standard-30 Draft",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "08-approve-course2-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Standard-30 episode is now approved",
+      "type": "Assert",
+      "connectionName": "Learning",
+      "queryFile": "09-course2-approved.sql",
+      "expected": [
+        { "field": "IsApproved", "value": "True" },
+        { "field": "ApprovalsApprenticeshipId", "value": "200022" }
+      ]
+    },
+    {
+      "name": "SLD (Provider A) Deletes the Learner, Scoped to AY 26/27",
+      "verb": "DELETE",
+      "route": "/providers/10005077/learning/{learnerKey}?academicYear=2627",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Standard-30 (AY 26/27) row is removed; standard-21 (AY 25/26) row untouched",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "07-post-delete-state.sql",
+      "expected": [
+        { "field": "Standard30Removed", "value": "1" },
+        { "field": "Standard21Removed", "value": "0" }
+      ]
+    }
+  ]
+}
