@@ -1,0 +1,37 @@
+{
+  "name": "Apprenticeship — Draft POST then Approve (2627 AY)",
+  "group": "Apprenticeship",
+  "description": "POSTs a draft apprenticeship learner to the LearnerData Outer API with the apprenticeship starting in the 2627 academic year (running 2 years), waits for the draft to land, then fires ApprenticeshipCreatedEvent to approve it — exercises FLP-2009's AddLearningCommandHandler approval branch (ApprenticeshipLearningDomainModel.Approve) against a real draft created by FLP-1537's POST path.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537", "FLP-2009"],
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Episode is approved with the real ApprovalsApprenticeshipId and LegalEntityName from the event",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "03-episode-approved.sql",
+      "expected": [
+        { "field": "IsApproved", "value": "True" },
+        { "field": "ApprovalsApprenticeshipId", "value": "200003" },
+        { "field": "LegalEntityName", "value": "Test Org" }
+      ]
+    }
+  ]
+}
