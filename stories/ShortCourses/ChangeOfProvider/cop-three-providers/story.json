@@ -1,6 +1,5 @@
 {
   "name": "CoP - Three Providers",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Provider A creates a short course, gets approved, then withdraws (no milestones). Provider B then creates a new short course for the same learner, gets approved, then also withdraws (no milestones). Provider C creates a third short course, gets approved, and completes — claiming both the 30% milestone and completion in a single PUT.",
   "wipeOnRun": true,

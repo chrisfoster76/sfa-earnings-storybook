@@ -1,6 +1,5 @@
 {
   "name": "CoP - Provider B Withdrawal",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Full CoP setup: Provider A withdraws (without claiming 30%), Provider B is approved. Provider B then also withdraws the learner.",
   "wipeOnRun": true,

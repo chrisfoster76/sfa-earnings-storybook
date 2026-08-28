@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Draft POST With TWO Prior Apprenticeships (Three Rows)",
-  "group": "Apprenticeship",
   "description": "Approves two different prior apprenticeships (standards 30 and 31) for the same learner/provider, both completing in AY 25/26, then POSTs a third, new draft apprenticeship (standard 21). Each approval goes through the classic AddLearningCommandHandler path (ApprenticeshipCreatedEvent), which inserts its own row into ApprenticeshipLearning — so by the time the draft POST lands, the learner has TWO ApprenticeshipLearning rows, for different courses to the new one. CreateDraftApprenticeshipLearningCommandHandler.Handle now calls GetAllByLearnerKey(learner.Key, ukprn, courseCode) — course-scoped, returning a list — instead of the old unconditional GetByLearnerKey().SingleOrDefaultAsync() that used to throw InvalidOperationException the moment a learner had more than one ApprenticeshipLearning row. Since neither prior row matches the new draft's course, SelectExistingLearningToUpdate finds no candidate and a fresh third row is created. Expect a 202 on the final POST (the outer API's async-accepted response) and three ApprenticeshipLearning rows for the learner.",
   "wipeOnRun": true,
   "tags": [

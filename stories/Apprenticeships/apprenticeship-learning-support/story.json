@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — FM36 Learning Support",
-  "group": "Apprenticeship",
   "description": "Creates and approves an apprenticeship (training code 614, age 19, AY 25/26), then PUTs learning support data — mirrors the Fm36.feature 'Retrieve Valid Fm36 learning support data' scenario",
   "wipeOnRun": true,
   "steps": [

@@ -1,6 +1,5 @@
 {
   "name": "Progression - Bundled POST with Withdrawal, then PUT Omits Progression and Tweaks Withdrawal Date",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "Reported bug (FLP-1908). Same-academic-year scenario: ZSC00001 runs 2025-08-01 to withdrawal 2026-01-20, and ZSC00002 starts 2026-02-01 — both fall within AY 25/26 (2025-08-01 to 2026-07-31), so FLP-1895 AY-scoping of the omission candidate set is not a factor here. SLD POSTs ZSC00001 (withdrawn) and ZSC00002 (a new progression course) together in a single bundled OnProgramme array. The employer approves ZSC00001 only — ZSC00002 remains unapproved. SLD then PUTs again, but this time the payload omits ZSC00002 entirely (should trigger removal by omission) and also changes ZSC00001's withdrawal date in the same request. Exploratory story — no assertions yet on the specific defect; run and inspect DB state manually to confirm whether ZSC00002 is correctly removed by omission and whether ZSC00001's withdrawal date update takes effect when both changes land in the same PUT.",
   "wipeOnRun": true,

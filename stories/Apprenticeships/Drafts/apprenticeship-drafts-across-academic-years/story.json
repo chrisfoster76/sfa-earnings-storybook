@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Drafts Across Academic Years",
-  "group": "Apprenticeship",
   "description": "Growing scenario: a provider POSTs a draft apprenticeship (standard 21, ULN 44444450) via the new-style route (/providers/{ukprn}/apprenticeships?academicYear=2526), with every date on the OnProgramme item — StartDate (2025-09-01) and ExpectedEndDate (2026-07-31) — falling within AY 25/26. The provider then PUTs a completion (2026-06-01), also within AY 25/26, via the legacy PUT route since nothing at that point crosses an academic year boundary. No approval event — the standard-21 record stays an unapproved draft throughout. The same learner is then POSTed onto a genuinely different course (standard 30), entirely within AY 26/27 (StartDate 2026-09-01, ExpectedEndDate 2027-06-30), via the new-style route with academicYear=2627 — exercising CreateDraftApprenticeshipLearningCommandHandler.Handle's course-scoped GetAllByLearnerKey(learner.Key, ukprn, courseCode) lookup: the standard-21 row isn't a candidate for the standard-30 course code, so a second, independent, unapproved ApprenticeshipLearning row is created rather than the POST being treated as an update. More steps will be added later to extend this further across academic years.",
   "wipeOnRun": true,
   "tags": [

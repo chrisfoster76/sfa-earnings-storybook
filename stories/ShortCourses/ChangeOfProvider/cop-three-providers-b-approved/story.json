@@ -1,6 +1,5 @@
 {
   "name": "CoP - Three Providers, Provider B Approved Only",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "All three providers submit short courses for the same learner but none are approved initially. At the end, only Provider B receives employer approval. Verifies that approval of one episode in a multi-episode scenario does not affect the others.",
   "wipeOnRun": true,

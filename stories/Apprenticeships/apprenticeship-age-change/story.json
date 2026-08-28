@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Age Change (18 → 50)",
-  "group": "Apprenticeship",
   "description": "Creates an apprenticeship with a learner aged 18 at start date, then PUTs an update changing the DOB so the learner is 50 at start date",
   "wipeOnRun": true,
   "steps": [

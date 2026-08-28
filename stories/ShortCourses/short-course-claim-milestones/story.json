@@ -1,6 +1,5 @@
 {
   "name": "Short Course - Claim 30% Milestone (Levy Employer)",
-  "group": "Short Course",
   "description": "Creates a short course with no milestones, approves it with the employer marked Levy on the approval event, then claims ThirtyPercentLearningComplete via PUT.",
   "wipeOnRun": true,
   "steps": [

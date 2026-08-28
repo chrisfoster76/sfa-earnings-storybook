@@ -1,6 +1,5 @@
 {
   "name": "Re-POST Moves CompletionDate into the Next AY, Using academicYear Query Param",
-  "group": "Academic Year Tests",
   "description": "SLD POSTs ZSC00001 starting 2026-06-01 with a CompletionDate of 2026-07-31 — course starts and completes within AY 25/26. Employer approves it. SLD then re-POSTs the same learner/course via the new-style route with academicYear=2627 explicitly appended to the query string, changing CompletionDate (and ExpectedEndDate) to 2026-08-31 — now landing in AY 26/27. This is a re-POST (not a PUT), since the SLD contract only PUTs once a learnerKey exists from a prior POST/GET round-trip; here we're exercising the POST route's own academicYear query param to see how an already-approved course's completion date crossing an AY boundary is handled purely via POST.",
   "wipeOnRun": true,
   "steps": [

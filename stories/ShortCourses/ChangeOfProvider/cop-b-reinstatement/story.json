@@ -1,6 +1,5 @@
 {
   "name": "CoP - Provider B Deletion & Reinstatement",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Full CoP setup: Provider A withdraws, Provider B is approved. Provider B's short course is then removed via DELETE, then reinstated by re-submitting the same ILR data.",
   "wipeOnRun": true,

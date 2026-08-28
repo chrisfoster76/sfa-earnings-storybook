@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Draft POST only (2627 AY)",
-  "group": "Apprenticeship",
   "description": "POSTs a draft apprenticeship learner to the LearnerData Outer API with the apprenticeship starting in the 2627 academic year (running 2 years) and checks it lands as an unapproved draft — exercises FLP-1537's POST path in isolation, without the FLP-2009 approval event.",
   "wipeOnRun": true,
   "tags": ["FLP-1537"],

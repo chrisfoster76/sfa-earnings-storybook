@@ -1,6 +1,5 @@
 {
   "name": "Progression - Course 1 Withdrawal Date Tweak After Course 2 Approved",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "ZSC00001 posted claiming the 30% milestone, then approved. SLD sends an update that withdraws ZSC00001 and, in the same payload, adds ZSC00002 (progression) also claiming its 30% milestone — the employer then approves ZSC00002. SLD sends a further update that only tweaks ZSC00001's withdrawal date (2026-01-20 to 2026-01-25), with ZSC00002 unchanged in the same payload. Verifies the withdrawal date correction on the original episode flows through to Earnings correctly once a second, approved progression episode exists alongside it.",
   "wipeOnRun": true,

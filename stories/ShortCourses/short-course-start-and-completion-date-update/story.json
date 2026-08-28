@@ -1,6 +1,5 @@
 {
   "name": "Short Course - PUT Attempts StartDate Change Alongside CompletionDate (StartDate Immutable)",
-  "group": "Short Course",
   "description": "SLD POSTs ZSC00001 with no completion date, starting 2025-08-01. Employer approves it. SLD then PUTs the same course with a changed StartDate (2025-08-01 → 2025-09-01) and a new CompletionDate (null → 2026-03-15) in the same payload. StartDate cannot be changed once posted — only CompletionDate can be updated via PUT. Asserts the CompletionDate change takes effect while StartDate is left unchanged at 2025-08-01, in both Learning and Earnings DBs.",
   "wipeOnRun": true,
   "steps": [

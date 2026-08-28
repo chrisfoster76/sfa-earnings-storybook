@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Draft POST Twice, StartDate Updated",
-  "group": "Apprenticeship",
   "description": "POSTs the same apprenticeship learner (ULN 44444447, standard 21) twice with no ApprenticeshipCreatedEvent in between. The second POST changes OnProgramme StartDate (2026-04-01 -> 2026-04-15) and its cost FromDate to match. CreateDraftApprenticeshipLearningCommandHandler.Handle finds the draft learning already exists via GetByLearnerKey and merges the resubmission's changed fields via learning.Update(updateModel) — the second POST's StartDate change is applied, still on the same episode (no second episode is created). No approval step — the draft is left unapproved.",
   "wipeOnRun": true,
   "tags": ["FLP-1537"],

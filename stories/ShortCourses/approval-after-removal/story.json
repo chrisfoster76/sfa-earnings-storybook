@@ -1,6 +1,5 @@
 {
   "name": "Approval After Removal",
-  "group": "Short Course",
   "description": "SLD POSTs ZSC00001 (unapproved). SLD then re-POSTs, switching the course to ZSC00002 — ZSC00001 is dropped from the OnProgramme array and should be removed by omission (IsRemoved=1) before it was ever approved. An approval event then arrives for ZSC00001 anyway (a stale/late employer approval racing the course switch). Exploratory — no assertions. Does the IsRemoved=1 ZSC00001 episode get IsApproved=1 and earnings generated?",
   "wipeOnRun": true,
   "steps": [

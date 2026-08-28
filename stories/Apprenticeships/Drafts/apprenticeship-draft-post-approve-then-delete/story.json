@@ -1,0 +1,50 @@
+{
+  "name": "Apprenticeship — Draft POST, Approve, Then DELETE",
+  "description": "SLD POSTs a draft apprenticeship to the LearnerData Outer API (FLP-1537), Commitments approves it via ApprenticeshipCreatedEvent (FLP-2009), then SLD DELETEs the now-approved learner. Exercises the full draft lifecycle end to end: draft creation, approval, and removal of a formerly-draft record.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537", "FLP-2009"],
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Removes the Now-Approved Apprenticeship",
+      "verb": "DELETE",
+      "route": "/providers/10005077/learning/{learnerKey}?academicYear=2526",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Episode is approved and removed",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "04-episode-approved-and-removed.sql",
+      "expected": [
+        { "field": "IsApproved", "value": "True" },
+        { "field": "IsRemoved", "value": "True" }
+      ]
+    }
+  ]
+}

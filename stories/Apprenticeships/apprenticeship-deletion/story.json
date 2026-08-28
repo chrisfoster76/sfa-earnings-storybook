@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Deletion",
-  "group": "Apprenticeship",
   "description": "Creates an apprenticeship then removes it via DELETE",
   "wipeOnRun": true,
   "steps": [

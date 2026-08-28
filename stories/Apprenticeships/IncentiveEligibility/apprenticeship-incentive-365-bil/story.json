@@ -1,0 +1,118 @@
+{
+  "name": "365 day BiL eligibility",
+  "description": "Creates and approves a 2-year apprenticeship for Riley Brooks (DOB 2008-01-01, start 2026-04-01). PUTs a break in learning starting on day 182 (pause 2026-09-29), resuming 2028-01-01. The learner accrues 183 more actual days post-break, reaching 365 total on withdrawal date 2028-07-01. The 365-day incentive milestone is reached — both incentive payments should be generated. Then moves the withdrawal back one day to 2028-06-30 (364 total days) — both incentives should be removed. Finally moves the return date forward one day to 2027-12-31, restoring 365 total days — both incentives should be regenerated. Then moves the withdrawal back one day to 2028-06-29 (364 total days) — both incentives should be removed again. Finally lengthens the break by one day (pause 2026-09-30), restoring 365 total days — both incentives should be regenerated.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Submits Break In Learning — 182 pre-break + 183 post-break = 365 days total (withdraw 2028-07-01)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "03-put-bil-day365.json",
+      "extract": {}
+    },
+    {
+      "name": "365-day incentives generated (count = 2)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        {
+          "field": "Count",
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "name": "SLD Moves Withdrawal Back to Day 364 (2028-06-30) — 182 pre-break + 182 post-break = 364 days total",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-bil-day364.json",
+      "extract": {}
+    },
+    {
+      "name": "365-day incentives removed (count = 0)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        {
+          "field": "Count",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "name": "SLD Moves Return Date Forward One Day (2027-12-31) — 182 pre-break + 183 post-break = 365 days total",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "05-put-bil-resume-earlier.json",
+      "extract": {}
+    },
+    {
+      "name": "365-day incentives restored (count = 2)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        {
+          "field": "Count",
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "name": "SLD Moves Withdrawal Back to Day 364 (2028-06-29) — 182 pre-break + 182 post-break = 364 days total",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "06-put-bil-withdraw-earlier.json",
+      "extract": {}
+    },
+    {
+      "name": "365-day incentives removed (count = 0)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        {
+          "field": "Count",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "name": "SLD Lengthens Break by One Day (pause 2026-09-30) — 183 pre-break + 182 post-break = 365 days total",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "07-put-bil-pause-later.json",
+      "extract": {}
+    },
+    {
+      "name": "365-day incentives restored (count = 2)",
+      "type": "Assert",
+      "connectionName": "Earnings",
+      "queryFile": "count-incentives.sql",
+      "expected": [
+        {
+          "field": "Count",
+          "value": "2"
+        }
+      ]
+    }
+  ]
+}

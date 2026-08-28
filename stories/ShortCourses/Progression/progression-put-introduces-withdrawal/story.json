@@ -1,6 +1,5 @@
 {
   "name": "Progression — Withdrawal Introduced in the Same PUT as the New Course",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "Variant of progression-multi-put-withdrawal: the initial POST leaves ZSC00001 active (no withdrawalDate) and it is approved in that state. SLD then PUTs a single payload that simultaneously adds the withdrawalDate to ZSC00001 and introduces ZSC00002 as a new course — rather than ZSC00001 already being withdrawn before the progression PUT arrives. Exploratory: checking how the handler copes with the withdrawal and the progression both landing in the same request.",
   "wipeOnRun": true,

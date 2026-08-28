@@ -1,6 +1,5 @@
 {
   "name": "Repeat POST of an Already-Approved Course (Same Provider)",
-  "group": "Short Course",
   "subGroup": "Repeats",
   "description": "Reproduces a bug in CreateDraftShortCourseCommandHandler's removal-by-omission logic. ZSC00001 is POSTed and approved. The provider then re-POSTs the exact same, unchanged course — a routine resync that should be a no-op. HandleSingleItem correctly detects 'already approved with this provider' and returns null, but RemoveOmittedLearnings can't distinguish 'mentioned but no-op' from 'genuinely absent from the OnProgramme array', so it treats the course as omitted and removes the episode (IsRemoved=1) even though it was present in the request. Buggy: IsRemoved=1 after the repeat POST. Fixed: IsRemoved=0 (no-op, as expected).",
   "wipeOnRun": true,

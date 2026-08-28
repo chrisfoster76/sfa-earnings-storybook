@@ -1,6 +1,5 @@
 {
   "name": "CoP - Provider B Approved Then No-op PUT",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Provider A submits a learner (unapproved). Provider B submits the same learner on the same course (unapproved). Employer approves Provider B's record. Provider B then sends a PUT with no changes from their original POST.",
   "wipeOnRun": true,

@@ -1,6 +1,5 @@
 {
   "name": "2: 14-day QP not reached; remove earnings",
-  "group": "Qualifying Periods",
   "subGroup": "Pause",
   "description": "Creates an apprenticeship with a 99-day planned duration (14–167 day band, qualifying period = 14 days), approves it, then records a pause after 9 days in learning. Because 9 < 14, earnings for periods prior to the pause date should be removed. Covers FLP-1424 AC2.",
   "wipeOnRun": true,

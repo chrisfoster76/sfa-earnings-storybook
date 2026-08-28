@@ -1,6 +1,5 @@
 {
   "name": "Short Course - Courses API Unavailable",
-  "group": "Error Handling",
   "description": "POSTs a short course with course code ZSC00500 — the das-commitments-stubs Courses API stub hardcodes this one code to always return a 500. ShortCourseLookupService retries transient 5xx failures 3 times (exponential backoff: ~2s, 4s, 8s) before giving up and throwing CoursesApiUnavailableException, which ShortCoursesController maps to a 503. Expect this step to take roughly 14+ seconds before it returns. Note: a persistently-500ing course code, as used here, is indistinguishable from a genuinely transient blip from the caller's point of view — both exhaust the retries and surface as 503.",
   "wipeOnRun": true,
   "steps": [

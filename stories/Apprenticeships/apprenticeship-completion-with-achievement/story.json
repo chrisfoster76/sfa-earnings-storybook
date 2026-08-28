@@ -1,6 +1,5 @@
 {
   "name": "Completion with Achievement Date",
-  "group": "Apprenticeship",
   "description": "Creates a 2-year apprenticeship (2025-08-01 to 2027-07-31), then PUTs a completion on the expected end date along with an achievement date (2027-09-15) representing when the EPA result was confirmed.",
   "wipeOnRun": true,
   "steps": [

@@ -1,6 +1,5 @@
 {
   "name": "4: 42-day QP not reached; remove earnings",
-  "group": "Qualifying Periods",
   "subGroup": "Withdrawal",
   "description": "Creates a 2-year apprenticeship (730-day planned duration, qualifying period = 42 days), approves it, then records a withdrawal after 30 days in learning. Because 30 < 42, earnings for periods prior to the withdrawal date should be removed.",
   "wipeOnRun": true,

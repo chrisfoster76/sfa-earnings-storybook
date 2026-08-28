@@ -1,6 +1,5 @@
 {
   "name": "Repeat of Same Course via Precursor POST then Bundled Re-POST",
-  "group": "Short Course",
   "subGroup": "Repeats",
   "description": "Variant of repeat-same-course-single-post: instead of both runs of ZSC00001 arriving together, SLD first POSTs item 1 on its own (already completed, unapproved). SLD then re-POSTs the same learner with both item 1 (still completed, unapproved, unchanged) and item 2 — a new run of ZSC00001 starting 2026-02-01, after item 1's completion — in a single bundled OnProgramme array. Exploratory story — no assertions yet; covers FLP-1865 (Resume: same course, same provider, same A/Y) territory via a precursor POST followed by a bundled re-POST rather than a single combined POST.",
   "wipeOnRun": true,

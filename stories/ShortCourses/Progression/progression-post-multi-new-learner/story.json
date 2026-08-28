@@ -1,6 +1,5 @@
 {
   "name": "Progression via Single Bundled POST (Never-Seen-Before Learner)",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "Regression story for the FLP-1858 gating bug: SLD's very first contact with this learner is a single POST bundling two different course codes (ZSC00001, already completed and unapproved, and ZSC00002, a new course) in one OnProgramme array - no prior POST establishes ZSC00001 first. CreateDraftShortCourseCommandHandler used to compute 'does this learner have any existing Learning' once from the DB before looping the bundled items, so a brand-new learner bundled with 2+ course codes in one request bypassed the ShortCourseProgression gate entirely. Fixed by updating that flag after each item processed within the same request. Asserts both Learnings/episodes are created correctly from the single bundled POST.",
   "wipeOnRun": true,

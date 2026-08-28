@@ -1,6 +1,5 @@
 {
   "name": "Progression - Remove by Omission then Reinstate via POST [GAP]",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "ZSC00001 and ZSC00002 are POSTed together in a single bundled OnProgramme array (neither course ever approved). SLD then re-POSTs with ZSC00001 omitted entirely, and finally re-POSTs with both courses again to reinstate ZSC00001 — exercising removal-by-omission and reinstatement purely on the POST route (mirrors progression-omission-reinstate, which exercises the same mechanic on PUT). EXPECTED: ZSC00001 is removed by omission, then reinstated, matching PUT's RemoveOmittedLearnings behaviour. CURRENT BEHAVIOUR: CreateDraftShortCourseCommandHandler has no RemoveOmittedLearnings equivalent — it only loops the items present in the POST's OnProgramme array and never touches a Learning that's absent from the request, so ZSC00001 is left untouched (not removed) by the omission-POST. This story will FAIL until that gap is fixed.",
   "wipeOnRun": true,

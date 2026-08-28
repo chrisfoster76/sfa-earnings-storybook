@@ -2,6 +2,7 @@
   "consumerReference": "testing",
   "learner": {
     "uln": 55555555,
+    "learnerRef": "string",
     "firstname": "Sam",
     "lastname": "Smith",
     "dob": "2006-08-01",

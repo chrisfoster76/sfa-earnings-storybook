@@ -1,6 +1,5 @@
 {
   "name": "1b: 14-day QP not reached; remove earnings",
-  "group": "Qualifying Periods",
   "subGroup": "Withdrawal",
   "description": "Same setup as AC1 — apprenticeship starts 2026-04-25, 14-day qualifying period. Withdrawal is recorded on day 13 (2026-05-07), one day short of the threshold — earnings should be removed.",
   "extraDescription": "Covers FLP-1424 AC1b.",

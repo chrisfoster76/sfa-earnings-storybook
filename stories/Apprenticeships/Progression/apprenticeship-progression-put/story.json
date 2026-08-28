@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — PUT adds a Progression (second OnProgramme)",
-  "group": "Apprenticeship",
   "description": "Creates a legacy apprenticeship via ApprenticeshipCreatedEvent (never went through the SLD draft-POST flow), then SLD PUTs an update whose OnProgramme now has two items: the original, already-approved course plus a new second course (a subsequent/progression apprenticeship for the same learner in the same AY). Exercises FLP-2037's PUT-side HEAD-gated dedup: the original item should be recognised as already approved and not resent to Approvals, while the new second item should be. No assertions — manual verification only.",
   "tags": ["FLP-2037"],
   "wipeOnRun": true,

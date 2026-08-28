@@ -1,6 +1,5 @@
 {
   "name": "Progression - ZSC00002 Lifecycle (Approve, 30%, Withdrawal, Completion)",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "ZSC00001 completed and approved. A PUT adds ZSC00002 (unapproved progression episode). Employer then approves ZSC00002. Subsequent PUTs drive ZSC00002 through its lifecycle: 30% milestone, withdrawal, then withdrawal replaced by completion. WAIT steps pause between each state change for DB inspection.",
   "wipeOnRun": true,

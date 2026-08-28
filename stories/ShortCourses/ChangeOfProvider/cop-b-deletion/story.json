@@ -1,6 +1,5 @@
 {
   "name": "CoP - Provider B Deletion",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Full CoP setup: Provider A withdraws, Provider B is approved. Provider B's short course is then removed via DELETE (ILR removal).",
   "wipeOnRun": true,

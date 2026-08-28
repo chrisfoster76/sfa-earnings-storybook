@@ -1,6 +1,5 @@
 {
   "name": "2: 14-day QP not reached; completion retains full earnings",
-  "group": "Qualifying Periods",
   "subGroup": "Completion",
   "description": "Creates an apprenticeship with a 99-day planned duration (14–167 day band, qualifying period = 14 days), approves it, then records a completion after 9 days in learning. Although 9 < 14, completion always retains full earnings regardless of QP — the provider earns the full £3000. Covers FLP-1424 AC2.\n\nEarnings are not subject to Qualifying Periods for Completion. Completion payment is still payable, along with a Balancing payment to roll-up the remaining earnings.",
   "wipeOnRun": true,

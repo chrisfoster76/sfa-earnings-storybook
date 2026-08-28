@@ -1,6 +1,5 @@
 {
   "name": "Short Course - Update Dates",
-  "group": "Short Course",
   "description": "Creates a short course (1 Aug 2025 - 1 Nov 2025), then updates the dates via PUT without approval (1 Oct 2025 - 1 Feb 2026)",
   "wipeOnRun": true,
   "steps": [

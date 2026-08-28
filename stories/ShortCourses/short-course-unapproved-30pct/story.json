@@ -1,6 +1,5 @@
 {
   "name": "Short Course - Unapproved with 30% Claimed",
-  "group": "Short Course",
   "description": "Creates a short course with ThirtyPercentLearningComplete claimed on POST; no approval event is ever fired",
   "wipeOnRun": true,
   "steps": [

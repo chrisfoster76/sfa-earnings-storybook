@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Draft POST With Prior Apprenticeship (Previous AY)",
-  "group": "Apprenticeship",
   "description": "Same as 'Apprenticeship — Draft POST', but first creates and completes a different apprenticeship (standard 30) for the same learner/provider, due to end 2026-03-31 — AY 25/26, the previous academic year. The learner therefore already has one ApprenticeshipLearning row before the new draft POST (standard 21) is sent. Reproduces the FLP-1537 known bug: CreateDraftApprenticeshipLearningCommandHandler.Handle calls ApprenticeshipLearningRepository.GetByLearnerKey unconditionally on every POST, and GetByLearnerKey is .SingleOrDefaultAsync(x => x.LearnerKey == key) — throws InvalidOperationException the moment a learner has more than one ApprenticeshipLearning row. No approval step for the new course — use the Commitments Fake UI to approve.",
   "wipeOnRun": true,
   "tags": [

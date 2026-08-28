@@ -1,6 +1,5 @@
 {
   "name": "CoP - Provider B Submitted Before Provider A Withdrawal",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Provider B's ILR is submitted (creating an unapproved episode) before Provider A's withdrawal arrives. Provider A's withdrawal then recalculates Provider B's earnings. Provider B is then approved and claims both milestones.",
   "wipeOnRun": true,

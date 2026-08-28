@@ -1,6 +1,5 @@
 {
   "name": "Completion Crosses AY Boundary, Then a New Course Added via PUT",
-  "group": "Academic Year Tests",
   "description": "SLD POSTs a learner onto ZSC00001 starting 2026-06-01 and already completing 2026-08-31 — the course starts in AY 25/26 but its CompletionDate falls in AY 26/27. Employer approves it. SLD then PUTs (rather than POSTs) a single payload containing both ZSC00001 and a new course, ZSC00002, starting 2027-09-01 with a one-month expected duration and no completion or withdrawal date, via the new-style route with academicYear=2627 and the learnerKey obtained after approval. Employer approves ZSC00002 too. Variant of `ay-future-course-after-completion` — exercises a completion date that itself straddles the AY boundary, and the multi-item PUT array path (rather than a standalone POST) for adding the new course.",
   "wipeOnRun": true,
   "steps": [

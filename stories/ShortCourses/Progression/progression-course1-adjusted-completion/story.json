@@ -1,6 +1,5 @@
 {
   "name": "Progression - Adjusted Completion Date on Original Episode",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "ZSC00001 posted with 30% milestone and completion date, then approved. A PUT adds ZSC00002 alongside ZSC00001 (progression). A second PUT adjusts the completion date on ZSC00001 while keeping ZSC00002 in the payload — exercising that updates to the original episode still flow through to Earnings correctly when a progression episode also exists.",
   "wipeOnRun": true,

@@ -1,6 +1,5 @@
 {
   "name": "Progression after Completion (of Unapproved learning)",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "SLD submits ZSC00001 as completed via POST. The record is never approved by the employer. SLD then POSTs a single payload containing both ZSC00001 (the completed, still-unapproved course) and ZSC00002 (a new course starting after completion) — the bundled-OnProgramme-array POST path (AC3). The employer approves ZSC00001 only, then approves ZSC00002 separately. A PUT claims the 30% milestone on ZSC00002, then a final PUT adds its completion date — verifying both milestones become payable once each course is approved in turn.",
   "wipeOnRun": true,

@@ -1,6 +1,5 @@
 {
   "name": "Progression - Start Date Update on Unapproved Episode (Gap Story)",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "ZSC00001 completed and approved. A PUT adds ZSC00002 (unapproved, startDate 2026-02-01, expectedEndDate 2027-01-31). A second PUT changes ZSC00002's startDate to 2026-03-01. Documents the known gap: StartDate changes on unapproved episodes are not forwarded to Earnings. The ThirtyPercent instalment for ZSC00002 should update to delivery period 11 (estimated 30% point for a Mar 2026 start, landing in Jun 2026) but currently stays at period 10 (May 2026, the original Feb start). Assertion expects 11 and will fail until the gap is fixed.",
   "wipeOnRun": true,

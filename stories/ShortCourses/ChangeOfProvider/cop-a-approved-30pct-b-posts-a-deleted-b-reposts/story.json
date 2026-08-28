@@ -1,6 +1,5 @@
 {
   "name": "CoP - Provider A Approved With 30%, Provider B 30% Suppressed, A Deleted, B Re-Posts",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Provider A creates a short course claiming the 30% milestone and is approved. Provider B then posts for the same learner also claiming 30%, but the instalment is suppressed because Provider A's approved 30% takes precedence. Provider A's record is then removed via DELETE (ILR removal). Provider B re-posts with 30% and the instalment is now created since Provider A's approved claim has been removed.",
   "wipeOnRun": true,

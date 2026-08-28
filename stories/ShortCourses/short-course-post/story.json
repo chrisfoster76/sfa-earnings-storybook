@@ -1,6 +1,5 @@
 {
   "name": "Short Course — POST only",
-  "group": "Short Course",
   "description": "POSTs a short course learner (ThirtyPercentLearningComplete claimed). No approval step.",
   "wipeOnRun": true,
   "steps": [

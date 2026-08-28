@@ -1,6 +1,5 @@
 {
   "name": "CoC - Reinstate Course 1 Alongside Course 2",
-  "group": "Short Course",
   "subGroup": "Change of Course",
   "description": "Provider A creates ZSC00001 and gets it approved. They remove it from the ILR (DELETE). They then add ZSC00002 for the same learner and get that approved. Finally they submit a single PUT containing both ZSC00001 (reinstated, no withdrawal date) and ZSC00002.",
   "wipeOnRun": true,

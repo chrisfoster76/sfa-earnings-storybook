@@ -1,6 +1,5 @@
 {
   "name": "CoP - Provider A start date update after completion",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Canonical CoP journey (A POST → A approve → A PUT withdrawal + 30% → B POST → B approve → B PUT 30% + completion), then Provider A updates their start date via a further PUT. Verifies that a start date change on a withdrawn, fully-settled Provider A episode does not alter instalment counts.",
   "wipeOnRun": true,

@@ -1,6 +1,5 @@
 {
   "name": "Short Course - Withdrawal",
-  "group": "Short Course",
   "description": "Creates a short course with no milestones, approves it, withdraws the learner via PUT with withdrawalDate and withdrawalReasonCode, then re-PUTs with the reason code corrected",
   "wipeOnRun": true,
   "steps": [

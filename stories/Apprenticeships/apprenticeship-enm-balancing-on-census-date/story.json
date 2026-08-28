@@ -1,6 +1,5 @@
 {
   "name": "E&M — Balancing on Census Date (FLP-1514)",
-  "group": "Apprenticeship",
   "subGroup": "English & Maths",
   "description": "Creates a 2-year apprenticeship (2026-04-01 to 2028-03-31), then PUTs a Maths aim (2026-04-01 to 2027-03-31) with completion on the census date (2026-09-30 = last day of month). Regression for FLP-1514: the Regular instalment for the completion month must be kept alongside the Balancing instalment. Bug: currently the Sep Regular is removed and its amount is folded into the Balancing.",
   "wipeOnRun": true,

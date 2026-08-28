@@ -1,6 +1,5 @@
 {
   "name": "[KNOWN FAILING - pending BA clarification] CoP - Provider A Claims 30% Pre-Approval, Approves Last",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Provider A claims the 30% milestone and withdraws while still unapproved (via re-POST, since updates to an unapproved record arrive as fresh ILR submissions rather than PUTs), then Provider B joins. Provider A's employer approval is the last setup step, arriving immediately before Provider B's approval (rather than first, as in cop-a-claimed-30pct). Observes whether Provider B's 30% suppression still applies when Provider A's approval lands so late. KNOWN TO FAIL: AC2 30% count assertion currently returns 1, not 0 — IsThirtyPercentClaimedBySibling (das-funding-apprenticeship-earnings ShortCourseLearning.cs) snapshots the sibling's approval state at calc time and never re-evaluates when a late approval arrives. The intended rule (order shouldn't matter) is documented in projects/earnings/upcoming/cop-suppression-stale-on-late-approval.md, but FLP-1522/FLP-1809 were closed without covering this ordering case. Re-raising with BAs before fixing — ignore this failure until that's resolved.",
   "wipeOnRun": true,

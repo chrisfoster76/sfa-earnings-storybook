@@ -1,6 +1,5 @@
 {
   "name": "Short Course - PUT Invalid Course Code",
-  "group": "Error Handling",
   "description": "POST ZSC00001 → approve → PUT bundles ZSC00001 unchanged alongside a brand-new course, ZSC00404 (the das-commitments-stubs Courses API stub's hardcoded 404 code) — a genuine Progression-via-PUT scenario (see progression-multi-put), not an artificial one: CourseCode is immutable for an already-existing episode, but a PUT can legitimately introduce a new course code for the first time, and that new code goes through the same Courses API lookup a POST would. UpdateShortCourseLearningCommandHandler.Handle looks up EVERY OnProgramme item's course code via the Courses API on every PUT, unconditionally, via Task.WhenAll, before ever calling the Learning inner API. ZSC00404's 404 makes ShortCourseLookupService throw InvalidCourseException for that one item, but because the lookups run as a single WhenAll batch, the exception aborts the whole PUT — so ZSC00001's (perfectly valid, unrelated) update in the same request is lost too. ShortCoursesController maps the exception to a 422. Asserts the captured status code is 422.",
   "wipeOnRun": true,
   "steps": [

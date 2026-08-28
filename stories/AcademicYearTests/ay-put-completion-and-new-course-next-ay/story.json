@@ -1,6 +1,5 @@
 {
   "name": "PUT Completes Original Course and Adds a Subsequent-AY Course, Using academicYear Query Param",
-  "group": "Academic Year Tests",
   "description": "SLD POSTs ZSC00001 starting 2026-06-01 (25/26) with no completion or withdrawal date, employer approves it. SLD then PUTs via the new-style route (/providers/{ukprn}/shortCourses/{learnerKey}, rather than the legacy learnerKey-less form) with academicYear=2627 explicitly appended to the query string: the PUT gives ZSC00001 a CompletionDate of 2026-07-31 (still within 25/26) and, in the same payload, adds a new course ZSC00002 that both starts and completes in August 2026 — squarely within AY 26/27, matching the academicYear query param on the request. Exercises whether the academicYear query param is honoured/required when a single PUT spans a completion in one AY and a new course in the next.",
   "wipeOnRun": true,
   "steps": [

@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Legacy Approved (Provider A), Different Provider Posts",
-  "group": "Apprenticeship",
   "description": "Provider A's apprenticeship is a 'legacy' record: it is created directly by Commitments' ApprenticeshipCreatedEvent, never having existed as a draft (no prior SLD POST) — this is how every apprenticeship worked before FLP-1537 introduced the draft POST path, and is still how most existing ApprenticeshipLearning rows in production came to exist. Provider B then POSTs the same learner onto the same course (standard 21). Apprenticeships have no dedicated Change of Provider feature (unlike short courses), so this captures baseline behaviour: CreateDraftApprenticeshipLearningCommandHandler.Handle looks up the existing draft via GetAllByLearnerKey(learner.Key, ukprn, courseCode), scoped by UKPRN as well as course code — Provider B's UKPRN doesn't match Provider A's approved episode, so the lookup finds no match and a second, independent unapproved ApprenticeshipLearning row is created for Provider B rather than the POST being treated as an update to Provider A's approved row.",
   "wipeOnRun": true,
   "tags": ["FLP-1537"],

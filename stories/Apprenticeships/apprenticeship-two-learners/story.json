@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Two Learners (AY start + future start)",
-  "group": "Apprenticeship",
   "description": "Learner 1 starts at the beginning of the current AY (2025-08-01). Learner 2 starts next month (2026-05-01). Use to verify FM36 behaviour around the active/inactive boundary.",
   "wipeOnRun": true,
   "steps": [

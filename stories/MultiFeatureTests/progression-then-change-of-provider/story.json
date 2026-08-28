@@ -1,6 +1,5 @@
 {
   "name": "Progression, then Change of Provider on the Progression Episode",
-  "group": "Multi Feature Tests",
   "description": "Provider A creates ZSC00001, completes it, and progresses the learner onto ZSC00002 via PUT (in the same payload as the completion). Provider A then withdraws ZSC00002. Provider B — who has no prior episode for this learner — POSTs the same learner onto ZSC00002. Expected: a second episode is added to ZSC00002's existing Learning (Change of Provider), not a separate third Learning. Exercises the untested 'Progression, then CoP on the new episode' interaction documented in upcoming/subsequent-course-same-provider.md; depends on CreateDraftShortCourseCommandHandler's GetByLearnerKey lookup being CourseCode-scoped (FLP-1858).",
   "wipeOnRun": true,
   "tags": ["FLP-1858", "FLP-1894"],

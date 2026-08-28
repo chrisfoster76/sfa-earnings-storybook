@@ -1,6 +1,5 @@
 {
   "name": "Short Course - Claimed Then Deleted",
-  "group": "Short Course",
   "description": "Creates a short course with no milestones, approves it, claims ThirtyPercentLearningComplete via PUT, then removes it via DELETE",
   "wipeOnRun": true,
   "steps": [

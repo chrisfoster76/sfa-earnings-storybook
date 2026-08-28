@@ -1,6 +1,5 @@
 {
   "name": "4: 42-day QP not reached; remove earnings",
-  "group": "Qualifying Periods",
   "subGroup": "Pause",
   "description": "Creates a 2-year apprenticeship (730-day planned duration, qualifying period = 42 days), approves it, then records a pause after 30 days in learning. Because 30 < 42, earnings for periods prior to the pause date should be removed.",
   "wipeOnRun": true,

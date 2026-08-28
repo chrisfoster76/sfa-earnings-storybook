@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Future Start (next month)",
-  "group": "Apprenticeship",
   "description": "Creates and approves an apprenticeship starting next month (2026-05-01). FM36 should NOT return data for this learner in the current collection period — mirrors the Fm36.feature 'Do not retrieve Fm36 data for Inactive learners' nextMonthFirstDay scenario.",
   "wipeOnRun": true,
   "steps": [

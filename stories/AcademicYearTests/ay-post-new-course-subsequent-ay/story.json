@@ -1,6 +1,5 @@
 {
   "name": "POST New Course in a Subsequent AY (new-style route), Both Approved",
-  "group": "Academic Year Tests",
   "description": "SLD POSTs ZSC00001 starting and completing in July 2025 (AY 24/25). Employer approves it. SLD then POSTs a brand-new course, ZSC00002, via the new-style route with academicYear=2627 explicitly appended — starting August 2026 (AY 26/27), a genuinely different CourseCode rather than a re-POST of ZSC00001. Employer approves ZSC00002 too. Unlike `ay-repost-completion-date-moves-to-next-ay` (same CourseCode, blocked by the 'already approved' guard), this is a legitimate Progression-shaped POST for a new CourseCode, so it should succeed via GetByLearnerKeyAndCourseCode creating a second Learning — and the AY-scoped omission-removal predicate (FLP-1875/FLP-1895) should recognise that ZSC00001's completed episode (CompletionDate 2025-07-31, well before AY 26/27 starts) does not overlap the submitted academicYear and must not be removed by omission.",
   "wipeOnRun": true,
   "tags": ["FLP-1875"],

@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Pause Becomes Withdrawal",
-  "group": "Apprenticeship",
   "description": "Creates a 2-year apprenticeship (2025-08-01 to 2027-07-31), PUTs a pause date of 2026-03-01 (temporary break), then PUTs again with the pause removed and a withdrawal date of 2026-03-01 instead — the break was initially recorded as temporary but subsequently confirmed as permanent",
   "wipeOnRun": true,
   "steps": [

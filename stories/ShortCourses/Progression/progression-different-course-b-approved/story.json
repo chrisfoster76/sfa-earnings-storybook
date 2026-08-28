@@ -1,6 +1,5 @@
 {
   "name": "Progression - Different Course, Provider B Approved",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "SLD POSTs ZSC00001 for the same learner with Provider A. Without Provider A ever being approved, SLD then POSTs a different course (ZSC00002) for Provider B. The employer approves Provider B's record only.",
   "wipeOnRun": true,

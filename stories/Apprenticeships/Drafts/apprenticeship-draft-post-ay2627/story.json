@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Draft POST then Approve (2627 AY)",
-  "group": "Apprenticeship",
   "description": "POSTs a draft apprenticeship learner to the LearnerData Outer API with the apprenticeship starting in the 2627 academic year (running 2 years), waits for the draft to land, then fires ApprenticeshipCreatedEvent to approve it — exercises FLP-2009's AddLearningCommandHandler approval branch (ApprenticeshipLearningDomainModel.Approve) against a real draft created by FLP-1537's POST path.",
   "wipeOnRun": true,
   "tags": ["FLP-1537", "FLP-2009"],

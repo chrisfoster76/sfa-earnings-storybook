@@ -1,6 +1,5 @@
 {
   "name": "Short Course - Removal & Reinstatement",
-  "group": "Short Course",
   "description": "Creates a short course, approves it, DELETEs it, then reinstates it by POSTing it again",
   "extraDescription":  "When reinstated, the 30% milestone is claimed at the same time, which it wasn't previously.",
   "wipeOnRun": true,

@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Draft POST then Approve",
-  "group": "Apprenticeship",
   "description": "POSTs a draft apprenticeship learner to the LearnerData Outer API, waits for the draft to land, then fires ApprenticeshipCreatedEvent to approve it — exercises FLP-2009's AddLearningCommandHandler approval branch (ApprenticeshipLearningDomainModel.Approve) against a real draft created by FLP-1537's POST path.",
   "wipeOnRun": true,
   "tags": ["FLP-1537", "FLP-2009"],

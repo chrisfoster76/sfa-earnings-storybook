@@ -1,6 +1,5 @@
 {
   "name": "Repeat of Same Course via Single Bundled POST (Item 1 Withdrawn)",
-  "group": "Short Course",
   "subGroup": "Repeats",
   "description": "Variant of repeat-same-course-single-post: learner is withdrawn from ZSC00001 (withdrawalDate 2026-01-15) instead of completing it, then starts a new run of the *same* course code with the same provider — both items arrive together in a single bundled POST. Item 1 is withdrawn and unapproved; item 2 is a new run of ZSC00001 starting 2026-02-01, after item 1's withdrawal. Exercises the same duplicate-Learning bug as the completed variant (CreateDraftShortCourseCommandHandler.GetByLearnerKeyAndCourseCode only queries the DB, so item 2's lookup misses the in-memory Learning created for item 1 earlier in the same loop) — root cause is unaffected by completion vs withdrawal, since the lookup doesn't filter on episode status. Kept as a separate story because withdrawal exercises different downstream domain logic (RemoveOmittedLearnings academic-year/IsRemoved checks, earnings treatment of a withdrawn episode) than completion does.",
   "wipeOnRun": true,

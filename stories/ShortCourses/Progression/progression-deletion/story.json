@@ -1,6 +1,5 @@
 {
   "name": "Progression - DELETE removes both episodes",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "ZSC00001 completed and approved. A PUT adds ZSC00002 (unapproved progression episode). A DELETE then removes the learner for the provider, verified by assertions immediately after. Both courses are reinstated together in a single bundled POST (ZSC00001 retains its completion date/milestone), the Employer approves ZSC00002, then a final PUT records completion for ZSC00002. Verifies 4 payable earnings instalments exist (ThirtyPercent + LearningComplete for each course).",
   "wipeOnRun": true,

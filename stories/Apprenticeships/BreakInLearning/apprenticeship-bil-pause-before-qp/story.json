@@ -1,6 +1,5 @@
 {
   "name": "App. BiL Pause before QP",
-  "group": "Qualifying Periods",
   "subGroup": "Return from a Break In Learning",
   "description": "Creates a 1-year apprenticeship (2024-10-01 to 2025-09-30), then PUTs an update with a break in learning (pause 2025-02-01, resume 2025-05-31). Learner pauses again 12 days after resuming (2025-06-12), which is below the 42-day qualifying period.",
   "wipeOnRun": true,

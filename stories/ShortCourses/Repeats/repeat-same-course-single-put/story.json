@@ -1,6 +1,5 @@
 {
   "name": "Repeat of Same Course via Single Bundled PUT",
-  "group": "Short Course",
   "subGroup": "Repeats",
   "description": "PUT-side counterpart to repeat-same-course-single-post. A precursor POST establishes ZSC00001 on its own (completed, unapproved, completionDate 2026-01-15). A single follow-up PUT then bundles item 1 (unchanged) alongside item 2 — a new run of ZSC00001 starting 2026-02-01, same provider — in one onProgramme array. Reproduces the PUT-side counterpart of the CreateDraftShortCourseCommandHandler duplicate-CourseCode bug: UpdateShortCourseCommandHandler.Handle has no equivalent guard against the same CourseCode appearing twice in one request, so GetByLearnerKeyAndCourseCode misses item 1's Learning (not yet persisted) when processing item 2 and a second Learning with the same CourseCode gets created. Exploratory story — no assertions yet; watch the Learning DB after this PUT for two ShortCourseLearning rows with TrainingCode ZSC00001.",
   "wipeOnRun": true,

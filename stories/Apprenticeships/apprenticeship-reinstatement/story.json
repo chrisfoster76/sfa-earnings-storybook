@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Deletion & Reinstatement",
-  "group": "Apprenticeship",
   "description": "Creates an apprenticeship, removes it via DELETE, then reinstates it via POST",
   "wipeOnRun": true,
   "steps": [

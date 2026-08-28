@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — E&M + Learning Support, then Deletion",
-  "group": "Apprenticeship",
   "subGroup": "English & Maths",
   "description": "Creates an apprenticeship, PUTs English & Maths and Learning Support, then removes it via DELETE",
   "wipeOnRun": true,

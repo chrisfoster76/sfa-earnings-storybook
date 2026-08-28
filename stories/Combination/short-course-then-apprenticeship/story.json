@@ -1,6 +1,5 @@
 {
   "name": "Short Course → Apprenticeship (same learner)",
-  "group": "Short Course",
   "description": "Creates a short course with no milestones, approves it, claims 30% milestone, completes it, then fires an ApprenticeshipCreatedEvent for the same learner to start a regular apprenticeship",
   "wipeOnRun": true,
   "steps": [

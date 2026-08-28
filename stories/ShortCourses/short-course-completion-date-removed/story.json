@@ -1,6 +1,5 @@
 {
   "name": "Short Course - CompletionDate Removed via PUT, Alongside an Attempted StartDate Change (FLP-1918 Gap)",
-  "group": "Short Course",
   "description": "SLD POSTs ZSC00001 already carrying a CompletionDate (2026-03-15), starting 2025-08-01. Employer approves it. SLD then PUTs the same course with CompletionDate set to null (retracting the completion) AND an attempted StartDate change (2025-08-01 → 2025-09-01) in the same payload. StartDate is immutable once posted, so it's expected to be ignored — but UpdateShortCourseCommandHandler's isRestartAttempt guard misfires here: because the episode already has an actual end date (HasActualEndDate), the differing StartDate is treated as a restart attempt and the entire item is dropped (returns IsIgnored=true before learning.Update runs), so the CompletionDate retraction never applies either. GAP STORY — currently FAILS. See tickets/FLP-1918.md.",
   "wipeOnRun": true,
   "tags": ["FLP-1918"],

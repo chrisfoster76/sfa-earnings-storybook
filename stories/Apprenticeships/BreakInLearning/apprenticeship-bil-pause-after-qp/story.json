@@ -1,6 +1,5 @@
 {
   "name": "App. BiL Pause after QP",
-  "group": "Qualifying Periods",
   "subGroup": "Return from a Break In Learning",
   "description": "Creates a 1-year apprenticeship (2024-10-01 to 2025-09-30), then PUTs an update with a break in learning (pause 2025-02-01, resume 2025-05-31). The post-break expected end date is 2026-01-27 (original end 2025-09-30 pushed back by the 119-day break). Learner pauses again 43 days after resuming (2025-07-13), which exceeds the 42-day qualifying period — earnings should be retained.",
   "wipeOnRun": true,

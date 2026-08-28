@@ -1,6 +1,5 @@
 {
   "name": "CoP - Provider A Deletion (ILR Removal)",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Provider A's short course is removed via DELETE (learner dropped from ILR) rather than a PUT withdrawal. Provider B then joins, gets approved, and claims both milestones.",
   "wipeOnRun": true,

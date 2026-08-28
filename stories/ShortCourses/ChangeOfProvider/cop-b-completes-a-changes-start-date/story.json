@@ -1,6 +1,5 @@
 {
   "name": "CoP - Provider B Completes, Provider A Changes Start Date",
-  "group": "Short Course",
   "subGroup": "Change of Provider",
   "description": "Provider A creates a short course and the employer approves it, but Provider A does not complete. Provider B then creates their episode for the same learner and course, the employer approves Provider B, and Provider B completes (claiming 30% and completion). Provider A then submits a PUT that shifts their start date by one day.",
   "wipeOnRun": true,

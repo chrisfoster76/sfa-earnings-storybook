@@ -1,6 +1,5 @@
 {
   "name": "Completed Course, Then a Different Course in a Future Academic Year",
-  "group": "Academic Year Tests",
   "description": "SLD POSTs a learner onto ZSC00001 starting 2026-06-01 and already completing 2026-06-30, employer approves it. SLD then POSTs the same learner onto a different course, ZSC00002, starting 2027-09-01 with a one-month expected duration and no completion or withdrawal date — over a year later, in a later academic year — via the new-style route with academicYear=2627 explicitly appended to the query string. Employer approves ZSC00002 too. Exercises a large temporal gap and an academic-year boundary crossing between a learner's two short courses with the same provider.",
   "wipeOnRun": true,
   "steps": [

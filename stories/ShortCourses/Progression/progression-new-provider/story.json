@@ -1,6 +1,5 @@
 {
   "name": "Progression - New Provider Adds a Different Course",
-  "group": "Short Course",
   "subGroup": "Progression",
   "description": "Progression so far has only been exercised with the same provider adding a second course via a bundled PUT (see progression-lifecycle). This story covers Progression across providers: Provider A completes ZSC00001 and the employer approves it. A completely different provider, Provider B, who has no prior relationship with this learner and therefore no learnerKey to PUT against, then POSTs a different course (ZSC00002) for the same learner (matched by ULN). CODE-READING: CreateDraftShortCourseCommandHandler.HandleSingleItem resolves the learning by LearnerKey+CourseCode; since ZSC00002 has no existing Learning, it hits the `learning == null` branch, gated only by ShortCourseProgression (not by ShortCourseChangeOfProvider, since this isn't 'an existing Learning with a different-provider episode' — it's a brand new Learning). The provider on the new episode should simply be whatever UKPRN is in the route/payload (Provider B), with no connection back to Provider A's episode. Expect 2 separate ShortCourseLearning rows (one per course code), ZSC00001's episode still on Provider A and untouched, and ZSC00002's new episode on Provider B, unapproved.",
   "wipeOnRun": true,

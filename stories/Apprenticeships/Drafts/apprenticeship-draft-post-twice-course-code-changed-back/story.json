@@ -1,6 +1,5 @@
 {
   "name": "Apprenticeship — Draft POST Twice, Course Code Changed, Then Changed Back",
-  "group": "Apprenticeship",
   "description": "Extends apprenticeship-draft-post-twice-course-code-changed with a third POST. POSTs the same apprenticeship learner (ULN 44444448) with standardCode 21, then again with standardCode 30 (creating a second, independent unapproved ApprenticeshipLearning row, since CreateDraftApprenticeshipLearningCommandHandler.Handle looks up the existing draft via GetAllByLearnerKey(learner.Key, ukprn, courseCode) scoped by course code), then re-POSTs the original payload unchanged (standardCode 21 again). The third POST's course code matches the first draft's course code, so the lookup resolves back to that original row and is treated as an update — it should not create a third ApprenticeshipLearning row. Two rows remain: one for standardCode 21 (the original, now re-POSTed), one for standardCode 30.",
   "wipeOnRun": true,
   "tags": ["FLP-1537"],

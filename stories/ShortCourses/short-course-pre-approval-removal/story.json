@@ -1,6 +1,5 @@
 {
   "name": "Pre-Approval Removal",
-  "group": "Short Course",
   "description": "SLD POSTs a learner onto two short courses in a single bundled OnProgramme payload: ZSC00001 is complete, ZSC00002 is still continuing (no completion or withdrawal date). Neither course is ever approved. SLD then re-POSTs the same payload with ZSC00002 omitted entirely, removing it by omission before it was ever approved.",
   "wipeOnRun": true,
   "steps": [
