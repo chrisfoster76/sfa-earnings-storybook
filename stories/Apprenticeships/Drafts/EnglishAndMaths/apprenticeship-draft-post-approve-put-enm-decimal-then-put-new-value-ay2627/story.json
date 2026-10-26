@@ -1,0 +1,91 @@
+{
+  "name": "Apprenticeship - Draft POST (no E&M), Approve, PUT adds E&M (DECIMAL), then PUT new E&M aim (2627 AY)",
+  "description": "Proves the PUT path looks up the E&M value from SLD. POSTs a draft apprenticeship with no English & Maths and approves it. PUT 1 adds an E&M aim with learnAimRef DECIMAL (stub price 1234.56; payload still sends amount 400, which should be ignored). WAIT lets you inspect the DB. PUT 2 replaces it with learnAimRef 60346498 (stub price 1000). Learning matches E&M by LearnAimRef, so PUT 2 removes the DECIMAL row and adds a new one rather than updating the amount in place.",
+  "wipeOnRun": true,
+  "tags": [
+    "FLP-1281"
+  ],
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship with no English & Maths",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship-no-enm.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs adding an English & Maths aim (learnAimRef DECIMAL)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-add-enm-decimal.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Capture the DECIMAL E&M amount from Learning",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "05-get-decimal-amount.sql",
+      "extract": {
+        "decimalAmountAfterPut1": "Amount"
+      }
+    },
+    {
+      "name": "Wait - inspect DB (EnglishAndMaths.Amount should be 1234.56), then continue with the second PUT",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs a different English & Maths aim (learnAimRef 60346498, stub price 1000)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "07-put-enm-new-aim.json",
+      "extract": {},
+      "delayMs": 3000
+    }
+  ],
+  "assertions": [
+    {
+      "name": "After PUT 1, Learning EnglishAndMaths.Amount was the SLD value (1234.56), not the inbound 400",
+      "type": "Context",
+      "expected": [
+        { "field": "decimalAmountAfterPut1", "value": "1234.56" }
+      ]
+    },
+    {
+      "name": "After PUT 2, Learning EnglishAndMaths.Amount for aim 60346498 is the SLD value (1000)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "08-assert-new-aim-amount.sql",
+      "expected": [
+        { "field": "Amount", "value": "1000.00" }
+      ]
+    },
+    {
+      "name": "After PUT 2, only one E&M row remains and the DECIMAL aim is removed",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "09-assert-enm-row-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" },
+        { "field": "DecimalCount", "value": "0" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "ApprenticeshipId": 200005,
+  "ApprenticeshipHashedId": "",
+  "Uln": "9003828503",
+  "ProviderId": 10005077,
+  "LearningType": "Apprenticeship",
+  "DeliveryModel": "Regular",
+  "ApprenticeshipEmployerTypeOnApproval": "Levy",
+  "DateOfBirth": "1969-02-05T00:00:00Z",
+  "FirstName": "GivenNames",
+  "LastName": "FamilyName",
+  "IsOnFlexiPaymentPilot": true,
+  "ActualStartDate": "2024-12-03T00:00:00Z",
+  "StartDate": "2024-12-03T00:00:00Z",
+  "EndDate": "2025-02-26T00:00:00Z",
+  "TrainingCode": "260",
+  "TrainingCourseVersion": "1.0",
+  "TrainingCourseOption": "option1",
+  "TrainingType": "Standard",
+  "LegalEntityName": "Test Org",
+  "AccountLegalEntityId": 1,
+  "AccountId": 1,
+  "PriceEpisodes": [
+    {
+      "Cost": 5000,
+      "EndPointAssessmentPrice": 808,
+      "TrainingPrice": 4192,
+      "FromDate": "2024-12-03T00:00:00Z",
+      "ToDate": "2025-02-26T00:00:00Z"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Apprenticeship — Draft POST, then Draft POST for Same Learner at a Different Provider",
+  "description": "SLD POSTs a draft apprenticeship for a learner at Provider A (10005077), then SLD POSTs again for the same learner (same ULN) but a different course and a different Provider B (10005078). Both remain unapproved drafts. Exploratory — looking at how the draft-POST path handles the same learner arriving at a second provider before any approval, distinct from the same-provider Progression scenarios. No assertions yet.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "Provider A (10005077) POSTs a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship-provider-a.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Provider B (10005078) POSTs the Same Learner onto a Different Course",
+      "verb": "POST",
+      "route": "/providers/10005078/learners",
+      "payloadFile": "02-post-apprenticeship-provider-b.json",
+      "extract": {}
+    }
+  ]
+}

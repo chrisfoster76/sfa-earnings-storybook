@@ -1,0 +1,36 @@
+{
+  "name": "Apprenticeship – Draft POST with English & Maths (DECIMAL value from SLD) then Approve (2627 AY)",
+  "description": "As apprenticeship-draft-post-approve-enm-ay2627 but with learnAimRef DECIMAL, which the SLD Data API stub prices at 1234.56. The payload still sends amount 400, which the outer API should ignore. Asserts Learning's EnglishAndMaths.Amount is 1234.56.",
+  "wipeOnRun": true,
+  "tags": [
+    "FLP-1281"
+  ],
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship with English & Maths (learnAimRef DECIMAL)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Learning EnglishAndMaths.Amount is the SLD value (1234.56), not the inbound 400",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "03-assert-enm-amount.sql",
+      "expected": [
+        { "field": "Amount", "value": "1234.56" }
+      ]
+    }
+  ]
+}

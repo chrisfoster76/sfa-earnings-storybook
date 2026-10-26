@@ -1,0 +1,46 @@
+{
+  "name": "Apprenticeship - Draft POST with English & Maths, Approve, then PUT E&M dates only (2627 AY)",
+  "description": "Copy of apprenticeship-draft-post-approve-enm-ay2627: POSTs a draft apprenticeship with an English & Maths course (all dates after 01-Aug-2026, 2627 AY) and approves it via ApprenticeshipCreatedEvent. SLD then PUTs the same learner changing ONLY the E&M dates (start 2026-09-01 -> 2026-09-08, end 2027-06-30 -> 2027-07-14); the on-programme aim is unchanged. Exploratory - used to see how a later earnings version (new EarningsId) is handled for the on-programme and E&M messages. No assertions.",
+  "wipeOnRun": true,
+  "tags": [
+    "FLP-1537",
+    "FLP-2009"
+  ],
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship with English & Maths",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "Wait - inspect DB after approval, then continue with the E&M dates PUT",
+      "type": "Wait"
+    },
+    {
+      "name": "SLD PUTs modified English & Maths dates (on-programme unchanged)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-enm-dates-changed.json",
+      "extract": {}
+    }
+  ]
+}

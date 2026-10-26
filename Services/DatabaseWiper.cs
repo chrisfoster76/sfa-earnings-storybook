@@ -3,12 +3,20 @@ using Microsoft.Data.SqlClient;
 
 namespace LearnerDataStorybook.Services;
 
+public record WipeResult(IReadOnlyList<string> Failures)
+{
+    public bool Succeeded => Failures.Count == 0;
+    public string Summary => string.Join("; ", Failures);
+}
+
 public class DatabaseWiper(AppConfig config)
 {
-    public async Task WipeAllAsync()
+    public async Task<WipeResult> WipeAllAsync()
     {
+        var failures = new List<string>();
+
         if (config.DatabaseWipes.Count == 0)
-            return;
+            return new WipeResult(failures);
 
         Console.WriteLine("Wiping databases...");
 
@@ -23,6 +31,7 @@ public class DatabaseWiper(AppConfig config)
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine($"skipped (script not found: {wipe.ScriptFile})");
                 Console.ResetColor();
+                failures.Add($"{dbName}: script not found ({wipe.ScriptFile})");
                 continue;
             }
 
@@ -50,10 +59,12 @@ public class DatabaseWiper(AppConfig config)
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"FAILED — {ex.Message}");
                 Console.ResetColor();
+                failures.Add($"{dbName}: {ex.Message}");
             }
         }
 
         Console.WriteLine();
+        return new WipeResult(failures);
     }
 
     private static string[] SplitBatches(string script) =>

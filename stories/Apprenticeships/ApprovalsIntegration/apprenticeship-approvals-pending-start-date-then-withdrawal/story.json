@@ -1,0 +1,162 @@
+{
+  "name": "Pending Start Date Change Then Withdrawal",
+  "description": "FLP-2089. SLD POSTs a draft apprenticeship, Commitments approves it, then SLD PUTs a new StartDate (2025-09-13) which the local Approvals stub answers EmployerApprovalRequested (pending). Earnings is still updated with the new start date and its episode is flagged FurtherApprovalNeeded, matching Learning. SLD then PUTs a withdrawal while the start date change is still pending. The withdrawal reaches Earnings (the outer API no longer holds it back, as it did under FLP-2107), and both flags stay set. Bus messages are asserted from EventHub's ReceivedEvents, so EventHub must be running locally (the storybook checks before running): the expected events are waited for, then the ones that must not appear are checked.",
+  "wipeOnRun": true,
+  "tags": [
+    "Approvals Integration"
+  ],
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Changes the Start Date (Approvals answers pending)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-start-date-change.json",
+      "extract": {}
+    },
+    {
+      "name": "Capture the Earnings Start Date While the Change Is Pending",
+      "type": "Sql",
+      "connectionName": "Earnings",
+      "queryFile": "05-earnings-price-start-date.sql",
+      "extract": {
+        "earningsStartDateWhilePending": "StartDate"
+      }
+    },
+    {
+      "name": "SLD Withdraws the Learner (start date change still pending)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "06-put-withdrawal.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Earnings took the new start date while the change was pending",
+      "type": "Context",
+      "expected": [
+        {
+          "field": "earningsStartDateWhilePending",
+          "value": "2025-09-13"
+        }
+      ]
+    },
+    {
+      "name": "Learning episode still needs further approval after the withdrawal",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "07-episode-further-approval-needed.sql",
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Earnings episode still needs further approval after the withdrawal",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "10-earnings-further-approval-needed.sql",
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Withdrawal reaches Earnings while the start date is awaiting approval",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "08-earnings-withdrawal-date.sql",
+      "expected": [
+        {
+          "field": "WithdrawalDate",
+          "value": "2026-01-31"
+        }
+      ]
+    },
+    {
+      "name": "Pending start date has reached the Earnings price",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "05-earnings-price-start-date.sql",
+      "expected": [
+        {
+          "field": "StartDate",
+          "value": "2025-09-13"
+        }
+      ]
+    },
+    {
+      "name": "Pending start date has reached the Earnings period in learning",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "09-earnings-period-in-learning-start-date.sql",
+      "expected": [
+        {
+          "field": "StartDate",
+          "value": "2025-09-13"
+        }
+      ]
+    },
+    {
+      "name": "Payments are withheld once, on the start date change, and the withdrawal reaches Approvals",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "11-eventhub-events.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "Withholds",
+          "value": "1"
+        },
+        {
+          "field": "Withdrawals",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "No change is echoed to Approvals and no on-programme payments are released",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "11-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "ApprovedLearningUpdates",
+          "value": "0"
+        },
+        {
+          "field": "OnProgrammePaymentsFrom13th",
+          "value": "0"
+        }
+      ]
+    }
+  ]
+}

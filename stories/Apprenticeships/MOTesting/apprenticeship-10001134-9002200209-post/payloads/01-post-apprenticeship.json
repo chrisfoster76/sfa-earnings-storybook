@@ -1,0 +1,43 @@
+{
+  "consumerReference": "2226337",
+  "learner": {
+    "uln": 9002200209,
+    "learnerRef": "9002200209",
+    "firstname": "GivenNames",
+    "lastname": "FamilyName",
+    "dob": "2003-02-07",
+    "email": "myemail@myemail.com",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "englishAndMaths": [],
+    "onProgramme": [
+      {
+        "standardCode": 785,
+        "learnAimRef": "ZPROG001",
+        "startDate": "2025-09-09",
+        "expectedEndDate": "2027-09-29",
+        "offTheJobHours": null,
+        "costs": [
+          {
+            "trainingPrice": 10381,
+            "epaoPrice": 1100,
+            "fromDate": "2025-09-09"
+          }
+        ],
+        "completionDate": null,
+        "achievementDate": null,
+        "withdrawalDate": null,
+        "learningSupport": [],
+        "isFlexiJob": false,
+        "pauseDate": null,
+        "aimSequenceNumber": 1,
+        "actualEndDate": null,
+        "care": {
+          "careleaver": false,
+          "employerConsent": true
+        }
+      }
+    ]
+  }
+}

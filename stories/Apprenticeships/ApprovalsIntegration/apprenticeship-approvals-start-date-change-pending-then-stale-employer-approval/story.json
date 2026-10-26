@@ -1,0 +1,120 @@
+{
+  "name": "Start Date Change Pending Approval, Then Stale Employer Approval",
+  "description": "FLP-2090 (Q6). SLD POSTs a draft apprenticeship, Commitments approves it, then SLD PUTs a new StartDate on the 13th, which the local Approvals stub answers EmployerApprovalRequested (pending). Both Learning and Earnings flag the episode FurtherApprovalNeeded and Earnings withholds payments. Approvals then publishes LearningChangeApprovedEvent for a start date of the 20th, which doesn't match the 13th Learning holds, so Learning drops the whole approval (fail closed): both flags stay set, nothing is echoed to Approvals, no EpisodeApprovedEvent is published and no on-programme payments are released. Nothing observable happens on a dropped approval, so the approval step waits 15s before the assertions. Bus messages are asserted from EventHub's ReceivedEvents, so EventHub must be running locally (the storybook checks before running).",
+  "wipeOnRun": true,
+  "tags": [
+    "Approvals Integration"
+  ],
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner and Learning Keys",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-keys.sql",
+      "extract": {
+        "learnerKey": "LearnerKey",
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Changes the Start Date to the 13th (Approvals answers pending)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-start-date-change-pending.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approval Arrives for the 20th (stale)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.LearningChangeApprovedEvent",
+      "payloadFile": "08-stale-learning-change-approved-event.json",
+      "delayMs": 15000
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Payments were withheld for the pending change",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "10-eventhub-events.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "Withholds",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "Learning episode still needs further approval",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "09-episode-further-approval-needed.sql",
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Earnings episode still needs further approval",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "07-earnings-further-approval-needed.sql",
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Earnings keeps the pending start date",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "06-earnings-price-start-date.sql",
+      "expected": [
+        {
+          "field": "StartDate",
+          "value": "2025-09-13"
+        }
+      ]
+    },
+    {
+      "name": "Nothing is echoed to Approvals, no episode is approved and no on-programme payments are released",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "10-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "ApprovedLearningUpdates",
+          "value": "0"
+        },
+        {
+          "field": "EpisodeApprovals",
+          "value": "0"
+        },
+        {
+          "field": "OnProgrammePaymentsFrom13th",
+          "value": "0"
+        }
+      ]
+    }
+  ]
+}

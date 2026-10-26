@@ -1,0 +1,21 @@
+{
+  "name": "Short Course - POST and Approve, All Dates Within Previous AY, No Claims",
+  "description": "SLD POSTs a short course with start and expected end date both within AY 25/26 (the previous AY relative to the current default), no milestones claimed. Employer approves it. No PUT, no milestone claims.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    }
+  ]
+}

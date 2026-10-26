@@ -35,6 +35,17 @@ public class StoryRunner
         var story = entry.Story;
         var context = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        // an EventHub assertion against a stopped EventHub would mislead: "expect 1" fails for the wrong reason, "expect 0" passes
+        if (story.Assertions.Any(a => string.Equals(a.ConnectionName, EventHubConnectionName, StringComparison.OrdinalIgnoreCase))
+            && !await IsEventHubRunningAsync())
+        {
+            _out.ForegroundColor = ConsoleColor.Red;
+            _out.WriteLine($"  EventHub isn't running at {_config.EventHubUrl}, and this story asserts on the events it captures. Start EventHub (--env local) and run again.");
+            _out.ResetColor();
+            sw.Stop();
+            return new StoryRunResult(false, 0, story.Assertions.Count, sw.Elapsed);
+        }
+
         var handler = new HttpClientHandler
         {
             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
@@ -56,7 +67,7 @@ public class StoryRunner
 
             var success = step.Type.ToUpperInvariant() switch
             {
-                "EVENT"   => await RunEventStepAsync(stepNum, step, entry.FolderPath),
+                "EVENT"   => await RunEventStepAsync(stepNum, step, entry.FolderPath, context),
                 "SQL"     => await RunSqlStepAsync(stepNum, step, entry.FolderPath, context),
                 "ASSERT"  => await RunAssertStepAsync(stepNum, step, entry.FolderPath),
                 "CONTEXT" => RunContextStep(stepNum, step, context),
@@ -102,6 +113,22 @@ public class StoryRunner
         return new StoryRunResult(true, 0, 0, sw.Elapsed);
     }
 
+    private const string EventHubConnectionName = "EventHub";
+
+    private async Task<bool> IsEventHubRunningAsync()
+    {
+        try
+        {
+            using var http = new HttpClient { BaseAddress = new Uri(_config.EventHubUrl), Timeout = TimeSpan.FromSeconds(3) };
+            var response = await http.GetAsync("/events?limit=1");
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     // ── Adhoc entry point ────────────────────────────────────────────────────
 
     public async Task RunAdhocStepAsync(Step step, string adhocFolder, Dictionary<string, string> context)
@@ -118,7 +145,7 @@ public class StoryRunner
 
         var success = step.Type.ToUpperInvariant() switch
         {
-            "EVENT"   => await RunEventStepAsync(1, step, adhocFolder),
+            "EVENT"   => await RunEventStepAsync(1, step, adhocFolder, context),
             "SQL"     => await RunSqlStepAsync(1, step, adhocFolder, context),
             "CONTEXT" => RunContextStep(1, step, context),
             "WAIT"    => RunWaitForUserStep(1, step),
@@ -274,7 +301,7 @@ public class StoryRunner
 
     // ── Event step ───────────────────────────────────────────────────────────
 
-    private async Task<bool> RunEventStepAsync(int stepNum, Step step, string folderPath)
+    private async Task<bool> RunEventStepAsync(int stepNum, Step step, string folderPath, Dictionary<string, string> context)
     {
         if (_endpointInstance is null)
         {
@@ -310,6 +337,9 @@ public class StoryRunner
             }
             payload = await File.ReadAllTextAsync(payloadPath);
         }
+
+        if (payload is not null)
+            payload = ResolveTemplate(payload, context);
 
         PrintEventStepStart(stepNum, step, payload);
 
@@ -562,66 +592,46 @@ public class StoryRunner
                 continue;
             }
 
-            try
+            // with WaitMs, re-run until it passes or time runs out; the last outcome is the one reported
+            var waited = Stopwatch.StartNew();
+            var outcome = await EvaluateSqlAssertionAsync(connectionString, query, assertion.Expected);
+            while (!outcome.Passed && waited.ElapsedMilliseconds < assertion.WaitMs)
             {
-                await using var conn = new SqlConnection(connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new SqlCommand(query, conn);
-                await using var reader = await cmd.ExecuteReaderAsync();
-
-                if (!await reader.ReadAsync())
-                {
-                    _out.ForegroundColor = ConsoleColor.Red;
-                    _out.WriteLine($"  {num}. {assertion.Name}  —  FAIL (query returned no rows)");
-                    _out.ResetColor();
-                    allPassed = false;
-                    continue;
-                }
-
-                var fieldResults = new List<(string Field, string Expected, string Actual, bool Passed)>();
-                foreach (var exp in assertion.Expected)
-                {
-                    string actual;
-                    try
-                    {
-                        var ordinal = reader.GetOrdinal(exp.Field);
-                        actual = reader.IsDBNull(ordinal) ? "null" : reader.GetValue(ordinal).ToString()!;
-                    }
-                    catch { actual = "<column not found>"; }
-                    fieldResults.Add((exp.Field, exp.Value, actual,
-                        string.Equals(actual, exp.Value, StringComparison.OrdinalIgnoreCase)));
-                }
-
-                var assertionPassed = fieldResults.All(r => r.Passed);
-                _out.ForegroundColor = assertionPassed ? ConsoleColor.Green : ConsoleColor.Red;
-                _out.Write($"  {num}. {assertion.Name}  —  ");
-
-                if (assertionPassed)
-                {
-                    var summary = string.Join(", ", fieldResults.Select(r => $"{r.Field}={r.Actual}"));
-                    _out.WriteLine($"PASS ({summary})");
-                }
-                else
-                {
-                    _out.WriteLine("FAIL");
-                    foreach (var (field, expected, actual, passed) in fieldResults)
-                    {
-                        _out.ForegroundColor = passed ? ConsoleColor.Green : ConsoleColor.Red;
-                        _out.WriteLine($"       {field}: expected {expected}, got {actual}");
-                    }
-                }
-
-                _out.ResetColor();
-                if (assertionPassed) passCount++;
-                else allPassed = false;
+                await Task.Delay(500);
+                outcome = await EvaluateSqlAssertionAsync(connectionString, query, assertion.Expected);
             }
-            catch (Exception ex)
+
+            if (outcome.Error is not null)
             {
                 _out.ForegroundColor = ConsoleColor.Red;
-                _out.WriteLine($"  {num}. {assertion.Name}  —  FAIL ({ex.Message})");
+                _out.WriteLine($"  {num}. {assertion.Name}  —  FAIL ({outcome.Error})");
                 _out.ResetColor();
                 allPassed = false;
+                continue;
             }
+
+            var waitedNote = assertion.WaitMs > 0 ? $", after {waited.ElapsedMilliseconds}ms" : "";
+            _out.ForegroundColor = outcome.Passed ? ConsoleColor.Green : ConsoleColor.Red;
+            _out.Write($"  {num}. {assertion.Name}  —  ");
+
+            if (outcome.Passed)
+            {
+                var summary = string.Join(", ", outcome.FieldResults.Select(r => $"{r.Field}={r.Actual}"));
+                _out.WriteLine($"PASS ({summary}{waitedNote})");
+            }
+            else
+            {
+                _out.WriteLine(assertion.WaitMs > 0 ? $"FAIL (gave up after {waited.ElapsedMilliseconds}ms)" : "FAIL");
+                foreach (var (field, expected, actual, passed) in outcome.FieldResults)
+                {
+                    _out.ForegroundColor = passed ? ConsoleColor.Green : ConsoleColor.Red;
+                    _out.WriteLine($"       {field}: expected {expected}, got {actual}");
+                }
+            }
+
+            _out.ResetColor();
+            if (outcome.Passed) passCount++;
+            else allPassed = false;
         }
 
         _out.WriteLine("");
@@ -629,6 +639,46 @@ public class StoryRunner
         _out.WriteLine(allPassed ? "  All assertions passed." : "  One or more assertions failed.");
         _out.ResetColor();
         return (allPassed, passCount, total);
+    }
+
+    private record SqlAssertionOutcome(
+        bool Passed,
+        string? Error,
+        List<(string Field, string Expected, string Actual, bool Passed)> FieldResults);
+
+    // Runs the query once and compares the first row against the expected fields.
+    private static async Task<SqlAssertionOutcome> EvaluateSqlAssertionAsync(string connectionString, string query, List<AssertionExpectation> expected)
+    {
+        try
+        {
+            await using var conn = new SqlConnection(connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new SqlCommand(query, conn);
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                return new SqlAssertionOutcome(false, "query returned no rows", []);
+
+            var fieldResults = new List<(string Field, string Expected, string Actual, bool Passed)>();
+            foreach (var exp in expected)
+            {
+                string actual;
+                try
+                {
+                    var ordinal = reader.GetOrdinal(exp.Field);
+                    actual = reader.IsDBNull(ordinal) ? "null" : reader.GetValue(ordinal).ToString()!;
+                }
+                catch { actual = "<column not found>"; }
+                fieldResults.Add((exp.Field, exp.Value, actual,
+                    string.Equals(actual, exp.Value, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            return new SqlAssertionOutcome(fieldResults.All(r => r.Passed), null, fieldResults);
+        }
+        catch (Exception ex)
+        {
+            return new SqlAssertionOutcome(false, ex.Message, []);
+        }
     }
 
     // Compares run-context values (e.g. a status code captured via a step's CaptureStatusAs)

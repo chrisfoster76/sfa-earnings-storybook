@@ -32,6 +32,7 @@ public static class RunAllView
         Console.ResetColor();
 
         int passCount = 0, failCount = 0;
+        var wipeFailures = new List<(string Story, string Message)>();
 
         for (int i = 0; i < runnable.Count; i++)
         {
@@ -45,11 +46,18 @@ public static class RunAllView
             // Wipe silently before each story
             var savedOut = Console.Out;
             Console.SetOut(TextWriter.Null);
-            try   { await wiper.WipeAllAsync(); }
+            WipeResult wipe;
+            try   { wipe = await wiper.WipeAllAsync(); }
             finally { Console.SetOut(savedOut); }
 
             // Run story, suppressing all step-level output
             StoryRunResult result;
+            if (!wipe.Succeeded)
+            {
+                wipeFailures.Add((entry.Story.Name, wipe.Summary));
+                result = new StoryRunResult(false, 0, entry.Story.Assertions.Count, TimeSpan.Zero);
+            }
+            else
             try
             {
                 result = await runner.WithOutput(new NullConsoleWriter()).RunAsync(entry, skipWaits: true);
@@ -94,6 +102,16 @@ public static class RunAllView
         Console.WriteLine(summary);
 
         Console.ResetColor();
+
+        if (wipeFailures.Count > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"  {wipeFailures.Count} stories not run — database wipe failed:");
+            foreach (var (story, message) in wipeFailures.DistinctBy(f => f.Message).Take(1))
+                Console.WriteLine($"    {message}");
+            Console.ResetColor();
+        }
+
         Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.Write("  Press any key to return to the menu...");

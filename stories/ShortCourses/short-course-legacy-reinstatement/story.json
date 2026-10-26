@@ -1,0 +1,41 @@
+{
+  "name": "Short Course - Legacy Reinstatement",
+  "description": "POST/re-POST via the legacy 2025/26 route (no academicYear querystring); DELETE via the new-style 2026/27 route (academicYear=2627)",
+  "extraDescription": "Confirms mixing route styles within one lifecycle works: POST and the reinstating re-POST use the legacy /providers/{ukprn}/shortCourses route, while the DELETE in between uses the new-style /providers/{ukprn}/shortCourses/{learnerKey}?academicYear=2627 route. When reinstated, the 30% milestone is claimed at the same time, which it wasn't previously.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates the Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json"
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Deletes the Short Course — new-style URI with academicYear=2627",
+      "verb": "DELETE",
+      "route": "/providers/10005077/shortCourses/{learnerKey}?academicYear=2627"
+    },
+    {
+      "name": "SLD Reinstates the Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "04-post-reinstate.json"
+    }
+  ]
+}

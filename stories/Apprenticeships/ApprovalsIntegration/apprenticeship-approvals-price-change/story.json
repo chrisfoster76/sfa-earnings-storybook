@@ -1,0 +1,83 @@
+{
+  "name": "Apprenticeship — Draft POST, Approve, Then PUT Price Change",
+  "description": "SLD POSTs a draft apprenticeship with a single price, Commitments approves it via ApprenticeshipCreatedEvent, then SLD PUTs the same learner with a changed price (training 6400 to 7200, EPA 1600 to 1800) and nothing else changed. Prices are not yet part of the Approvals integration, but the end state is the same as for a start date change: no further approval needed.",
+  "wipeOnRun": true,
+  "tags": [
+    "Approvals Integration"
+  ],
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Changes the Price",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-price-change.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Single price updated, start date unchanged",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "05-episode-price.sql",
+      "expected": [
+        {
+          "field": "StartDate",
+          "value": "2025-09-01"
+        },
+        {
+          "field": "PriceCount",
+          "value": "1"
+        },
+        {
+          "field": "TrainingPrice",
+          "value": "7200"
+        },
+        {
+          "field": "EndPointAssessmentPrice",
+          "value": "1800"
+        },
+        {
+          "field": "TotalPrice",
+          "value": "9000"
+        }
+      ]
+    },
+    {
+      "name": "Episode does not need further approval",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "06-episode-further-approval-needed.sql",
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "False"
+        }
+      ]
+    }
+  ]
+}

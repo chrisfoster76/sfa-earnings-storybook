@@ -1,0 +1,14 @@
+{
+  "name": "Apprenticeship 9002200209 — POST only",
+  "description": "POSTs the ILR record for ULN 9002200209, UKPRN 10001134 (from NewApprenticeshipResponse_10001134.json) to the LearnerData Outer API. Standard 785, TrainingPrice 10381, no completion/withdrawal — still in progress.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create an Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10001134/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    }
+  ]
+}

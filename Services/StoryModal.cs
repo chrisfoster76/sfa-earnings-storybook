@@ -48,8 +48,17 @@ public static class StoryModal
                 AddLine("  ⊗ Wiping database...", ConsoleColor.DarkYellow);
                 var savedOut = Console.Out;
                 Console.SetOut(TextWriter.Null);
-                try   { await wiper.WipeAllAsync(); }
+                WipeResult wipe;
+                try   { wipe = await wiper.WipeAllAsync(); }
                 finally { Console.SetOut(savedOut); }
+
+                if (!wipe.Succeeded)
+                {
+                    AddLine($"  ✗ Wipe FAILED: {wipe.Summary}", ConsoleColor.Red);
+                    AddLine("  Story not run — database is in an unknown state.", ConsoleColor.Red);
+                    Console.SetCursorPosition(left + 2, top + innerH);
+                    return;
+                }
             }
 
             // Add the spinner line and remember its index so we can update it in-place

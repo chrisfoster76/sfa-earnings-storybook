@@ -1,0 +1,42 @@
+{
+  "name": "Apprenticeship — Draft POST Twice, StartDate Updated Across AY Boundary",
+  "description": "Variant of apprenticeship-draft-post-twice-startdate-updated: POSTs the same apprenticeship learner (ULN 44444447, standard 21) twice with no ApprenticeshipCreatedEvent in between, but this time the first POST's StartDate (2026-07-01) falls in the 2526 AY while the second POST's StartDate (2026-09-01) falls in the 2627 AY — the resubmission moves the draft's AY, not just its date within the same AY. CreateDraftApprenticeshipLearningCommandHandler.Handle finds the draft learning already exists via GetByLearnerKey and merges the resubmission's changed fields via learning.Update(updateModel) — the second POST's StartDate change is applied, still on the same episode (no second episode is created). No approval step — the draft is left unapproved. Exploratory — no assertions on AY-specific behaviour yet.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "SLD Creates the Draft Apprenticeship (StartDate 2026-07-01, 2526 AY)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Re-POSTs the Same Apprenticeship With a Changed StartDate (2026-09-01, 2627 AY)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "02-post-apprenticeship-startdate-changed.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Still only one episode for the learner",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "03-count-episodes.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "Episode StartDate matches the POSTed value",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "04-episode-start-date.sql",
+      "expected": [
+        { "field": "StartDate", "value": "2026-09-01" }
+      ]
+    }
+  ]
+}

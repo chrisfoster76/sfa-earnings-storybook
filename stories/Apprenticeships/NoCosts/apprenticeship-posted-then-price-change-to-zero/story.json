@@ -1,0 +1,37 @@
+{
+  "name": "POSTed with costs, approved, then price change to £0 (6 months in)",
+  "description": "POSTs the ILR record for ULN 9002195507, UKPRN 10001134 with a real cost (£6,400 training + £1,600 EPAO from the start date, 2026/27 AY, 2-year course). Commitments approves it, then 6 months into the course the price is changed to £0 via a PUT.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create an Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10001134/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    },
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Submits Price Change to Zero",
+      "verb": "PUT",
+      "route": "/providers/10001134/learning/{learnerKey}",
+      "payloadFile": "04-put-price-change-to-zero.json",
+      "extract": {}
+    }
+  ]
+}

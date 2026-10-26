@@ -1,0 +1,45 @@
+{
+  "name": "Apprenticeship — Draft POST, Approve (2627 AY), DELETE it, then POST a New Course (2728 AY)",
+  "description": "Based on apprenticeship-draft-post-progression-2728: POSTs a draft apprenticeship starting in the 2627 academic year, approves it via ApprenticeshipCreatedEvent, then SLD DELETEs the now-approved 2627 learning entirely before POSTing the same learner onto a different, unrelated course starting in the 2728 academic year — exploring how the draft-POST/Progression path behaves when a learner's only prior record was an approved apprenticeship that has since been removed. Exploratory — no assertions yet.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537", "FLP-2009"],
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship (2627 AY)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD DELETEs the Now-Approved 2627 Learning",
+      "verb": "DELETE",
+      "route": "/providers/10005077/learning/{learnerKey}?academicYear=2627",
+      "extract": {}
+    },
+    {
+      "name": "SLD POSTs the Same Learner onto a Different Course (2728 AY)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "04-post-different-course-2728.json",
+      "extract": {}
+    }
+  ]
+}

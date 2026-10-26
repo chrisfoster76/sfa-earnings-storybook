@@ -1,0 +1,32 @@
+{
+  "ApprenticeshipId": 200007,
+  "ApprenticeshipHashedId": "",
+  "Uln": "9000359502",
+  "ProviderId": 10005077,
+  "LearningType": "Apprenticeship",
+  "DeliveryModel": "Regular",
+  "ApprenticeshipEmployerTypeOnApproval": "Levy",
+  "DateOfBirth": "1998-12-20T00:00:00Z",
+  "FirstName": "Mary Jane",
+  "LastName": "Sm\u00c3\u00a9th",
+  "IsOnFlexiPaymentPilot": true,
+  "ActualStartDate": "2023-11-13T00:00:00Z",
+  "StartDate": "2023-11-13T00:00:00Z",
+  "EndDate": "2025-07-04T00:00:00Z",
+  "TrainingCode": "96",
+  "TrainingCourseVersion": "1.0",
+  "TrainingCourseOption": "option1",
+  "TrainingType": "Standard",
+  "LegalEntityName": "Test Org",
+  "AccountLegalEntityId": 1,
+  "AccountId": 1,
+  "PriceEpisodes": [
+    {
+      "Cost": 4000,
+      "EndPointAssessmentPrice": 800,
+      "TrainingPrice": 3200,
+      "FromDate": "2023-11-13T00:00:00Z",
+      "ToDate": "2025-07-04T00:00:00Z"
+    }
+  ]
+}

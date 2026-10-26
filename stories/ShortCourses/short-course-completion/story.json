@@ -27,11 +27,19 @@
       }
     },
     {
+      "type": "Wait",
+      "name": "Pause After Approval"
+    },
+    {
       "name": "SLD Claims 30% Milestone",
       "verb": "PUT",
       "route": "/providers/10005077/shortCourses/{learnerKey}",
       "payloadFile": "04-put-thirty-percent.json",
       "extract": {}
+    },
+    {
+      "type": "Wait",
+      "name": "Pause After 30% Claim"
     },
     {
       "name": "SLD Claims Completion",

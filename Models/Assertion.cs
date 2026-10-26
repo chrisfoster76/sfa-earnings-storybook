@@ -10,6 +10,9 @@ public class Assertion
     public string? ConnectionName { get; set; }
     public string? Query { get; set; }
     public string? QueryFile { get; set; }
+    // Sql only: keep re-running the query until it passes or this many ms have passed.
+    // For state that arrives asynchronously, e.g. events captured by EventHub.
+    public int WaitMs { get; set; }
     [JsonConverter(typeof(AssertionExpectationConverter))]
     public List<AssertionExpectation> Expected { get; set; } = [];
 }

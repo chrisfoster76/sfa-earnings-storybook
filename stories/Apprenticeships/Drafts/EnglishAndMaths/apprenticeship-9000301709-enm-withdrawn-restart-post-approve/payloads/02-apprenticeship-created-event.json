@@ -1,0 +1,32 @@
+{
+  "ApprenticeshipId": 200006,
+  "ApprenticeshipHashedId": "",
+  "Uln": "9000301709",
+  "ProviderId": 10005077,
+  "LearningType": "Apprenticeship",
+  "DeliveryModel": "Regular",
+  "ApprenticeshipEmployerTypeOnApproval": "Levy",
+  "DateOfBirth": "1989-10-16T00:00:00Z",
+  "FirstName": "Mary Jane",
+  "LastName": "Sm\u00c3\u00a9th",
+  "IsOnFlexiPaymentPilot": true,
+  "ActualStartDate": "2025-03-11T00:00:00Z",
+  "StartDate": "2025-03-11T00:00:00Z",
+  "EndDate": "2027-03-31T00:00:00Z",
+  "TrainingCode": "138",
+  "TrainingCourseVersion": "1.0",
+  "TrainingCourseOption": "option1",
+  "TrainingType": "Standard",
+  "LegalEntityName": "Test Org",
+  "AccountLegalEntityId": 1,
+  "AccountId": 1,
+  "PriceEpisodes": [
+    {
+      "Cost": 4000,
+      "EndPointAssessmentPrice": 900,
+      "TrainingPrice": 3100,
+      "FromDate": "2025-03-11T00:00:00Z",
+      "ToDate": "2027-03-31T00:00:00Z"
+    }
+  ]
+}

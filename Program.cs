@@ -101,7 +101,18 @@ if (args.Length > 0)
 
     PrintHeader();
     if (entry.Story.WipeOnRun)
-        await wiper.WipeAllAsync();
+    {
+        var wipe = await wiper.WipeAllAsync();
+        if (!wipe.Succeeded)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"Wipe failed — story not run. {wipe.Summary}");
+            Console.ResetColor();
+            if (endpointInstance is not null)
+                await endpointInstance.Stop().ConfigureAwait(false);
+            return;
+        }
+    }
     await runner.RunAsync(entry);
 
     if (endpointInstance is not null)

@@ -1,0 +1,44 @@
+{
+  "name": "PUT Then Re-POST Move CompletionDate Step-by-Step Across an AY Boundary",
+  "description": "SLD POSTs ZSC00001 starting 2026-06-01 (AY 25/26) with no completion date — an open enrolment. Employer approves it. SLD then PUTs the same course, giving it a CompletionDate of 2026-07-31 — still within AY 25/26, no academicYear query param needed. SLD then re-POSTs the same learner/course a second time, this time via the new-style route with academicYear=2627 explicitly appended, moving CompletionDate on to 2026-08-31 — now landing in AY 26/27, all other details unchanged. Extends ay-repost-completion-date-moves-to-next-ay (a single re-POST straight into the next AY) by inserting a same-AY PUT completion update first, then re-POSTing the AY-crossing one — checks that the normal PUT completion path behaves as expected, and whether the already-approved-episode POST guard (CreateDraftShortCourseCommandHandler.HandleSingleItem) still blocks the AY-crossing re-POST as seen in the single-step gap story.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates Short Course 1 (ZSC00001), Starts June 2026, No Completion/Withdrawal (AY 25/26)",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-course1.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves Short Course 1",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-course1.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs ZSC00001 with CompletionDate Set to 2026-07-31 (still AY 25/26)",
+      "verb": "PUT",
+      "route": "/providers/10005077/shortCourses/{learnerKey}",
+      "payloadFile": "04-put-completion-july.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD Re-POSTs ZSC00001 with CompletionDate Moved to 2026-08-31 (AY 26/27) — new-style URI with academicYear=2627",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses?academicYear=2627",
+      "payloadFile": "05-repost-completion-august.json",
+      "extract": {}
+    }
+  ]
+}

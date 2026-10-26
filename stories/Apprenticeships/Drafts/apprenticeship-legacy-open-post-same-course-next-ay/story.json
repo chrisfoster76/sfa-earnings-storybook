@@ -1,0 +1,64 @@
+{
+  "name": "Apprenticeship — Legacy Open (AY 25/26), Same-Course PUT Crosses Into Next AY (26/27) With Completion",
+  "description": "Provider A's apprenticeship (standard 21) is a 'legacy' record: created directly by Commitments' ApprenticeshipCreatedEvent, never a draft. It starts within AY 25/26 (start 2025-09-01, expected end 2026-07-31) with no completion or withdrawal recorded. Because the episode is approved and not removed, its ULN stays in Provider A's GET response regardless of academic year, so SLD's next submission for this learner/course is correctly a PUT, not a POST — an earlier version of this story incorrectly modelled the AY-crossing update as a fresh POST, which isn't reachable in practice while the episode is still open. SLD PUTs the SAME learnerKey via the legacy route with academicyear=2627, giving the episode a CompletionDate of 2026-10-31 (now landing in AY 26/27, past the original expected end of 2026-07-31 — a late/extended completion). Exploratory: checks whether the single existing ApprenticeshipLearning/ApprenticeshipEpisode row is updated in place across the AY boundary (the expected, correct outcome) or whether the academicyear query param on the PUT route causes any unexpected branching, given UpdateLearnerCommand's handler chain doesn't appear to consume the academicyear parameter at all today (it's accepted by LearnersController.UpdateLearner but never forwarded onto the command).",
+  "wipeOnRun": true,
+  "tags": [
+    "FLP-1537",
+    "FLP-2087"
+  ],
+  "steps": [
+    {
+      "name": "Commitments Approves an Apprenticeship (Provider A, Standard 21, Never a Draft, AY 25/26, No Completion/Withdrawal)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "02-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD PUTs the Same Learner/Course With a CompletionDate of 2026-10-31 — academicyear=2627",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}?academicyear=2627",
+      "payloadFile": "03-put-completion-ay2627.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Still exactly one ApprenticeshipLearning row for the learner — the PUT updated the existing row rather than creating a second one",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "06-count-learnings.sql",
+      "expected": [
+        {
+          "field": "Count",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "The episode reflects the completion despite the AY-crossing PUT",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "07-episode-completed.sql",
+      "expected": [
+        {
+          "field": "IsApproved",
+          "value": "True"
+        },
+        {
+          "field": "CompletionDate",
+          "value": "2026-10-31"
+        }
+      ]
+    }
+  ]
+}

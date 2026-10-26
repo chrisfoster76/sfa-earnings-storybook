@@ -1,0 +1,46 @@
+{
+  "name": "Apprenticeship — Draft POST, Approve, Complete (2627 AY), then POST a New Course (2728 AY)",
+  "description": "Based on apprenticeship-draft-post-ay2627: POSTs a draft apprenticeship starting in the 2627 academic year, approves it via ApprenticeshipCreatedEvent, then SLD PUTs a completion for that course. Finally, SLD POSTs the same learner onto a different, unrelated course starting in the 2728 academic year — exploring how the draft-POST/Progression path behaves when a learner already has a completed apprenticeship and a brand new course arrives via POST rather than a bundled PUT. Exploratory — no assertions yet.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537", "FLP-2009"],
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship (2627 AY)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Records Completion (2627 AY)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-completion.json",
+      "extract": {}
+    },
+    {
+      "name": "SLD POSTs the Same Learner onto a Different Course (2728 AY)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "05-post-different-course-2728.json",
+      "extract": {}
+    }
+  ]
+}

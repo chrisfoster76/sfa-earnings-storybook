@@ -1,5 +1,5 @@
 SELECT
-    RTRIM(ae.[TrainingCode]) AS TrainingCode,
+    RTRIM(al.[TrainingCode]) AS TrainingCode,
     ae.[IsApproved] AS IsApproved,
     ae.[IsRemoved] AS IsRemoved,
     CONVERT(VARCHAR(10), MIN(ep.[StartDate]), 23) AS StartDate
@@ -8,5 +8,5 @@ INNER JOIN [ApprenticeshipLearning] al ON al.[Key] = ae.[LearningKey]
 INNER JOIN [Learner] l ON l.[Key] = al.[LearnerKey]
 INNER JOIN [EpisodePrice] ep ON ep.[EpisodeKey] = ae.[Key]
 WHERE l.[Uln] = '44444444'
-AND RTRIM(ae.[TrainingCode]) = '30'
-GROUP BY ae.[TrainingCode], ae.[IsApproved], ae.[IsRemoved]
+AND RTRIM(al.[TrainingCode]) = '30'
+GROUP BY al.[TrainingCode], ae.[IsApproved], ae.[IsRemoved]

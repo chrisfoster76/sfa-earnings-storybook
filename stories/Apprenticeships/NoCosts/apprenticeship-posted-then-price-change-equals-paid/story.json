@@ -1,0 +1,37 @@
+{
+  "name": "POSTed with costs, approved, then price change to the amount already paid (6 months in)",
+  "description": "Copy of 'apprenticeship-posted-then-price-change-to-zero' with a subtler twist: instead of dropping the price to £0, the price is changed 6 months in to exactly the amount already earned on-programme by that point. Original price is £3,840 training + £960 EPAO (£4,800 total, deliberately kept under standard 297's £5,000 funding band maximum so the cap doesn't distort the sums) — on-programme total is 80% of £4,800 = £3,840 over 24 months (2026/27 AY, 2-year course), i.e. £160/month, so 6 months in exactly £960 has been earned. The price change sets the new total to £1,200 (£960 training + £240 EPAO), giving a new on-programme total of £960 (80% of £1,200) — identical to the amount already paid — so every remaining on-programme instalment from that point on is exactly £0 rather than negative or positive.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create an Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10001134/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    },
+    {
+      "name": "Commitments Approves an Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Submits Price Change to Amount Already Paid",
+      "verb": "PUT",
+      "route": "/providers/10001134/learning/{learnerKey}",
+      "payloadFile": "04-put-price-change-to-paid-amount.json",
+      "extract": {}
+    }
+  ]
+}

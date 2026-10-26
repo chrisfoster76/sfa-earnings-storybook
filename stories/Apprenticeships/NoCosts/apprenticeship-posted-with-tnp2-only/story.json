@@ -1,0 +1,14 @@
+{
+  "name": "POSTed with TNP2 only (no TNP1)",
+  "description": "POSTs the ILR record for ULN 9002195507, UKPRN 10001134 with only an EPAO price (TNP2) set — the training price (TNP1) is left null. No approval step.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create an Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10001134/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    }
+  ]
+}

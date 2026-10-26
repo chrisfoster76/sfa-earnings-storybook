@@ -1,0 +1,22 @@
+{
+  "name": "Apprenticeship 9003828503 — POST with duplicate E&M LearnAimRef, then Approve",
+  "description": "POSTs the ILR record for ULN 9003828503 (from NewApprenticeshipResponse_10038931.json), with original source dates and the provider changed to UKPRN 10005077, to the LearnerData Outer API. The englishAndMaths array holds two rows with the same LearnAimRef (6034992X): aim 3 (2024-08-12, paused/ended 2024-09-27) and aim 6 (2024-12-03, completed 2025-03-03). Costs are present on the on-programme aim. A second step then fires ApprenticeshipCreatedEvent to approve the learner as the employer. No assertions.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create an Apprenticeship with duplicate English & Maths LearnAimRef",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    }
+  ]
+}

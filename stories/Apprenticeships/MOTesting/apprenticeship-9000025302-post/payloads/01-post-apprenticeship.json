@@ -1,0 +1,220 @@
+{
+  "consumerReference": "32258",
+  "learner": {
+    "uln": 9000025302,
+    "learnerRef": "9000025302",
+    "firstname": "Mary Jane",
+    "lastname": "Sméth",
+    "dob": "1993-05-28",
+    "email": "myemail@myemail.com",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "englishAndMaths": [
+      {
+        "startDate": "2027-03-24",
+        "endDate": "2027-07-23",
+        "courseCode": 96,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "priorLearningAdjustment": null,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": "2027-05-01",
+        "aimSequenceNumber": 10,
+        "learnAimRef": "60346498",
+        "actualEndDate": "2027-05-01"
+      },
+      {
+        "startDate": "2027-03-24",
+        "endDate": "2027-07-23",
+        "courseCode": 96,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "priorLearningAdjustment": null,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": "2027-05-01",
+        "aimSequenceNumber": 11,
+        "learnAimRef": "60346462",
+        "actualEndDate": "2027-05-01"
+      },
+      {
+        "startDate": "2027-06-13",
+        "endDate": "2027-09-04",
+        "courseCode": 96,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "priorLearningAdjustment": 50,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": "2028-04-18",
+        "aimSequenceNumber": 14,
+        "learnAimRef": "60346498",
+        "actualEndDate": "2028-04-18"
+      },
+      {
+        "startDate": "2027-06-13",
+        "endDate": "2027-09-04",
+        "courseCode": 96,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "priorLearningAdjustment": 50,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": "2028-04-18",
+        "aimSequenceNumber": 15,
+        "learnAimRef": "60346462",
+        "actualEndDate": "2028-04-18"
+      },
+      {
+        "startDate": "2027-03-20",
+        "endDate": "2027-03-20",
+        "courseCode": 96,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "priorLearningAdjustment": 0,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": "2027-03-20",
+        "aimSequenceNumber": 6,
+        "learnAimRef": "60346498",
+        "actualEndDate": "2027-03-20"
+      },
+      {
+        "startDate": "2027-03-20",
+        "endDate": "2027-03-20",
+        "courseCode": 96,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "priorLearningAdjustment": 0,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": "2027-03-20",
+        "aimSequenceNumber": 7,
+        "learnAimRef": "60346462",
+        "actualEndDate": "2027-03-20"
+      },
+      {
+        "startDate": "2026-09-04",
+        "endDate": "2026-09-04",
+        "courseCode": 96,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "priorLearningAdjustment": 0,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": null,
+        "aimSequenceNumber": 2,
+        "learnAimRef": "60346498",
+        "actualEndDate": null
+      }
+    ],
+    "onProgramme": [
+      {
+        "standardCode": 96,
+        "learnAimRef": "ZPROG001",
+        "agreementId": null,
+        "startDate": "2027-03-24",
+        "expectedEndDate": "2028-08-02",
+        "offTheJobHours": 0,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "pauseDate": "2027-05-01",
+        "learningSupport": [],
+        "care": {
+          "careleaver": false,
+          "employerConsent": true
+        },
+        "aimSequenceNumber": 8,
+        "costs": [
+          {
+            "trainingPrice": 3250,
+            "epaoPrice": 750,
+            "fromDate": "2027-03-24"
+          }
+        ],
+        "isFlexiJob": false,
+        "actualEndDate": "2027-05-01"
+      },
+      {
+        "standardCode": 96,
+        "learnAimRef": "ZPROG001",
+        "agreementId": null,
+        "startDate": "2027-06-13",
+        "expectedEndDate": "2028-09-13",
+        "offTheJobHours": 0,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "pauseDate": "2028-04-18",
+        "learningSupport": [],
+        "care": {
+          "careleaver": false,
+          "employerConsent": true
+        },
+        "aimSequenceNumber": 12,
+        "costs": [
+          {
+            "trainingPrice": 3250,
+            "epaoPrice": 750,
+            "fromDate": "2027-06-13"
+          }
+        ],
+        "isFlexiJob": false,
+        "actualEndDate": "2028-04-18"
+      },
+      {
+        "standardCode": 96,
+        "learnAimRef": "ZPROG001",
+        "agreementId": null,
+        "startDate": "2027-03-20",
+        "expectedEndDate": "2027-08-15",
+        "offTheJobHours": 119,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "pauseDate": "2027-03-20",
+        "learningSupport": [],
+        "care": {
+          "careleaver": false,
+          "employerConsent": true
+        },
+        "aimSequenceNumber": 4,
+        "costs": [
+          {
+            "trainingPrice": 3250,
+            "epaoPrice": 750,
+            "fromDate": "2027-03-20"
+          }
+        ],
+        "isFlexiJob": false,
+        "actualEndDate": "2027-03-20"
+      },
+      {
+        "standardCode": 96,
+        "learnAimRef": "ZPROG001",
+        "agreementId": null,
+        "startDate": "2026-09-04",
+        "expectedEndDate": "2027-01-27",
+        "offTheJobHours": 0,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "pauseDate": null,
+        "learningSupport": [],
+        "care": {
+          "careleaver": false,
+          "employerConsent": true
+        },
+        "aimSequenceNumber": 1,
+        "costs": [
+          {
+            "trainingPrice": 3250,
+            "epaoPrice": 750,
+            "fromDate": "2026-09-04"
+          }
+        ],
+        "isFlexiJob": false,
+        "actualEndDate": null
+      }
+    ]
+  }
+}

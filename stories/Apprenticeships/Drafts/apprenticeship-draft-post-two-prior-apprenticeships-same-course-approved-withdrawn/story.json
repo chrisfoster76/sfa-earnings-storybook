@@ -1,0 +1,104 @@
+{
+  "name": "Apprenticeship — Draft POST With TWO Prior Apprenticeships (Same Course), Approved, Then Withdrawal PUT Silently Ignored",
+  "description": "Extends 'Apprenticeship — Draft POST With TWO Prior Apprenticeships (Same Course, PROD-like)': same setup (two approved, untouched prior ApprenticeshipLearning rows for standard 21, PROD-like with no completion/withdrawal info), and the same third draft POST for standard 21. This time the draft is then approved via ApprenticeshipCreatedEvent — SelectExistingLearningToUpdate matches the single unapproved draft row (neither prior qualifies, both being approved and not-removed) so the correct third row is approved, not one of the two priors. The learner now has THREE approved, non-removed ApprenticeshipLearning rows on standard 21. SLD then PUTs a withdrawal date, addressed only by (LearnerKey, Ukprn, TrainingCode). Per FLP-2087's agreed decision, UpdateLearnerCommandHandler can't disambiguate which of the three rows the PUT belongs to, so it silently ignores the update: 200 response, no repository writes, none of the three rows gets a WithdrawalDate. Confirms that behaviour end-to-end rather than the pre-FLP-2087 InvalidOperationException.",
+  "wipeOnRun": true,
+  "tags": [
+    "FLP-1537",
+    "FLP-2087"
+  ],
+  "steps": [
+    {
+      "name": "Employer Approves Prior Apprenticeship #1, Standard 21, Ending 2026-03-31 (AY 25/26)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-approve-prior-apprenticeship-1-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves Prior Apprenticeship #2, Standard 21, Ending 2026-06-30 (AY 25/26)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-approve-prior-apprenticeship-2-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD Create a New Draft Apprenticeship, Standard 21, Same Learner/Provider/Course",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "03-post-new-draft-apprenticeship.json",
+      "extract": {},
+      "captureStatusAs": "postDraftStatusCode",
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the New Draft Apprenticeship, Standard 21",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "04-approve-new-draft-apprenticeship-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "05-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Records Withdrawal on the Newly-Approved Third Apprenticeship",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "06-put-withdrawal.json",
+      "extract": {},
+      "captureStatusAs": "putWithdrawalStatusCode"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Draft POST succeeds (course-scoped query with 2 same-course prior rows doesn't cause ambiguity)",
+      "type": "Context",
+      "expected": [
+        {
+          "field": "postDraftStatusCode",
+          "value": "202"
+        }
+      ]
+    },
+    {
+      "name": "Learner still has three ApprenticeshipLearning rows",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "07-count-apprenticeship-learnings.sql",
+      "expected": [
+        {
+          "field": "Count",
+          "value": "3"
+        }
+      ]
+    },
+    {
+      "name": "The ambiguous PUT returns 202 rather than throwing",
+      "type": "Context",
+      "expected": [
+        {
+          "field": "putWithdrawalStatusCode",
+          "value": "202"
+        }
+      ]
+    },
+    {
+      "name": "None of the three standard-21 episodes were touched — all still approved, not removed, and carry no withdrawal date",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "08-episode-withdrawn.sql",
+      "expected": [
+        {
+          "field": "Count",
+          "value": "3"
+        }
+      ]
+    }
+  ]
+}

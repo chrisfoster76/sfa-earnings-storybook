@@ -1,0 +1,32 @@
+{
+  "ApprenticeshipId": 800002,
+  "ApprenticeshipHashedId": "",
+  "Uln": "9002195507",
+  "ProviderId": 10001134,
+  "LearningType": "Apprenticeship",
+  "DeliveryModel": "Regular",
+  "ApprenticeshipEmployerTypeOnApproval": "Levy",
+  "DateOfBirth": "1982-04-17T00:00:00Z",
+  "FirstName": "GivenNames",
+  "LastName": "FamilyName",
+  "IsOnFlexiPaymentPilot": true,
+  "ActualStartDate": "2026-11-14T00:00:00Z",
+  "StartDate": "2026-11-14T00:00:00Z",
+  "EndDate": "2028-11-14T00:00:00Z",
+  "TrainingCode": "297",
+  "TrainingCourseVersion": "",
+  "TrainingCourseOption": "",
+  "TrainingType": "Standard",
+  "LegalEntityName": "Test Org",
+  "AccountLegalEntityId": 1,
+  "AccountId": 1,
+  "PriceEpisodes": [
+    {
+      "Cost": 4800,
+      "EndPointAssessmentPrice": 960,
+      "TrainingPrice": 3840,
+      "FromDate": "2026-11-14T00:00:00Z",
+      "ToDate": "2028-11-14T00:00:00Z"
+    }
+  ]
+}

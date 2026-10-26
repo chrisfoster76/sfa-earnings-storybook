@@ -1,0 +1,75 @@
+{
+  "consumerReference": "2226342",
+  "learner": {
+    "uln": 9003828503,
+    "learnerRef": "9003828503",
+    "firstName": "GivenNames",
+    "lastName": "FamilyName",
+    "dob": "1969-02-05",
+    "email": "myemail@myemail.com",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "englishAndMaths": [
+      {
+        "startDate": "2024-08-12",
+        "endDate": "2024-12-21",
+        "courseCode": 260,
+        "completionDate": null,
+        "withdrawalDate": null,
+        "priorLearningAdjustment": null,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": "2024-09-27",
+        "aimSequenceNumber": 3,
+        "learnAimRef": "6034992X",
+        "actualEndDate": "2024-09-27",
+        "achievementDate": null
+      },
+      {
+        "startDate": "2024-12-03",
+        "endDate": "2025-02-26",
+        "courseCode": 260,
+        "completionDate": "2025-03-03",
+        "withdrawalDate": null,
+        "priorLearningAdjustment": null,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": null,
+        "aimSequenceNumber": 6,
+        "learnAimRef": "6034992X",
+        "actualEndDate": "2025-03-03",
+        "achievementDate": null
+      }
+    ],
+    "onProgramme": [
+      {
+        "care": {
+          "careLeaver": false,
+          "employerConsent": true
+        },
+        "standardCode": 260,
+        "startDate": "2024-12-03",
+        "expectedEndDate": "2025-02-26",
+        "offTheJobHours": 766,
+        "costs": [
+          {
+            "trainingPrice": 4192,
+            "epaoPrice": 808,
+            "fromDate": "2024-12-03"
+          }
+        ],
+        "completionDate": "2025-04-10",
+        "withdrawalDate": null,
+        "withdrawalReasonCode": null,
+        "learningSupport": [],
+        "isFlexiJob": false,
+        "pauseDate": null,
+        "aimSequenceNumber": 4,
+        "learnAimRef": "ZPROG001",
+        "actualEndDate": "2025-04-10",
+        "achievementDate": "2025-07-04"
+      }
+    ]
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "name": "Start Date Change Pending Approval, Then Employer Approved",
+  "description": "FLP-2090. SLD POSTs a draft apprenticeship, Commitments approves it, then SLD PUTs a new StartDate on the 13th, which the local Approvals stub answers EmployerApprovalRequested (pending). Both Learning and Earnings flag the episode FurtherApprovalNeeded and Earnings withholds payments. The employer then approves the change: Approvals publishes LearningChangeApprovedEvent (StartDate 2025-09-01 to 2025-09-13). Learning checks the change matches its current start date, clears its flag, echoes the change to Approvals (ApprovedLearningUpdatedEvent) and publishes EpisodeApprovedEvent. Earnings clears its flag and releases on-programme payments from the 13th. Bus messages are asserted from EventHub's ReceivedEvents, so EventHub must be running locally (the storybook checks before running).",
+  "wipeOnRun": true,
+  "tags": [
+    "Approvals Integration"
+  ],
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner and Learning Keys",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-keys.sql",
+      "extract": {
+        "learnerKey": "LearnerKey",
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Changes the Start Date to the 13th (Approvals answers pending)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-start-date-change-pending.json",
+      "extract": {}
+    },
+    {
+      "name": "Capture the Earnings Start Date While the Change Is Pending",
+      "type": "Sql",
+      "connectionName": "Earnings",
+      "queryFile": "06-earnings-price-start-date.sql",
+      "extract": {
+        "earningsStartDateWhilePending": "StartDate"
+      }
+    },
+    {
+      "name": "Capture the Earnings Flag While the Change Is Pending",
+      "type": "Sql",
+      "connectionName": "Earnings",
+      "queryFile": "07-earnings-further-approval-needed.sql",
+      "extract": {
+        "earningsFurtherApprovalNeededWhilePending": "FurtherApprovalNeeded"
+      }
+    },
+    {
+      "name": "Employer Approves the Start Date Change",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.LearningChangeApprovedEvent",
+      "payloadFile": "08-learning-change-approved-event.json"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Earnings took the pending start date",
+      "type": "Context",
+      "expected": [
+        {
+          "field": "earningsStartDateWhilePending",
+          "value": "2025-09-13"
+        }
+      ]
+    },
+    {
+      "name": "Earnings episode needed further approval while the change was pending",
+      "type": "Context",
+      "expected": [
+        {
+          "field": "earningsFurtherApprovalNeededWhilePending",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Learning episode no longer needs further approval",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "09-episode-further-approval-needed.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "False"
+        }
+      ]
+    },
+    {
+      "name": "Earnings episode no longer needs further approval",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "07-earnings-further-approval-needed.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "False"
+        }
+      ]
+    },
+    {
+      "name": "Earnings still has the approved start date",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "06-earnings-price-start-date.sql",
+      "expected": [
+        {
+          "field": "StartDate",
+          "value": "2025-09-13"
+        }
+      ]
+    },
+    {
+      "name": "Payments are withheld once, then the approved change is echoed, the episode approved, and on-programme payments released from the 13th",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "10-eventhub-events.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "Withholds",
+          "value": "1"
+        },
+        {
+          "field": "ApprovedStartDateTo13th",
+          "value": "1"
+        },
+        {
+          "field": "EpisodeApprovals",
+          "value": "1"
+        },
+        {
+          "field": "OnProgrammePaymentsFrom13th",
+          "value": "1"
+        }
+      ]
+    }
+  ]
+}

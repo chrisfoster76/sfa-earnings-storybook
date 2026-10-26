@@ -1,0 +1,26 @@
+{
+  "name": "Apprenticeship — Draft POST with English & Maths withdrawn then restarted, then Approve (2627 AY)",
+  "description": "POSTs a draft apprenticeship with an English & Maths course withdrawn on 2026-11-01 (started 2026-09-01) and a second E&M element for the same course starting 2027-01-04, then fires ApprenticeshipCreatedEvent to approve it. All dates after 01-Aug-2026 (2627 AY). No assertions.",
+  "wipeOnRun": true,
+  "tags": [
+    "FLP-1537",
+    "FLP-2009"
+  ],
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship with withdrawn and restarted English & Maths",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    }
+  ]
+}

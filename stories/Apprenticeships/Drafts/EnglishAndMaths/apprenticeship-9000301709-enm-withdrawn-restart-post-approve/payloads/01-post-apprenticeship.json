@@ -1,0 +1,72 @@
+{
+  "consumerReference": "32258",
+  "learner": {
+    "uln": 9000301709,
+    "learnerRef": "9000301709",
+    "firstName": "Mary Jane",
+    "lastName": "Sméth",
+    "dob": "1989-10-16",
+    "email": "myemail@myemail.com",
+    "hasEhcp": false
+  },
+  "delivery": {
+    "englishAndMaths": [
+      {
+        "startDate": "2025-03-11",
+        "endDate": "2025-07-10",
+        "courseCode": 138,
+        "completionDate": null,
+        "withdrawalDate": "2025-03-11",
+        "priorLearningAdjustment": null,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": null,
+        "aimSequenceNumber": 3,
+        "learnAimRef": "60346498",
+        "actualEndDate": "2025-03-11"
+      },
+      {
+        "startDate": "2025-05-06",
+        "endDate": "2025-09-05",
+        "courseCode": 138,
+        "completionDate": "2025-06-11",
+        "withdrawalDate": null,
+        "priorLearningAdjustment": null,
+        "otherFundingAdjustment": null,
+        "learningSupport": [],
+        "pauseDate": null,
+        "aimSequenceNumber": 4,
+        "learnAimRef": "60346498",
+        "actualEndDate": "2025-06-11"
+      }
+    ],
+    "onProgramme": [
+      {
+        "care": {
+          "careLeaver": false,
+          "employerConsent": true
+        },
+        "standardCode": 138,
+        "agreementId": null,
+        "startDate": "2025-03-11",
+        "expectedEndDate": "2027-03-31",
+        "offTheJobHours": 0,
+        "costs": [
+          {
+            "trainingPrice": 3100,
+            "epaoPrice": 900,
+            "fromDate": "2025-03-11"
+          }
+        ],
+        "completionDate": null,
+        "withdrawalDate": null,
+        "learningSupport": [],
+        "isFlexiJob": false,
+        "pauseDate": null,
+        "aimSequenceNumber": 1,
+        "learnAimRef": "ZPROG001",
+        "actualEndDate": null
+      }
+    ]
+  }
+}

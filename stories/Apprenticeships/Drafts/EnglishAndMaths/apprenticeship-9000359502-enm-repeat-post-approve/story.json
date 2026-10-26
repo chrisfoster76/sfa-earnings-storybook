@@ -1,0 +1,22 @@
+{
+  "name": "Apprenticeship 9000359502 — E&M Repeat after completion, POST then Approve",
+  "description": "From payloads5.json ULN 9000359502, original source dates, provider changed to UKPRN 10005077. A 'Repeat': the learner starts English & Maths aim 60346498 on 2023-11-13 on a first apprenticeship (standard 96) and completes it on 2025-04-24, then starts the same LearnAimRef again on 2025-08-26 alongside a second apprenticeship (standard 138). The POST carries both on-programme aims; the ApprenticeshipCreatedEvent step approves the first one (standard 96). No assertions.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship with English & Maths",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    }
+  ]
+}

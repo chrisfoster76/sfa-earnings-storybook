@@ -16,7 +16,7 @@
         "standardCode": 21,
         "learnAimRef": "ZPROG001",
         "agreementId": "123",
-        "startDate": "2026-04-01",
+        "startDate": "2026-08-01",
         "expectedEndDate": "2028-03-31",
         "completionDate": null,
         "withdrawalDate": null,
@@ -31,7 +31,7 @@
           {
             "trainingPrice": 6400,
             "epaoPrice": 1600,
-            "fromDate": "2026-04-01"
+            "fromDate": "2026-08-01"
           }
         ],
         "percentageOfTrainingLeft": 100,

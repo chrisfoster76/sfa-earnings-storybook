@@ -1,0 +1,46 @@
+{
+  "name": "Apprenticeship — Draft POST with mid-course price increase takes first price only (2627 AY)",
+  "description": "POSTs a draft apprenticeship learner to the LearnerData Outer API with the apprenticeship starting in the 2627 academic year (running 2 years) and a Costs array carrying two elements — the original price from the start date, and a price increase taking effect 2 months in. Only the first (earliest) cost is taken on POST, so checks it lands as an unapproved draft with a single price row for the original price and that the later increase is ignored.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537"],
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship with a mid-course price increase",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Episode exists as an unapproved draft",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "02-episode-draft.sql",
+      "expected": [
+        { "field": "IsApproved", "value": "False" }
+      ]
+    },
+    {
+      "name": "Only the first cost row persisted",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "03-price-count.sql",
+      "expected": [
+        { "field": "Count", "value": "1" }
+      ]
+    },
+    {
+      "name": "Persisted price is the initial price from start date",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "04-initial-price.sql",
+      "expected": [
+        { "field": "TrainingPrice", "value": "6400" },
+        { "field": "StartDate", "value": "2026-09-01" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "name": "Apprenticeship — Legacy Events: Same Learner/Course/Provider, Repeated Under Different Employers",
+  "description": "Reproduction attempt for a prod defect: some approved ApprenticeshipEpisode rows have ApprovalsApprenticeshipId = 0. Reported affected rows are 'continuations' — a learner repeatedly approved onto the same course, same provider, but under a different employer each time (ChangeOfEmployer/continuation in Commitments). This story simulates three legacy ApprenticeshipCreatedEvents arriving one after another for the same ULN/TrainingCode/UKPRN, each with a different AccountId (employer), ApprenticeshipId, and ContinuationOfId pointing at the previous one — with no SLD draft POST involved at all (draft-POST/FLP-1537 stays out of scope). No code bug has been found by static tracing in AddLearningCommandHandler/ApprenticeshipEpisodeDomainModel.Approve — every write path there uses the real incoming ApprenticeshipId. This story exists to either confirm that (all three episodes land with their own correct, non-zero ApprovalsApprenticeshipId) or disprove it (something lands at 0), before concluding the prod data issue is historical/migration-only rather than a live code bug.",
+  "wipeOnRun": true,
+  "tags": ["continuation", "legacy", "repro"],
+  "steps": [
+    {
+      "name": "Commitments approves the original apprenticeship (Employer A, ApprenticeshipId 300001)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "01-apprenticeship-created-employer-a.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments approves a continuation onto the same course/provider (Employer B, ApprenticeshipId 300002, ContinuationOfId 300001)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-employer-b.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Commitments approves a second continuation onto the same course/provider (Employer C, ApprenticeshipId 300003, ContinuationOfId 300002)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "03-apprenticeship-created-employer-c.json",
+      "delayMs": 3000
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Three independent ApprenticeshipLearning rows exist for the learner (no dedicated Repeat/Continuation handling — each event creates its own row)",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "04-count-learnings.sql",
+      "expected": [
+        { "field": "TotalEpisodes", "value": "3" }
+      ]
+    },
+    {
+      "name": "Each episode's ApprovalsApprenticeshipId matches the real incoming event value for its employer — none should be 0",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "05-approvals-ids-by-employer.sql",
+      "expected": [
+        { "field": "EmployerA_ApprovalsId", "value": "300001" },
+        { "field": "EmployerB_ApprovalsId", "value": "300002" },
+        { "field": "EmployerC_ApprovalsId", "value": "300003" }
+      ]
+    },
+    {
+      "name": "All three episodes are approved",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "06-approval-status.sql",
+      "expected": [
+        { "field": "ApprovedCount", "value": "3" },
+        { "field": "UnapprovedCount", "value": "0" }
+      ]
+    }
+  ]
+}

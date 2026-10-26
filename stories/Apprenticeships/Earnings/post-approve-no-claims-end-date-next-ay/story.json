@@ -1,0 +1,51 @@
+{
+  "name": "Short Course - POST and Approve, Expected End Date Falls Into 26/27, No Claims",
+  "description": "SLD POSTs a short course starting in AY 25/26 (2026-06-01) with an expected end date that falls into AY 26/27 (2026-09-30), no milestones claimed. Employer approves it. No PUT, no milestone claims. Variant of `post-approve-no-claims` with the expected end date crossing the AY boundary rather than staying within AY 25/26. Also queries the AY 26/27 short course earnings endpoint and asserts only the 2627 completion earning is returned — not the 2526 ThirtyPercentLearningComplete milestone earning. **Gap story — currently fails**: the endpoint returns both the 2627 LearningComplete earning and a leaked 2526 ThirtyPercentLearningComplete earning that was never claimed.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create a Short Course",
+      "verb": "POST",
+      "route": "/providers/10005077/shortCourses",
+      "payloadFile": "01-post-short-course.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approves the Short Course",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get AY 26/27 Short Course Earnings",
+      "verb": "GET",
+      "route": "/providers/10005077/shortCourses/earnings?academicYear=2627&collectionPeriod=1&page=1&pagesize=20",
+      "extract": {
+        "earningsTotal": "$.total",
+        "earning0CollectionYear": "$.learners[0].courses[0].earnings[0].collectionYear",
+        "earning0Milestone": "$.learners[0].courses[0].earnings[0].milestone",
+        "earning1CollectionYear": "$.learners[0].courses[0].earnings[1].collectionYear",
+        "earning1Milestone": "$.learners[0].courses[0].earnings[1].milestone"
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "name": "AY 26/27 earnings response returns the 2627 completion earning",
+      "type": "Context",
+      "expected": [
+        { "field": "earning0CollectionYear", "value": "2627" },
+        { "field": "earning0Milestone", "value": "LearningComplete" }
+      ]
+    },
+    {
+      "name": "AY 26/27 earnings response does not also return the unclaimed 2526 milestone earning",
+      "type": "Context",
+      "expected": [
+        { "field": "earning1CollectionYear", "value": "<not set>" },
+        { "field": "earning1Milestone", "value": "<not set>" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Apprenticeship — E&M DivideByZeroException (FLP-2103)",
+  "description": "Minimal repro for FLP-2103: an English & Maths course made of two ILR rows where the second (final) row has StartDate == EndDate on a non-month-end day. The merged period's OriginalExpectedEndDate rolls back a calendar month via LastCensusDate(), making CalculateNumberOfInstalments return 0 and EnglishAndMathsPayments divide by zero.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create an Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    }
+  ]
+}

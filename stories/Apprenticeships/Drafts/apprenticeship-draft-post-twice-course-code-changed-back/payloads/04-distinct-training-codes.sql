@@ -1,4 +1,4 @@
-SELECT COUNT(DISTINCT ae.[TrainingCode]) AS Count
+SELECT COUNT(DISTINCT al.[TrainingCode]) AS Count
 FROM [ApprenticeshipEpisode] ae
 INNER JOIN [ApprenticeshipLearning] al ON al.[Key] = ae.[LearningKey]
 INNER JOIN [Learner] l ON l.[Key] = al.[LearnerKey]

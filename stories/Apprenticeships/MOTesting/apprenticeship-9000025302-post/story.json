@@ -1,0 +1,14 @@
+{
+  "name": "Apprenticeship 9000025302 — POST only",
+  "description": "POSTs the AY2627-shifted ILR record for ULN 9000025302 (from payloads5-modified.json) to the LearnerData Outer API.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Create an Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    }
+  ]
+}

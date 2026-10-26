@@ -1,0 +1,23 @@
+{
+  "name": "Apprenticeship — Draft POST Withdrawn & Never Approved (2627 AY), then POST a New Course (2728 AY)",
+  "description": "Variant of apprenticeship-draft-post-progression-2728: POSTs a draft apprenticeship for the 2627 academic year that is already withdrawn at POST time (withdrawalDate set) and is never approved via ApprenticeshipCreatedEvent. Then SLD POSTs the same learner onto a different, unrelated course starting in the 2728 academic year — exploring how the draft-POST/Progression path behaves when a learner's only prior record is an unapproved, withdrawn draft. Exploratory — no assertions yet.",
+  "wipeOnRun": true,
+  "tags": ["FLP-1537", "FLP-2009"],
+  "steps": [
+    {
+      "name": "SLD Create a Draft Apprenticeship, Already Withdrawn (2627 AY)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship-withdrawn.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "SLD POSTs the Same Learner onto a Different Course (2728 AY)",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "02-post-different-course-2728.json",
+      "extract": {}
+    }
+  ]
+}
