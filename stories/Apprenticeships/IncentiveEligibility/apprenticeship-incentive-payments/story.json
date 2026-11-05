@@ -1,20 +1,28 @@
 {
   "name": "Eligibile",
-  "description": "Creates and approves a 2-year apprenticeship for an 18-year-old learner (Riley Brooks, DOB 2008-01-01, start 2026-04-01). Both incentive milestones fall within the end date: the 90th day (2026-06-29, 2526 DP11) and the 365th day (2027-03-31, 2627 DP8). Provider and employer incentives (£500 each) should be generated at each milestone.",
+  "description": "SLD POSTs a draft 2-year apprenticeship for an 18-year-old learner (Riley Brooks, DOB 2012-01-01, start 2030-04-01), and the employer approves it. Both incentive milestones fall within the end date: the 90th day (2030-06-29, 2930 DP11) and the 365th day (2031-03-31, 3031 DP8). Provider and employer incentives (£500 each) should be generated at each milestone.",
   "wipeOnRun": true,
   "steps": [
     {
-      "name": "Commitments Approves an Apprenticeship",
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
       "type": "Event",
       "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
-      "payloadFile": "01-apprenticeship-created-event.json",
+      "payloadFile": "02-apprenticeship-created-event.json",
       "delayMs": 3000
     },
     {
       "name": "Get Learner Key",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "02-get-learner-key.sql",
+      "queryFile": "03-get-learner-key.sql",
       "extract": {
         "learnerKey": "LearnerKey"
       }
@@ -23,13 +31,13 @@
       "name": "SLD Submits Learner Details",
       "verb": "PUT",
       "route": "/providers/10005077/learning/{learnerKey}",
-      "payloadFile": "03-put-on-programme.json",
+      "payloadFile": "04-put-on-programme.json",
       "extract": {}
     }
   ],
   "assertions": [
     {
-      "name": "90-day provider incentive (2526 DP11)",
+      "name": "90-day provider incentive (2930 DP11)",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "90d-provider-incentive.sql",
@@ -45,7 +53,7 @@
       ]
     },
     {
-      "name": "90-day employer incentive (2526 DP11)",
+      "name": "90-day employer incentive (2930 DP11)",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "90d-employer-incentive.sql",
@@ -61,7 +69,7 @@
       ]
     },
     {
-      "name": "365-day provider incentive (2627 DP8)",
+      "name": "365-day provider incentive (3031 DP8)",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "365d-provider-incentive.sql",
@@ -77,7 +85,7 @@
       ]
     },
     {
-      "name": "365-day employer incentive (2627 DP8)",
+      "name": "365-day employer incentive (3031 DP8)",
       "type": "SQL",
       "connectionName": "Earnings",
       "queryFile": "365d-employer-incentive.sql",

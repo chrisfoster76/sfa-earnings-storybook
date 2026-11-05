@@ -1,29 +1,37 @@
 {
   "name": "90 day Withdrawal eligibility",
-  "description": "Creates and approves a 2-year apprenticeship for Riley Brooks (DOB 2008-01-01, start 2026-04-01). PUTs a withdrawal on the 90th day (2026-06-29) — the incentive milestone falls on that day, so both incentive payments should be generated. Then moves the withdrawal back one day to the 89th (2026-06-28), which is before the milestone — both incentives should be removed.",
+  "description": "SLD POSTs a draft 2-year apprenticeship for Riley Brooks (DOB 2012-01-01, start 2030-04-01), and the employer approves it. PUTs a withdrawal on the 90th day (2030-06-29) — the incentive milestone falls on that day, so both incentive payments should be generated. Then moves the withdrawal back one day to the 89th (2030-06-28), which is before the milestone — both incentives should be removed.",
   "wipeOnRun": true,
   "steps": [
     {
-      "name": "Commitments Approves an Apprenticeship",
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
       "type": "Event",
       "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
-      "payloadFile": "01-apprenticeship-created-event.json",
+      "payloadFile": "02-apprenticeship-created-event.json",
       "delayMs": 3000
     },
     {
       "name": "Get Learner Key",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "02-get-learner-key.sql",
+      "queryFile": "03-get-learner-key.sql",
       "extract": {
         "learnerKey": "LearnerKey"
       }
     },
     {
-      "name": "SLD Submits Withdrawal on Day 90 (2026-06-29)",
+      "name": "SLD Submits Withdrawal on Day 90 (2030-06-29)",
       "verb": "PUT",
       "route": "/providers/10005077/learning/{learnerKey}",
-      "payloadFile": "03-put-withdrawal-day90.json",
+      "payloadFile": "04-put-withdrawal-day90.json",
       "extract": {}
     },
     {
@@ -39,10 +47,10 @@
       ]
     },
     {
-      "name": "SLD Moves Withdrawal Back to Day 89 (2026-06-28)",
+      "name": "SLD Moves Withdrawal Back to Day 89 (2030-06-28)",
       "verb": "PUT",
       "route": "/providers/10005077/learning/{learnerKey}",
-      "payloadFile": "04-put-withdrawal-day89.json",
+      "payloadFile": "05-put-withdrawal-day89.json",
       "extract": {}
     },
     {

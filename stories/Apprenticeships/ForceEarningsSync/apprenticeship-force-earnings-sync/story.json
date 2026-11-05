@@ -1,0 +1,136 @@
+{
+  "name": "Force Earnings Sync on an Unchanged Resubmission",
+  "description": "FLP-2033. SLD POSTs a draft apprenticeship and Commitments approves it, which releases its earnings to Payments once. SLD then PUTs the learner unchanged: nothing changed, so nothing is released. Support then sets ForceEarningsSync on the episode and SLD PUTs the learner unchanged again: Learning reports only ForceEarningsSync, and the outer API releases all earnings (ReleaseType All, no E&M keys) without recalculating. Support then clears the flag. Expect two on-programme releases in total: the approval and the forced one. Needs the ForceEarningsSync column in the local Learning DB. Bus messages are asserted from EventHub's ReceivedEvents, so EventHub must be running locally.",
+  "wipeOnRun": true,
+  "tags": [
+    "Force Earnings Sync"
+  ],
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      },
+      "delayMs": 7000
+    },
+    {
+      "name": "Approval released on-programme earnings once",
+      "type": "Assert",
+      "connectionName": "EventHub",
+      "queryFile": "09-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "OnProgrammeReleases",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "SLD Resubmits the Learner Unchanged (nothing released)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 7000
+    },
+    {
+      "name": "The unchanged resubmission released nothing",
+      "type": "Assert",
+      "connectionName": "EventHub",
+      "queryFile": "09-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "OnProgrammeReleases",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "Support Sets ForceEarningsSync",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "05-set-force-earnings-sync-on.sql",
+      "extract": {
+        "forceEarningsSync": "ForceEarningsSync"
+      }
+    },
+    {
+      "name": "SLD Resubmits the Learner Unchanged Again (all earnings released)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {}
+    },
+    {
+      "name": "Support Clears ForceEarningsSync",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "07-set-force-earnings-sync-off.sql",
+      "extract": {
+        "forceEarningsSync": "ForceEarningsSync"
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Only the forced resubmission is recorded as an update, with ForceEarningsSync as its only change",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "08-learning-history.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "ForcedUpdates",
+          "value": "1"
+        },
+        {
+          "field": "Updates",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "On-programme earnings are released twice: on approval and on the forced resubmission",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "09-eventhub-events.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "OnProgrammeReleases",
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "name": "Every release carries the learner key",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "09-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "ReleasesWithEmptyLearnerKey",
+          "value": "0"
+        }
+      ]
+    }
+  ]
+}

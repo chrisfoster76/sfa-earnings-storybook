@@ -1,0 +1,128 @@
+{
+  "name": "Force Earnings Sync on a Submission With Real Changes",
+  "description": "FLP-2033 (force plus genuine changes). SLD POSTs a draft apprenticeship and Commitments approves it, which releases on-programme earnings once. Support sets ForceEarningsSync and SLD PUTs a later expected end date and a new Maths course in the same submission. Earnings recalculates on-programme and creates the Maths course as usual, but the outer API skips the release it would normally compute and releases All with no keys only, which covers on-programme and the new Maths course. Support then clears the flag. Expect on-programme 2 (approval, forced) and Maths 1. On-programme at 3 or Maths at 2 means the computed release was sent as well as the forced one. Any aim ref other than 400/404/500/DECIMAL earns the SLD stub's default value. Needs the ForceEarningsSync column in the local Learning DB. Bus messages are asserted from EventHub's ReceivedEvents, so EventHub must be running locally.",
+  "wipeOnRun": true,
+  "tags": [
+    "Force Earnings Sync"
+  ],
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      },
+      "delayMs": 7000
+    },
+    {
+      "name": "Approval released on-programme earnings once",
+      "type": "Assert",
+      "connectionName": "EventHub",
+      "queryFile": "08-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "OnProgrammeReleases",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "Support Sets ForceEarningsSync",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "04-set-force-earnings-sync-on.sql",
+      "extract": {
+        "forceEarningsSync": "ForceEarningsSync"
+      }
+    },
+    {
+      "name": "SLD Changes the Expected End Date and Adds Maths (all earnings released once)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "05-put-end-date-change-and-add-maths.json",
+      "extract": {}
+    },
+    {
+      "name": "Support Clears ForceEarningsSync",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "06-set-force-earnings-sync-off.sql",
+      "extract": {
+        "forceEarningsSync": "ForceEarningsSync"
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "name": "The forced resubmission is recorded with ExpectedEndDate, EnglishAndMaths and ForceEarningsSync",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "07-learning-history.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "ForcedChangedUpdates",
+          "value": "1"
+        },
+        {
+          "field": "Updates",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "On-programme is released once more and the new Maths course once, by the forced release",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "08-eventhub-events.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "OnProgrammeReleases",
+          "value": "2"
+        },
+        {
+          "field": "MathsReleases",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "Nothing is released twice by the forced resubmission, and every release carries the learner key",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "08-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "OnProgrammeReleases",
+          "value": "2"
+        },
+        {
+          "field": "MathsReleases",
+          "value": "1"
+        },
+        {
+          "field": "ReleasesWithEmptyLearnerKey",
+          "value": "0"
+        }
+      ]
+    }
+  ]
+}

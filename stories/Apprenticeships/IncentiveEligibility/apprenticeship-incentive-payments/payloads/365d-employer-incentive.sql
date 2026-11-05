@@ -1,3 +1,3 @@
 SELECT CONVERT(INT, [Amount]) AS [Amount], [DeliveryPeriod]
 FROM [Domain].[ApprenticeshipAdditionalPayment]
-WHERE [AdditionalPaymentType] = 'EmployerIncentive' AND [AcademicYear] = 2627
+WHERE [AdditionalPaymentType] = 'EmployerIncentive' AND [AcademicYear] = 3031

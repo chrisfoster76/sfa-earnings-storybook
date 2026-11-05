@@ -1,0 +1,165 @@
+{
+  "name": "Force Earnings Sync on a Submission Removing English & Maths",
+  "description": "FLP-2033 (force plus a real E&M change). SLD POSTs a draft apprenticeship and Commitments approves it, which releases on-programme earnings once. SLD then PUTs Maths and English (unforced): both courses are released once, as created courses. Support sets ForceEarningsSync and SLD PUTs again with English omitted, so Earnings removes it. The outer API releases All with no keys, which sends on-programme and the still-active Maths course, plus a FunctionalSkill release with only the removed English key, so Payments can clear it. Support then clears the flag. Expect on-programme 2 (approval, forced), Maths 2 (created, forced) and English 2 (created, removal). English at 1 means the removed-course release was missed; English at 3 means the two releases overlapped. Any aim ref other than 400/404/500/DECIMAL earns the SLD stub's default value. Needs the ForceEarningsSync column in the local Learning DB. Bus messages are asserted from EventHub's ReceivedEvents, so EventHub must be running locally.",
+  "wipeOnRun": true,
+  "tags": [
+    "Force Earnings Sync"
+  ],
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      },
+      "delayMs": 7000
+    },
+    {
+      "name": "Approval released on-programme earnings once",
+      "type": "Assert",
+      "connectionName": "EventHub",
+      "queryFile": "09-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "OnProgrammeReleases",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "SLD Adds Maths and English (unforced)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-add-maths-and-english.json",
+      "extract": {},
+      "delayMs": 7000
+    },
+    {
+      "name": "Both new courses released once, on-programme not released again",
+      "type": "Assert",
+      "connectionName": "EventHub",
+      "queryFile": "09-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "OnProgrammeReleases",
+          "value": "1"
+        },
+        {
+          "field": "MathsReleases",
+          "value": "1"
+        },
+        {
+          "field": "EnglishReleases",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "Support Sets ForceEarningsSync",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "05-set-force-earnings-sync-on.sql",
+      "extract": {
+        "forceEarningsSync": "ForceEarningsSync"
+      }
+    },
+    {
+      "name": "SLD Resubmits Without English (all earnings released, plus the removed course)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "06-put-remove-english.json",
+      "extract": {}
+    },
+    {
+      "name": "Support Clears ForceEarningsSync",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "07-set-force-earnings-sync-off.sql",
+      "extract": {
+        "forceEarningsSync": "ForceEarningsSync"
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "name": "The forced resubmission is recorded with both EnglishAndMaths and ForceEarningsSync",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "08-learning-history.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "ForcedEnglishAndMathsUpdates",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "The removed English course is released again so Payments can clear it",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "09-eventhub-events.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "EnglishReleases",
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "name": "On-programme and the active Maths course are each released once more by the force",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "09-eventhub-events.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "OnProgrammeReleases",
+          "value": "2"
+        },
+        {
+          "field": "MathsReleases",
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "name": "No course is released twice by the forced resubmission, and every release carries the learner key",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "09-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "EnglishReleases",
+          "value": "2"
+        },
+        {
+          "field": "MathsReleases",
+          "value": "2"
+        },
+        {
+          "field": "ReleasesWithEmptyLearnerKey",
+          "value": "0"
+        }
+      ]
+    }
+  ]
+}
