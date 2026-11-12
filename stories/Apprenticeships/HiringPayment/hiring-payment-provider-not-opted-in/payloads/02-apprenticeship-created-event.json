@@ -1,0 +1,32 @@
+{
+  "ApprenticeshipId": 800102,
+  "ApprenticeshipHashedId": "",
+  "Uln": "11111202",
+  "ProviderId": 10005078,
+  "LearningType": "Apprenticeship",
+  "DeliveryModel": "Regular",
+  "ApprenticeshipEmployerTypeOnApproval": "NonLevy",
+  "DateOfBirth": "2009-06-01T00:00:00Z",
+  "FirstName": "Jordan",
+  "LastName": "Price",
+  "IsOnFlexiPaymentPilot": true,
+  "ActualStartDate": "2026-10-01T00:00:00Z",
+  "StartDate": "2026-10-01T00:00:00Z",
+  "EndDate": "2028-09-30T00:00:00Z",
+  "TrainingCode": "21",
+  "TrainingCourseVersion": "",
+  "TrainingCourseOption": "",
+  "TrainingType": "Standard",
+  "LegalEntityName": "Test Org",
+  "AccountLegalEntityId": 1,
+  "AccountId": 1,
+  "PriceEpisodes": [
+    {
+      "Cost": 8000,
+      "EndPointAssessmentPrice": 1600,
+      "TrainingPrice": 6400,
+      "FromDate": "2026-10-01T00:00:00Z",
+      "ToDate": "2028-09-30T00:00:00Z"
+    }
+  ]
+}

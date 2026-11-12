@@ -1,0 +1,124 @@
+{
+  "name": "Price Change Pending Approval, Then Stale Employer Approval",
+  "description": "FLP-2082 (Q7). SLD POSTs a draft apprenticeship (training 6400, EPA 1600), Commitments approves it, then SLD PUTs a changed price (training 7200, EPA 1800), which the local Approvals stub answers EmployerApprovalRequested (pending). Both Learning and Earnings flag the episode FurtherApprovalNeeded and Earnings withholds payments. Approvals then publishes LearningChangeApprovedEvent with prices of training 7000, EPA 1800, which don't match the prices Learning holds (the whole list must match), so Learning drops the approval: both flags stay set, nothing is echoed to Approvals, no EpisodeApprovedEvent is published and no on-programme payments are released. Nothing observable happens on a dropped approval, so the approval step waits 15s before the assertions. Bus messages are asserted from EventHub's ReceivedEvents, so EventHub must be running locally (the storybook checks before running).",
+  "wipeOnRun": true,
+  "tags": [
+    "Approvals Integration"
+  ],
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner and Learning Keys",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-keys.sql",
+      "extract": {
+        "learnerKey": "LearnerKey",
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Changes the Price (the local Approvals stub answers a price-only change EmployerApprovalRequested)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-price-change.json",
+      "extract": {}
+    },
+    {
+      "name": "Employer Approval Arrives for Different Prices (stale)",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.LearningChangeApprovedEvent",
+      "payloadFile": "09-stale-learning-change-approved-event.json",
+      "delayMs": 15000
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Payments were withheld for the pending change",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "10-eventhub-events.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "Withholds",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "Learning episode still needs further approval",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "06-episode-further-approval-needed.sql",
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Earnings episode still needs further approval",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "08-earnings-further-approval-needed.sql",
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Learning keeps the pending price",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "05-episode-prices.sql",
+      "expected": [
+        {
+          "field": "LatestTrainingPrice",
+          "value": "7200"
+        },
+        {
+          "field": "LatestEndPointAssessmentPrice",
+          "value": "1800"
+        }
+      ]
+    },
+    {
+      "name": "Nothing is echoed to Approvals, no episode is approved and no on-programme payments are released at the new price",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "10-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "ApprovedLearningUpdates",
+          "value": "0"
+        },
+        {
+          "field": "EpisodeApprovals",
+          "value": "0"
+        },
+        {
+          "field": "OnProgrammePaymentsAt9000",
+          "value": "0"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "LearningKey": "{learningKey}",
+  "ApprenticeshipId": 200044,
+  "Changes": [],
+  "Prices": [
+    {
+      "TrainingPrice": 7000,
+      "AssessmentPrice": 1800,
+      "EffectiveFrom": "2025-09-01"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
-  "name": "Apprenticeship — Draft POST, Approve, Then PUT Price Change",
-  "description": "SLD POSTs a draft apprenticeship with a single price, Commitments approves it via ApprenticeshipCreatedEvent, then SLD PUTs the same learner with a changed price (training 6400 to 7200, EPA 1600 to 1800) and nothing else changed. Prices are not yet part of the Approvals integration, but the end state is the same as for a start date change: no further approval needed.",
+  "name": "Price Change Pending Approval",
+  "description": "FLP-1369. SLD POSTs a draft apprenticeship with a single price (training 6400, EPA 1600), Commitments approves it, then SLD PUTs the same learner with a changed price (training 7200, EPA 1800) and nothing else changed. Learning marks Prices as needing approval and asks Approvals with NewPrices and no Changes; the local Approvals stub answers a price-only change EmployerApprovalRequested (pending). Earnings is still updated with the new price, both Learning and Earnings flag the episode FurtherApprovalNeeded, and Earnings withholds payments. Bus messages are asserted from EventHub's ReceivedEvents, so EventHub must be running locally (the storybook checks before running).",
   "wipeOnRun": true,
   "tags": [
     "Approvals Integration"
@@ -22,16 +22,17 @@
       "delayMs": 3000
     },
     {
-      "name": "Get Learner Key",
+      "name": "Get Learner and Learning Keys",
       "type": "Sql",
       "connectionName": "Learning",
-      "queryFile": "03-get-learner-key.sql",
+      "queryFile": "03-get-learning-keys.sql",
       "extract": {
-        "learnerKey": "LearnerKey"
+        "learnerKey": "LearnerKey",
+        "learningKey": "LearningKey"
       }
     },
     {
-      "name": "SLD Changes the Price",
+      "name": "SLD Changes the Price (the local Approvals stub answers a price-only change EmployerApprovalRequested)",
       "verb": "PUT",
       "route": "/providers/10005077/learning/{learnerKey}",
       "payloadFile": "04-put-price-change.json",
@@ -40,42 +41,95 @@
   ],
   "assertions": [
     {
-      "name": "Single price updated, start date unchanged",
+      "name": "Learning has the new price",
       "type": "SQL",
       "connectionName": "Learning",
-      "queryFile": "05-episode-price.sql",
+      "queryFile": "05-episode-prices.sql",
       "expected": [
-        {
-          "field": "StartDate",
-          "value": "2025-09-01"
-        },
         {
           "field": "PriceCount",
           "value": "1"
         },
         {
-          "field": "TrainingPrice",
+          "field": "FirstPriceStartDate",
+          "value": "2025-09-01"
+        },
+        {
+          "field": "LatestTrainingPrice",
           "value": "7200"
         },
         {
-          "field": "EndPointAssessmentPrice",
+          "field": "LatestEndPointAssessmentPrice",
           "value": "1800"
-        },
-        {
-          "field": "TotalPrice",
-          "value": "9000"
         }
       ]
     },
     {
-      "name": "Episode does not need further approval",
+      "name": "Learning episode needs further approval",
       "type": "SQL",
       "connectionName": "Learning",
       "queryFile": "06-episode-further-approval-needed.sql",
       "expected": [
         {
           "field": "FurtherApprovalNeeded",
-          "value": "False"
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Earnings has the new price",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "07-earnings-prices.sql",
+      "expected": [
+        {
+          "field": "PriceCount",
+          "value": "1"
+        },
+        {
+          "field": "LatestAgreedPrice",
+          "value": "9000"
+        }
+      ]
+    },
+    {
+      "name": "Earnings episode needs further approval",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "08-earnings-further-approval-needed.sql",
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Earnings withholds payments for the learning",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "10-eventhub-events.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "Withholds",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "Nothing is echoed to Approvals and no on-programme payments are released at the new price",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "10-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "ApprovedLearningUpdates",
+          "value": "0"
+        },
+        {
+          "field": "OnProgrammePaymentsAt9000",
+          "value": "0"
         }
       ]
     }

@@ -1,0 +1,129 @@
+{
+  "name": "Later Price's Date Moved, Pending Approval",
+  "description": "FLP-1369 (Q4). SLD POSTs a draft apprenticeship with two prices (training 6400, EPA 1600 from 2025-09-01; training 7200, EPA 1800 from 2026-02-01), Commitments approves it, then SLD PUTs the same learner with the second price moved to 2026-03-01 and the amounts unchanged. Moving a later price's date is a price change (moving the first price's date would be a start date change), so Learning marks Prices as needing approval and asks Approvals with NewPrices and no Changes. The local Approvals stub answers a price-only change EmployerApprovalRequested (pending). The start date is unchanged, Earnings is still updated with the moved price, both Learning and Earnings flag the episode FurtherApprovalNeeded, and Earnings withholds payments. Bus messages are asserted from EventHub's ReceivedEvents, so EventHub must be running locally (the storybook checks before running).",
+  "wipeOnRun": true,
+  "tags": [
+    "Approvals Integration"
+  ],
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner and Learning Keys",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learning-keys.sql",
+      "extract": {
+        "learnerKey": "LearnerKey",
+        "learningKey": "LearningKey"
+      }
+    },
+    {
+      "name": "SLD Moves the Second Price to 2026-03-01 (the local Approvals stub answers a price-only change EmployerApprovalRequested)",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-later-price-date-moved.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Learning has the moved price and the same start date",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "05-episode-prices.sql",
+      "expected": [
+        {
+          "field": "PriceCount",
+          "value": "2"
+        },
+        {
+          "field": "FirstPriceStartDate",
+          "value": "2025-09-01"
+        },
+        {
+          "field": "LastPriceStartDate",
+          "value": "2026-03-01"
+        }
+      ]
+    },
+    {
+      "name": "Learning episode needs further approval",
+      "type": "SQL",
+      "connectionName": "Learning",
+      "queryFile": "06-episode-further-approval-needed.sql",
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Earnings has the moved price",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "07-earnings-prices.sql",
+      "expected": [
+        {
+          "field": "PriceCount",
+          "value": "2"
+        },
+        {
+          "field": "LastPriceStartDate",
+          "value": "2026-03-01"
+        }
+      ]
+    },
+    {
+      "name": "Earnings episode needs further approval",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "08-earnings-further-approval-needed.sql",
+      "expected": [
+        {
+          "field": "FurtherApprovalNeeded",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "name": "Earnings withholds payments for the learning",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "10-eventhub-events.sql",
+      "waitMs": 15000,
+      "expected": [
+        {
+          "field": "Withholds",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "Nothing is echoed to Approvals",
+      "type": "SQL",
+      "connectionName": "EventHub",
+      "queryFile": "10-eventhub-events.sql",
+      "expected": [
+        {
+          "field": "ApprovedLearningUpdates",
+          "value": "0"
+        }
+      ]
+    }
+  ]
+}

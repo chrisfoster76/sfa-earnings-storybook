@@ -1,0 +1,47 @@
+{
+  "name": "Hiring payment: opted-in provider",
+  "description": "FLP-1947. SLD POSTs a draft 2-year apprenticeship for a 17-year-old learner (Riley Hayes, DOB 2009-06-01, start 2026-10-01, expected end 2028-09-30) for opted-in provider 10005077, and a NON-LEVY employer approves it. The learner is on the full calculation, so on approval they earn the normal 16-18 incentives (4 rows) plus the hiring payment: £1,000 on day 90 (2026-12-29, 2627 DP5) and £1,000 on day 365 (2027-09-30, 2728 DP2). The hiring payment is only calculated on approval, because the levy status isn't known before then.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Non-Levy Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Both hiring payments (2627 DP5 and 2728 DP2, £1,000 each) and the 4 incentives",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "additional-payments.sql",
+      "waitMs": 15000,
+      "expected": [
+        { "field": "HiringPayments", "value": "2" },
+        { "field": "Day90", "value": "1" },
+        { "field": "Day365", "value": "1" },
+        { "field": "Incentives", "value": "4" }
+      ]
+    },
+    {
+      "name": "On the full calculation and approved",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "episode.sql",
+      "expected": [
+        { "field": "UsingEarnAndPayCalc", "value": "1" },
+        { "field": "IsApproved", "value": "1" }
+      ]
+    }
+  ]
+}

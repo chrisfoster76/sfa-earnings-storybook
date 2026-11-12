@@ -1,0 +1,104 @@
+{
+  "name": "Eligible despite short expected duration",
+  "description": "SLD POSTs a draft 10-month apprenticeship for an 18-year-old learner (Riley Brooks, DOB 2012-01-01, start 2030-04-01, expected end 2031-01-31), and the employer approves it. No completion, withdrawal or pause is recorded, so the learner is still in learning on both milestones: the 90th day (2030-06-29, 2930 DP11) and the 365th day (2031-03-31, 3031 DP8), which falls after the expected end date. Funding rules para 109: incentives are paid 'if the apprentice is still undertaking their apprenticeship', so the expected end date should not matter and both pairs of £500 incentives should be generated. EXPECTED TO FAIL TODAY on the two 365-day assertions: Earnings checks the milestones against LastDayOfLearning ?? planned end date (ApprenticeshipEpisode.cs:341). This contradicts the 365-day / 90-day 'Expected end date eligibility' stories, which assert the current behaviour. The current behaviour is what FLP-1034 / FLP-1044 / FLP-1276 specify ('duration = planned end date - start date + 1'), so this story asks a question of the BAs rather than proving a bug.",
+  "wipeOnRun": true,
+  "steps": [
+    {
+      "name": "SLD Creates a Draft Apprenticeship",
+      "verb": "POST",
+      "route": "/providers/10005077/learners",
+      "payloadFile": "01-post-apprenticeship.json",
+      "extract": {},
+      "delayMs": 3000
+    },
+    {
+      "name": "Employer Approves the Draft Apprenticeship",
+      "type": "Event",
+      "eventType": "SFA.DAS.CommitmentsV2.Messages.Events.ApprenticeshipCreatedEvent",
+      "payloadFile": "02-apprenticeship-created-event.json",
+      "delayMs": 3000
+    },
+    {
+      "name": "Get Learner Key",
+      "type": "Sql",
+      "connectionName": "Learning",
+      "queryFile": "03-get-learner-key.sql",
+      "extract": {
+        "learnerKey": "LearnerKey"
+      }
+    },
+    {
+      "name": "SLD Submits Learner Details",
+      "verb": "PUT",
+      "route": "/providers/10005077/learning/{learnerKey}",
+      "payloadFile": "04-put-on-programme.json",
+      "extract": {}
+    }
+  ],
+  "assertions": [
+    {
+      "name": "90-day provider incentive (2930 DP11)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "90d-provider-incentive.sql",
+      "expected": [
+        {
+          "field": "Amount",
+          "value": "500"
+        },
+        {
+          "field": "DeliveryPeriod",
+          "value": "11"
+        }
+      ]
+    },
+    {
+      "name": "90-day employer incentive (2930 DP11)",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "90d-employer-incentive.sql",
+      "expected": [
+        {
+          "field": "Amount",
+          "value": "500"
+        },
+        {
+          "field": "DeliveryPeriod",
+          "value": "11"
+        }
+      ]
+    },
+    {
+      "name": "365-day provider incentive (3031 DP8), after the expected end date",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "365d-provider-incentive.sql",
+      "expected": [
+        {
+          "field": "Amount",
+          "value": "500"
+        },
+        {
+          "field": "DeliveryPeriod",
+          "value": "8"
+        }
+      ]
+    },
+    {
+      "name": "365-day employer incentive (3031 DP8), after the expected end date",
+      "type": "SQL",
+      "connectionName": "Earnings",
+      "queryFile": "365d-employer-incentive.sql",
+      "expected": [
+        {
+          "field": "Amount",
+          "value": "500"
+        },
+        {
+          "field": "DeliveryPeriod",
+          "value": "8"
+        }
+      ]
+    }
+  ]
+}

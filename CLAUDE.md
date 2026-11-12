@@ -63,6 +63,7 @@ Next steps:
   - Day counts and delivery periods are unchanged.
   - Academic years: 2526→2930, 2627→3031, 2728→3132 in the SQL files and step names.
 - The draft POST mirrors the original plan: 2030-04-01 to 2032-03-31, £6,400 + £1,600.
+- **New 2026-11-05: `apprenticeship-incentive-short-expected-duration` ("Eligible despite short expected duration").** A copy of "Eligibile" with the expected end date moved to 2031-01-31 (10 months). It asserts the funding rules (para 109, "still undertaking"), not the code: it's **expected to fail on the two 365-day assertions** until Earnings stops using the planned end date as a fallback (see `projects/earnings/tickets/upcoming/hiring-payment.md`, open questions). It contradicts the "90 / 365 day Expected end date eligibility" stories, which assert the current behaviour.
 
 ### Other issues spotted (fix while migrating)
 
